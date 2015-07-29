@@ -451,7 +451,7 @@ Reporting Issues can be done at the following [link](https://github.com/etas/vs-
 
 ### Building from sources
 
-The process of building the Boost Test Adapter from sources is maintained at the following [link](/../../wiki/building.md).
+The process of building the Boost Test Adapter from sources is maintained at the following [link](/../../wiki/Building).
 
 ### Troubleshooting
 
