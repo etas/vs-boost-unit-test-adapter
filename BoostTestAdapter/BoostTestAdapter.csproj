@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BC4B3BED-9241-4DD6-8070-A9B66DFC08C1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BoostTestAdapter</RootNamespace>
+    <AssemblyName>BoostTestAdapter</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!--MSBuild 4.0 property-->
+    <ProgramFiles32>$(MSBuildProgramFiles32)</ProgramFiles32>
+    <!--Use OS env var as a fallback:- 32 bit MSBuild 2.0/3.5 on x64 will use this-->
+    <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)'">$(ProgramFiles%28x86%29)</ProgramFiles32>
+    <!-- Handle MSBuild 2.0/3.5 running in 64 bit mode - neither of the above env vars are available. http://stackoverflow.com/questions/336633
+    NB this trick (Adding a literal " (x86)" to the 64 bit Program Files path) may or may not work on all versions/locales of Windows -->
+    <ProgramFiles32 Condition="'$(ProgramFiles32)'=='' AND 'AMD64' == '$(PROCESSOR_ARCHITECTURE)'">$(ProgramFiles) (x86)</ProgramFiles32>
+    <!--Catch-all - handles .NET 2.0/3.5 non-AMD64 and .NET 2.0 on x86 -->
+    <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)' ">$(ProgramFiles)</ProgramFiles32>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="NCalc">
+      <HintPath>..\packages\NCalc.1.3.8\NCalc.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BoostTestDiscoverer.cs" />
+    <Compile Include="BoostTestDiscovererFactoryOptions.cs" />
+    <Compile Include="BoostTestDiscovererInternal.cs" />
+    <Compile Include="BoostTestExecutor.cs" />
+    <Compile Include="BoostTestExeDiscoverer.cs" />
+    <Compile Include="Boost\Results\BoostStandardError.cs" />
+    <Compile Include="Boost\Results\BoostStandardOutput.cs" />
+    <Compile Include="Boost\Results\BoostTestResultOutputBase.cs" />
+    <Compile Include="Boost\Results\BoostTestResultXMLOutput.cs" />
+    <Compile Include="Boost\Results\BoostXmlLog.cs" />
+    <Compile Include="Boost\Results\BoostXmlReport.cs" />
+    <Compile Include="Boost\Results\IBoostTestResultOutput.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntry.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryError.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryException.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryFatalError.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryInfo.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryMemoryLeak.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryMessage.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryStandardErrorMessage.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryStandardOutputMessage.cs" />
+    <Compile Include="Boost\Results\LogEntryTypes\LogEntryWarning.cs" />
+    <Compile Include="Boost\Results\TestResult.cs" />
+    <Compile Include="Boost\Results\TestResultCollection.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunner.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerBase.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerCommandLineArgs.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerFactoryOptions.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerSettings.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerTimeoutException.cs" />
+    <Compile Include="Boost\Runner\DefaultBoostTestRunnerFactory.cs" />
+    <Compile Include="Boost\Runner\ExternalBoostTestRunner.cs" />
+    <Compile Include="Boost\Runner\IBoostTestRunner.cs" />
+    <Compile Include="Boost\Runner\IBoostTestRunnerFactory.cs" />
+    <Compile Include="Boost\Test\ITestVisitable.cs" />
+    <Compile Include="Boost\Test\ITestVisitor.cs" />
+    <Compile Include="Boost\Test\TestCase.cs" />
+    <Compile Include="Boost\Test\TestFramework.cs" />
+    <Compile Include="Boost\Test\TestFrameworkBuilder.cs" />
+    <Compile Include="Boost\Test\TestSuite.cs" />
+    <Compile Include="Boost\Test\TestUnit.cs" />
+    <Compile Include="DefaultBoostTestDiscovererFactory.cs" />
+    <Compile Include="ExternalBoostTestDiscoverer.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IBoostTestDiscoverer.cs" />
+    <Compile Include="IBoostTestDiscovererFactory.cs" />
+    <Compile Include="ProjectInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings\BoostTestAdapterSettings.cs" />
+    <Compile Include="Settings\BoostTestAdapterSettingsProvider.cs" />
+    <Compile Include="Settings\ExternalBoostTestRunnerSettings.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusionsFilter.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\ConditionalInclusionsMachine.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToFailedIf.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToMultilineDefine.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToSuccessfullIf.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\IConditionalInclusionsState.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\IncludingDueToIf.cs" />
+    <Compile Include="SourceFilter\ConditionalInclusions\NormalState.cs" />
+    <Compile Include="SourceFilter\CppSourceFile.cs" />
+    <Compile Include="SourceFilter\ExpressionEvaluation.cs" />
+    <Compile Include="SourceFilter\IEvaluation.cs" />
+    <Compile Include="SourceFilter\ISourceFilter.cs" />
+    <Compile Include="SourceFilter\MultilineCommentFilter.cs" />
+    <Compile Include="SourceFilter\QuotedStringsFilter.cs" />
+    <Compile Include="SourceFilter\SingleLineCommentFilter.cs" />
+    <Compile Include="SourceFilter\SourceDiscoveryException.cs" />
+    <Compile Include="SourceFilter\SourceFilterFactory.cs" />
+    <Compile Include="Utility\Code.cs" />
+    <Compile Include="Utility\CommandEvaluator.cs" />
+    <Compile Include="Utility\CommandLine.cs" />
+    <Compile Include="Utility\Logger.cs" />
+    <Compile Include="Utility\NativeMethods.cs" />
+    <Compile Include="Utility\ProcessStartInfoEx.cs" />
+    <Compile Include="Utility\QualifiedNameBuilder.cs" />
+    <Compile Include="Utility\ROTException.cs" />
+    <Compile Include="Utility\SourceFileInfo.cs" />
+    <Compile Include="Utility\TestRun.cs" />
+    <Compile Include="Utility\VisualStudio\DefaultDiscoverySink.cs" />
+    <Compile Include="Utility\VisualStudio\DefaultVisualStudioInstanceProvider.cs" />
+    <Compile Include="Utility\VisualStudio\IVisualStudioInstanceProvider.cs" />
+    <Compile Include="Utility\VisualStudio\VSTestModel.cs" />
+    <Compile Include="Utility\XmlReaderHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
+      <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
+      <Name>VisualStudio2012Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualStudio2013Adapter\VisualStudio2013Adapter.csproj">
+      <Project>{82df0aeb-582a-4b38-96fc-aaee773beafe}</Project>
+      <Name>VisualStudio2013Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualStudio2015Adapter\VisualStudio2015Adapter.csproj">
+      <Project>{eb0051e3-1dda-418c-abaf-c1da5339114c}</Project>
+      <Name>VisualStudio2015Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualStudioAdapter\VisualStudioAdapter.csproj">
+      <Project>{62347cc7-c839-413d-a7ce-598409f6f15b}</Project>
+      <Name>VisualStudioAdapter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="EnvDTE">
+      <Guid>{80CC9F66-E7D8-4DDD-85B6-D9E6CD0E93E2}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="EnvDTE80">
+      <Guid>{1A31287A-4D7D-413E-8E32-3B374931BD89}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>REM required for the BoostTestPlugin so that the log4net config file is inlcuded as part of the vsix installation
+xcopy /c /i /y $(TargetFileName).config ..\..\..\BoostTestPlugin
+REM required by some unit tests in LoggerTest.cs so as to have a certain degree of confidence that log4net is actually logging to file
+xcopy /c /i /y $(TargetFileName).config ..\..\..\BoostTestAdapterNunit
+</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

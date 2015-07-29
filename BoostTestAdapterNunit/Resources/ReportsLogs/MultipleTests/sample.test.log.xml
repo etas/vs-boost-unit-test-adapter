@@ -1,0 +1,20 @@
+<TestLog>
+	<TestSuite name="CnvrtTest">
+		<TestSuite name="CCRootSerialiserTestSuite">
+			<TestCase name="DeserialiseInvalidFile">
+				<TestingTime>5000</TestingTime>
+			</TestCase>
+			<TestCase name="DeserialiseNonExistingFile">
+				<TestingTime>0</TestingTime>
+			</TestCase>
+		</TestSuite>
+		<TestSuite name="DET108781TestSuite">
+			<TestCase name="ExtendedMultiplexingTest">
+				<TestingTime>792000</TestingTime>
+			</TestCase>
+			<TestCase name="QPGroupingTest">
+				<TestingTime>941000</TestingTime>
+			</TestCase>
+		</TestSuite>
+	</TestSuite>
+</TestLog>
