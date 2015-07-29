@@ -443,7 +443,7 @@ The Boost Unit Test Adapter makes use of the below list of dynamically linked li
 
 ### Version history
 
-The version history is maintained at the following [link](/../../wiki/versionhistory.md).
+The version history is maintained at the following [link](/../../wiki/Version-History).
 
 ### Reporting Issues
 
@@ -455,4 +455,4 @@ The process of building the Boost Test Adapter from sources is maintained at the
 
 ### Troubleshooting
 
-The troubleshooting page is maintained at the following [link](/../../wiki/Troubleshooting.md).
+The troubleshooting page is maintained at the following [link](/../../wiki/Troubleshooting).
