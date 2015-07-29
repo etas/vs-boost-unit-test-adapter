@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+	<!-- Adapter Specific sections -->
+	<!-- BoostTest adapter -->
+	<BoostTest>
+		<TimeoutMilliseconds>600000</TimeoutMilliseconds>
+		<!-- Both 'true' and '1' are allowable values -->
+		<FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
+		<ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled>
+		<LogLevel>TestSuite</LogLevel>
+		<ExternalTestRunner type=".dll">
+			<DiscoveryCommandLine>C:\PROGRA~2\BoostExternalTestRunner.exe --test "{source}" --list-debug "{out}"</DiscoveryCommandLine>
+			<ExecutionCommandLine>C:\PROGRA~2\BoostExternalTestRunner.exe --test "{source}" {boost-args}</ExecutionCommandLine>
+		</ExternalTestRunner>
+	</BoostTest>
+</RunSettings>

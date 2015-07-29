@@ -1,0 +1,1 @@
+<TestLog><TestSuite name="MyTest"><TestCase name="BoostUnitTest123"><Exception file="unknown location" line="0"><![CDATA[C string: some error]]><LastCheckpoint file="boostunittestsample.cpp" line="13"><![CDATA[Going to throw an exception]]></LastCheckpoint></Exception><TestingTime>0</TestingTime></TestCase></TestSuite></TestLog>
