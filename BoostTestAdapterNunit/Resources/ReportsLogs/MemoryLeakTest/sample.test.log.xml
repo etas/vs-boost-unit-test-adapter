@@ -1,0 +1,12 @@
+<TestLog>
+    <TestSuite name="MyTest">
+        <TestSuite name="LeakingSuite">
+            <TestCase name="LeakingTestCase">
+                <Message file="./boost/test/impl/results_collector.ipp" line="220">
+                    <![CDATA[Test case LeakingTestCase did not check any assertions]]>
+                </Message>
+                <TestingTime>0</TestingTime>
+            </TestCase>
+        </TestSuite>
+    </TestSuite>
+</TestLog>
