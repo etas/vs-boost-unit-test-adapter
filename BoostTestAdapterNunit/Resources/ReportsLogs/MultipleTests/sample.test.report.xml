@@ -1,0 +1,12 @@
+<TestResult>
+	<TestSuite name="CnvrtTest" result="passed" assertions_passed="50" assertions_failed="0" expected_failures="0" test_cases_passed="4" test_cases_failed="0" test_cases_skipped="0" test_cases_aborted="0">
+		<TestSuite name="CCRootSerialiserTestSuite" result="passed" assertions_passed="2" assertions_failed="0" expected_failures="0" test_cases_passed="2" test_cases_failed="0" test_cases_skipped="0" test_cases_aborted="0">
+			<TestCase name="DeserialiseInvalidFile" result="passed" assertions_passed="1" assertions_failed="0" expected_failures="0"/>
+			<TestCase name="DeserialiseNonExistingFile" result="passed" assertions_passed="1" assertions_failed="0" expected_failures="0"/>
+		</TestSuite>
+		<TestSuite name="DET108781TestSuite" result="passed" assertions_passed="48" assertions_failed="0" expected_failures="0" test_cases_passed="2" test_cases_failed="0" test_cases_skipped="0" test_cases_aborted="0">
+			<TestCase name="ExtendedMultiplexingTest" result="passed" assertions_passed="26" assertions_failed="0" expected_failures="0"/>
+			<TestCase name="QPGroupingTest" result="passed" assertions_passed="22" assertions_failed="0" expected_failures="0"/>
+		</TestSuite>
+	</TestSuite>
+</TestResult>

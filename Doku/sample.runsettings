@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+
+	<!-- Adapter Specific sections -->
+
+	<!-- BoostTest adapter -->
+	<BoostTest>
+        <TimeoutMilliseconds>600000</TimeoutMilliseconds>
+        <!-- Both 'true' and '1' are allowable values -->
+        <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
+		<ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled>
+        <LogLevel>TestSuite</LogLevel>
+	</BoostTest>
+
+</RunSettings>
