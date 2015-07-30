@@ -1,0 +1,1 @@
+<TestLog><TestSuite name="Test runner test"><TestCase name="test3"><FatalError file="test_runner_test.cpp" line="93"><![CDATA[Failure]]></FatalError><TestingTime>1000</TestingTime></TestCase></TestSuite></TestLog>

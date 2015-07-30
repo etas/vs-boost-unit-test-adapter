@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+    2 <BoostTestFramework source="D:\dev\svn\SampleBoostProject\Debug\TestProject.dll">
+    3     <TestSuite id="1" name="Master Test Suite">
+    4         <TestSuite id="2" name="ExampleTestSuite">
+    5             <TestCase id="65536" name="NumberTestCaseA" file="d:\dev\svn\testproject\numbertest.cpp" line="39" />
+    6             <TestCase id="65537" name="NumberTestCaseB" file="d:\dev\svn\testproject\numbertest.cpp" line="54" />
+    7             <TestCase id="65538" name="NumberTestCaseC" file="d:\dev\svn\testproject\numbertest.cpp" line="66" />
+    8             <TestCase id="65539" name="NumberTestCaseD" file="d:\dev\svn\testproject\numbertest.cpp" line="80" />
+    9             <TestCase id="65540" name="NumberTestCaseE" file="d:\dev\svn\testproject\numbertest.cpp" line="92" />
+   10             <TestCase id="65541" name="NumberTestCaseF" file="d:\dev\svn\testproject\numbertest.cpp" line="104" />
+   11             <TestCase id="65542" name="NumberTestCaseG" file="d:\dev\svn\testproject\numbertest.cpp" line="118" />
+   12             <TestCase id="65543" name="NumberTestCaseH" file="d:\dev\svn\testproject\numbertest.cpp" line="134" />
+   13             <TestCase id="65544" name="NumberTestCaseI" file="d:\dev\svn\testproject\numbertest.cpp" line="156" />
+   14             <TestCase id="65545" name="NumberTestCaseJ" file="d:\dev\svn\testproject\numbertest.cpp" line="168" />
+   15             <TestCase id="65546" name="NumberTestCaseK" file="d:\dev\svn\testproject\numbertest.cpp" line="190" />
+   16         </TestSuite>
+   17     </TestSuite>
+   18 </BoostTestFramework>

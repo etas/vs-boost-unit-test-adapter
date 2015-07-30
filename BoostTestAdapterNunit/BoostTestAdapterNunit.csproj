@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FE58A67C-D313-46FD-B8F3-F80383EE5FD1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BoostTestAdapterNunit</RootNamespace>
+    <AssemblyName>BoostTestAdapterNunit</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!--MSBuild 4.0 property-->
+    <ProgramFiles32>$(MSBuildProgramFiles32)</ProgramFiles32>
+    <!--Use OS env var as a fallback:- 32 bit MSBuild 2.0/3.5 on x64 will use this-->
+    <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)'">$(ProgramFiles%28x86%29)</ProgramFiles32>
+    <!-- Handle MSBuild 2.0/3.5 running in 64 bit mode - neither of the above env vars are available. http://stackoverflow.com/questions/336633
+    NB this trick (Adding a literal " (x86)" to the 64 bit Program Files path) may or may not work on all versions/locales of Windows -->
+    <ProgramFiles32 Condition="'$(ProgramFiles32)'=='' AND 'AMD64' == '$(PROCESSOR_ARCHITECTURE)'">$(ProgramFiles) (x86)</ProgramFiles32>
+    <!--Catch-all - handles .NET 2.0/3.5 non-AMD64 and .NET 2.0 on x86 -->
+    <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)' ">$(ProgramFiles)</ProgramFiles32>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="FakeItEasy">
+      <HintPath>..\packages\FakeItEasy.1.13.1\lib\net40\FakeItEasy.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
+      <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.VCProjectEngine, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BoostTestDiscovererTest.cs" />
+    <Compile Include="BoostTestExecutorTest.cs" />
+    <Compile Include="BoostTestResultTest.cs" />
+    <Compile Include="BoostTestRunnerCommandLineArgsTest.cs" />
+    <Compile Include="BoostTestSettingsTest.cs" />
+    <Compile Include="BoostTestTest.cs" />
+    <Compile Include="CommandEvaluatorTest.cs" />
+    <Compile Include="ConditionalInclusionsFilterTest.cs" />
+    <Compile Include="CorrectReferencedAssembliesTest.cs" />
+    <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />
+    <Compile Include="DefaultTestDiscovererFactoryTest.cs" />
+    <Compile Include="ExternalBoostTestDiscovererTest.cs" />
+    <Compile Include="Fakes\ConsoleMessageLogger.cs" />
+    <Compile Include="Fakes\DefaultTestContext.cs" />
+    <Compile Include="LoggerTest.cs" />
+    <Compile Include="MultiLineCommentFilterTest.cs" />
+    <Compile Include="QuotedStringsFilterTest.cs" />
+    <Compile Include="SingleLineCommentFilterTest.cs" />
+    <Compile Include="SourceFiltersTest.cs" />
+    <Compile Include="TestDiscovererNunit.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ExpressionEvaluationTest.cs" />
+    <Compile Include="Utility\DummySolution.cs" />
+    <Compile Include="Utility\DummySourceFile.cs" />
+    <Compile Include="Utility\DummyVSProvider.cs" />
+    <Compile Include="Utility\ReadOnlyDictionaryWrapper.cs" />
+    <Compile Include="Utility\SourceFilterTestBase.cs" />
+    <Compile Include="Utility\TestHelper.cs" />
+    <Compile Include="Utility\VisualStudioInstanceBuilders.cs" />
+    <Compile Include="Utility\Xml\XmlComparison.cs" />
+    <Compile Include="VisualStudio2012AdapterTest.cs" />
+    <Compile Include="VSTestModelTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BoostTestAdapter\BoostTestAdapter.csproj">
+      <Project>{bc4b3bed-9241-4dd6-8070-a9b66dfc08c1}</Project>
+      <Name>BoostTestAdapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
+      <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
+      <Name>VisualStudio2012Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualStudioAdapter\VisualStudioAdapter.csproj">
+      <Project>{62347cc7-c839-413d-a7ce-598409f6f15b}</Project>
+      <Name>VisualStudioAdapter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\Log4NetConfigFile\BoostTestAdapter.dll.config" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.NoSourceFileAndLineNumbersAvailable.test.stdout.log" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.SourceFileAndLineNumbersAvailable.test.stdout.log" />
+    <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.stderr.log" />
+    <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.stdout.log" />
+    <EmbeddedResource Include="Resources\Settings\conditionalIncludesDisabled.runsettings" />
+    <EmbeddedResource Include="Resources\Settings\default.runsettings" />
+    <EmbeddedResource Include="Resources\Settings\empty.runsettings" />
+    <EmbeddedResource Include="Resources\Settings\sample.2.runsettings" />
+    <EmbeddedResource Include="Resources\Settings\sample.runsettings" />
+    <EmbeddedResource Include="Resources\Settings\externalTestRunner.runsettings" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestCase.cpp" />
+    <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestSuite.cpp" />
+    <EmbeddedResource Include="Resources\CppSources\BoostUnitTestSample.cpp" />
+    <EmbeddedResource Include="Resources\CppSources\BoostUnitTestSampleRequiringUseOfFilters.cpp" />
+    <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\BoostFailTest\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\BoostFailTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\FailedRequireTest\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\FailedRequireTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MultipleTests\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MultipleTests\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\NestedTestSuite\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\NestedTestSuite\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\NoMatchingTests\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\NoMatchingTests\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\PassedTest\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\PassedTest\sample.test.report.xml" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsBadSourceFileNesting.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationFail.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationSuccess_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationSuccess_UnfilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfdefTests_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfdefTests_UnFilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfTests_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfTests_UnFilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\MultiLineCommentTest_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\MultiLineCommentTest_UnFilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\QuotedStringsFilterTest_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\QuotedStringsFilterTest_UnFilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_FilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_UnFilteredSourceCode.cpp" />
+    <EmbeddedResource Include="Resources\TestLists\empty.test.list.xml" />
+    <EmbeddedResource Include="Resources\TestLists\sample.test.list.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.report.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
