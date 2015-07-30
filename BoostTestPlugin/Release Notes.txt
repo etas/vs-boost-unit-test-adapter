@@ -3,7 +3,7 @@
 _The version history is presented in descending order (i.e. the latest version updates are presented at the top of the page)_
 
 ---
-### Version 1.0.1 (Beta)
+### Version 1.0.4.0
 
 Misc:
   - A major code re-factoring activity has been done.
