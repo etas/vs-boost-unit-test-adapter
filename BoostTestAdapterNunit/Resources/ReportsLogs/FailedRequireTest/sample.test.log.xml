@@ -1,0 +1,1 @@
+<TestLog><TestSuite name="Test runner test"><TestCase name="test1"><Error file="test_runner_test.cpp" line="26"><![CDATA[check i == 2 failed [0 != 2]]]></Error><FatalError file="test_runner_test.cpp" line="28"><![CDATA[critical check i == 2 failed [0 != 2]]]></FatalError><TestingTime>0</TestingTime></TestCase></TestSuite></TestLog>
