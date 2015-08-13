@@ -1,0 +1,7 @@
+﻿Detected memory leaks!
+Dumping objects ->
+d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\adapterbugs.cpp(60) : {935} normal block at 0x012126B8, 4 bytes long.
+ Data: <    > CD CD CD CD 
+d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\adapterbugs.cpp(57) : {934} normal block at 0x01212748, 4 bytes long.
+ Data: <    > F5 01 00 00 
+Object dump complete.
