@@ -116,7 +116,7 @@ namespace BoostTestAdapter.Boost.Results
         /// <summary>
         /// Duration of test in microseconds
         /// </summary>
-        public uint Duration { get; set; }
+        public ulong Duration { get; set; }
 
         /// <summary>
         /// Collection of related log entries.

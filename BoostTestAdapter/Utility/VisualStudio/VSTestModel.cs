@@ -48,7 +48,14 @@ namespace BoostTestAdapter.Utility.VisualStudio
             vsResult.Outcome = GetTestOutcome(result.Result);
 
             // Boost.Test.Result.TestResult.Duration is in microseconds
-            vsResult.Duration = TimeSpan.FromMilliseconds(result.Duration / 1000);
+            
+            // 1 millisecond = 10,000 ticks
+            // => 1 microsecond = 10 ticks
+            // Reference: https://msdn.microsoft.com/en-us/library/zz841zbz(v=vs.110).aspx
+            long ticks = (long) Math.Min((result.Duration * 10), long.MaxValue);
+            
+            // Clamp tick count to 1 in case Boost duration is listed as 0
+            vsResult.Duration = new TimeSpan(Math.Max(ticks, 1));
 
             if (result.LogEntries.Count > 0)
             {
