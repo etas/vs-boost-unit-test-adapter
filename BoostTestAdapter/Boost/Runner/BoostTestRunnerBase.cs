@@ -138,7 +138,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                CreateNoWindow = false,
+                CreateNoWindow = true,
                 UseShellExecute = false,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 WorkingDirectory = args.WorkingDirectory,
