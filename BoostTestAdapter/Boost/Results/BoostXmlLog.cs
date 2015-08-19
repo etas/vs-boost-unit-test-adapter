@@ -138,8 +138,8 @@ namespace BoostTestAdapter.Boost.Results
 
             if (testingTime != null)
             {
-                // Duration is in seconds i.e. remember to * 10 for milliseconds.
-                result.Duration = uint.Parse(testingTime.InnerText, CultureInfo.InvariantCulture);
+                // Boost test testing time is listed in microseconds
+                result.Duration = ulong.Parse(testingTime.InnerText, CultureInfo.InvariantCulture);
             }
 
             ParseTestCaseLogEntries(node.ChildNodes, result);

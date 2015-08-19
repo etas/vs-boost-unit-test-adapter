@@ -222,7 +222,7 @@ namespace BoostTestAdapterNunit
         /// <returns>A TimeSpan describing the microsecond duration</returns>
         private TimeSpan Microseconds(int value)
         {
-            return TimeSpan.FromMilliseconds(Math.Truncate(value / 1000F));
+            return TimeSpan.FromTicks(value * 10);
         }
         
         /// <summary>
@@ -328,7 +328,7 @@ namespace BoostTestAdapterNunit
             AssertVSTestModelProperties(result);
 
             Assert.That(result.Outcome, Is.EqualTo(TestOutcome.Skipped));
-            Assert.That(result.Duration, Is.EqualTo(TimeSpan.Zero));
+            Assert.That(result.Duration, Is.EqualTo(TimeSpan.FromTicks(1)));
 
             Assert.That(result.Messages.Count, Is.EqualTo(0));
         }
@@ -358,7 +358,9 @@ namespace BoostTestAdapterNunit
             AssertVSTestModelProperties(result);
 
             Assert.That(result.Outcome, Is.EqualTo(TestOutcome.Failed));
-            Assert.That(result.Duration, Is.EqualTo(TimeSpan.FromTicks(0)));
+
+            // A 0 duration should list as 1 tick to avoid UI issues in the test adapter
+            Assert.That(result.Duration, Is.EqualTo(TimeSpan.FromTicks(1)));
 
             AssertVsTestModelError(result, exception);
 
