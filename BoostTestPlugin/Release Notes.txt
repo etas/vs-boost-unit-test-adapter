@@ -21,7 +21,7 @@ New features:
 - Filtering for multi-line comments and single line comments are now much more robust.
 - Created a Boost External Test Runner so that users can execute Boost Unit test project compiled as a dynamic link library.
 - Added support to Microsoft Visual Studio 2015 RC.
-- Added support that in case a source file is excluded from build(https://raw.githubusercontent.com/netspiri/vs-boost-unit-test-adapter/master/Doku/images/excluded_from_build.png) the source file is not parsed for any Boost Unit Tests.
+- Added support that in case a source file is excluded from build(https://raw.githubusercontent.com/etas/vs-boost-unit-test-adapter/master/Doku/images/excluded_from_build.png) the source file is not parsed for any Boost Unit Tests.
 - Header files are now also parsed for Boost Unit Tests.
 
 ---
