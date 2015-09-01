@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="BoostUnitTestAdapter.d58658cc-0b58-4bfd-b819-61b3581f2d02" Version="1.0.4.0" Language="en-US" Publisher="ETAS GmbH" />
+        <Identity Id="BoostUnitTestAdapter.d58658cc-0b58-4bfd-b819-61b3581f2d02" Version="1.0.4.2" Language="en-US" Publisher="ETAS GmbH" />
         <DisplayName>Boost Unit Test Adapter</DisplayName>
         <Description xml:space="preserve">The Boost Unit Test Adapter extension has been developed for the Visual Studio 2012, Visual Studio 2013 and Visual Studio 2015 Test Explorer window to allow integrated test execution of C++ projects utilizing the Boost Unit Test Framework.
 
