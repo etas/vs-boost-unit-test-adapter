@@ -3,11 +3,21 @@
 _The version history is presented in descending order (i.e. the latest version updates are presented at the top of the page)_
 
 ---
+### Version 1.0.5.0
+
+Bug fixes:
+- Property 'CreateNoWindow' of 'ProcessStartInfo' is set to true, as as to avoid having command-prompt windows popping up when running tests in Visual Studio 2015.
+- The test execution time is set to be at least 1 tick long (because when the test execution time is very low, Boost UTF does not register it) so that a successfully executed test is properly listed in the adapter.
+
+Build changes:
+- The packages directory has been removed from source control and put under the control of NuGet (Nuget version 2.8.5 or later has to be utilized on the development machine)
+
+---
 ### Version 1.0.4.0
 
 Misc:
-  - A major code re-factoring activity has been done.
-  - Release code as open source
+- A major code re-factoring activity has been done.
+- Released code as open source
 
 New features:
 - In the previous versions of the Boost Unit Test Adapter, there was no reporting with respect to memory leaks. The memory leaks information reported by Boost Unit Test Framework is now being parsed and reported to the user.  The user is also given the possibility to fail a test if any memory leaks are discovered via a user settable option.
