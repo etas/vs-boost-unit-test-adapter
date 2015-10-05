@@ -499,7 +499,7 @@ namespace BoostTestAdapter
         /// <returns>A BoostTestRunnerCommandLineArgs structure for the provided source</returns>
         private BoostTestRunnerCommandLineArgs GetDefaultArguments(string source, BoostTestAdapterSettings settings)
         {
-            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs();
+            BoostTestRunnerCommandLineArgs args = settings.CommandLineArgs.Clone();
 
             args.WorkingDirectory = Path.GetDirectoryName(source);
 
