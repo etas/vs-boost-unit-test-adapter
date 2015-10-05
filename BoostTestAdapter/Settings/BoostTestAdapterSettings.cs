@@ -24,6 +24,8 @@ namespace BoostTestAdapter.Settings
         {
             this.TestRunnerSettings = new BoostTestRunnerSettings();
 
+            this.CommandLineArgs = new BoostTestRunnerCommandLineArgs();
+
             // Set default configuration values
 
             this.FailTestOnMemoryLeak = false;
@@ -33,6 +35,10 @@ namespace BoostTestAdapter.Settings
             this.LogLevel = LogLevel.TestSuite;
 
             this.ExternalTestRunner = null;
+
+            this.CatchSystemErrors = true;
+
+            this.DetectFloatingPointExceptions = false;
         }
 
         #region Properties
@@ -62,12 +68,43 @@ namespace BoostTestAdapter.Settings
         [DefaultValue(LogLevel.TestSuite)]
         public LogLevel LogLevel { get; set; }
 
+        [DefaultValue(true)]
+        public bool CatchSystemErrors
+        {
+            get
+            {
+                return this.CommandLineArgs.CatchSystemErrors;
+            }
+
+            set
+            {
+                this.CommandLineArgs.CatchSystemErrors = value;
+            }
+        }
+
+        [DefaultValue(false)]
+        public bool DetectFloatingPointExceptions
+        {
+            get
+            {
+                return this.CommandLineArgs.DetectFPExceptions;
+            }
+
+            set
+            {
+                this.CommandLineArgs.DetectFPExceptions = value;
+            }
+        }
+
         public ExternalBoostTestRunnerSettings ExternalTestRunner { get; set; }
 
         #endregion Serialisable Fields
 
         [XmlIgnore]
         public BoostTestRunnerSettings TestRunnerSettings { get; private set; }
+
+        [XmlIgnore]
+        public BoostTestRunnerCommandLineArgs CommandLineArgs { get; private set; }
 
         #endregion Properties
 

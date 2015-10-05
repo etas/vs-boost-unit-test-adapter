@@ -37,6 +37,11 @@
 
 	<!-- BoostTest adapter -->
 	<BoostTest>
-		<TimeoutMilliseconds>100</TimeoutMilliseconds>
+        <TimeoutMilliseconds>100</TimeoutMilliseconds>
+        
+        <CatchSystemErrors>false</CatchSystemErrors>
+        
+        <!-- Test case-sensitivity -->
+        <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
 	</BoostTest>
 </RunSettings>
