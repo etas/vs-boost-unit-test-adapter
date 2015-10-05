@@ -332,6 +332,19 @@ To modify the amount of log information displayed in the test adapter, the ```<L
 
 By default, this option is set to ```TestSuite```. Please refer to the _log_level_ [Boost Runtime Configuration](http://www.boost.org/doc/libs/1_55_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html) for further information about log verbosity.
 
+#### Disable Catching of System Errors
+
+By default, the Boost UTF and the Boost unit test adapter catches system errors. To disable this behaviour, set the  ```<CatchSystemErrors>``` configuration option to ```false``` (or ```0```).
+
+Please refer to the _catch_system_errors_ [Boost Runtime Configuration](http://www.boost.org/doc/libs/1_55_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html) for further information.
+
+
+#### Enable Floating Point Exceptions
+
+The Boost UTF framework allows for trapping floating point exceptions. In order to enable this functionality through the Boost unit test adapter, set the  ```<DetectFloatingPointExceptions>``` configuration option to ```true``` (or ```1```).
+
+Please refer to the _detect_fp_exceptions_ [Boost Runtime Configuration](http://www.boost.org/doc/libs/1_55_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html) for further information.
+
 #### Utilization of an External Test Runner
 
 The Boost Unit Test Adapter supports the utilization of an External Test Runner for test discovery and test execution. This is useful in case a user, for example, wants to compile the Boost unit tests project as a dll rather than as an executable.

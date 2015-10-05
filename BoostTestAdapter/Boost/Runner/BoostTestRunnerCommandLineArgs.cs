@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -55,11 +56,24 @@ namespace BoostTestAdapter.Boost.Runner
         Default = Confirm
     }
 
+    public class ExecutionPath
+    {
+        public string TestName { get; set; }
+        public uint PathNumber { get; set; }
+
+        public override string ToString()
+        {
+            return this.TestName + ':' + this.PathNumber;
+        }
+    }
+
+
     /// <summary>
     /// Aggregates all possible command line options made available by the Boost Test framework.
     /// Reference: http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html
+    /// Reference: http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference.html
     /// </summary>
-    public class BoostTestRunnerCommandLineArgs
+    public class BoostTestRunnerCommandLineArgs : ICloneable
     {
         #region Constants
 
@@ -74,6 +88,19 @@ namespace BoostTestAdapter.Boost.Runner
         private const string ReportSinkArg = "--report_sink";
 
         private const string DetectMemoryLeakArg = "--detect_memory_leak";
+        
+        private const string ShowProgressArg = "--show_progress";
+        private const string BuildInfoArg = "--build_info";
+        private const string AutoStartDebugArg = "--auto_start_dbg";
+        private const string CatchSystemErrorsArg = "--catch_system_errors";
+        private const string BreakExecPathArg = "--break_exec_path";
+        private const string ColorOutputArg = "--color_output";
+        private const string ResultCodeArg = "--result_code";
+        private const string RandomArg = "--random";
+        private const string UseAltStackArg = "--use_alt_stack";
+        private const string DetectFPExceptionsArg = "--detect_fp_exceptions";
+        private const string SavePatternArg = "--save_pattern";
+        private const string ListContentArg = "--list_content";
 
         private const string TestSeparator = ",";
 
@@ -82,6 +109,9 @@ namespace BoostTestAdapter.Boost.Runner
 
         private const char RedirectionOperator = '>';
         private const string ErrRedirectionOperator = "2>";
+
+        private const string Yes = "yes";
+        private const string No = "no";
 
         #endregion Constants
 
@@ -111,33 +141,19 @@ namespace BoostTestAdapter.Boost.Runner
             this.ReportLevel = ReportLevel.Default;
 
             this.DetectMemoryLeaks = 1;
-        }
-
-        /// <summary>
-        /// Copy Constructor. Creates a shallow copy of the provided instance.
-        /// </summary>
-        /// <param name="args">The instance to be copied.</param>
-        protected BoostTestRunnerCommandLineArgs(BoostTestRunnerCommandLineArgs args)
-        {
-            Utility.Code.Require(args, "args");
-
-            this.WorkingDirectory = args.WorkingDirectory;
-
-            // Shallow copy
-            this.Tests = args.Tests;
-
-            this.LogFormat = args.LogFormat;
-            this.LogLevel = args.LogLevel;
-            this.LogFile = args.LogFile;
-
-            this.ReportFormat = args.ReportFormat;
-            this.ReportLevel = args.ReportLevel;
-            this.ReportFile = args.ReportFile;
-
-            this.DetectMemoryLeaks = args.DetectMemoryLeaks;
-
-            this.StandardOutFile = args.StandardOutFile;
-            this.StandardErrorFile = args.StandardErrorFile;
+            
+            this.ShowProgress = false;
+            this.BuildInfo = false;
+            this.AutoStartDebug = "no";
+            this.CatchSystemErrors = true;
+            this.BreakExecPath = new List<ExecutionPath>();
+            this.ColorOutput = false;
+            this.ResultCode = true;
+            this.Random = 0;
+            this.UseAltStack = true;
+            this.DetectFPExceptions = false;
+            this.SavePattern = false;
+            this.ListContent = false;
         }
 
         #endregion Constructors
@@ -211,6 +227,70 @@ namespace BoostTestAdapter.Boost.Runner
         public uint DetectMemoryLeaks { get; set; }
 
         /// <summary>
+        /// Flag determining whether test execution progress is displayed in standard out.
+        /// </summary>
+        public bool ShowProgress { get; set; }
+
+        /// <summary>
+        /// String determining the debugger to attach in case of system failure.
+        /// </summary>
+        public string AutoStartDebug { get; set; }
+
+        /// <summary>
+        /// Flag which displays Boost UTF test information in standard out.
+        /// </summary>
+        public bool BuildInfo { get; set; }
+
+        /// <summary>
+        /// Determines whether system errors should be caught.
+        /// </summary>
+        public bool CatchSystemErrors { get; set; }
+
+        /// <summary>
+        /// Identify execution paths for certain tests in which execution should break.
+        /// </summary>
+        /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
+        public IList<ExecutionPath> BreakExecPath { get; private set; }
+
+        /// <summary>
+        /// States whether standard output text is colour coded.
+        /// </summary>
+        /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
+        public bool ColorOutput { get; set; }
+
+        /// <summary>
+        /// Determines the result code the Boost UTF uses on exit.
+        /// </summary>
+        public bool ResultCode { get; set; }
+
+        /// <summary>
+        /// Random seed which determines test execution order. Positive value implies random order. 0 implies sequential execution.
+        /// </summary>
+        public uint Random { get; set; }
+
+        /// <summary>
+        /// Specifies whether or not the Boost.Test Execution Monitor should employ an alternative stack for signals processing on platforms where they are supported.
+        /// </summary>
+        public bool UseAltStack { get; set; }
+
+        /// <summary>
+        /// Instructs the Boost UTF to break on floating-point execptions.
+        /// </summary>
+        public bool DetectFPExceptions { get; set; }
+
+        /// <summary>
+        /// Useful for test modules relying on boost::test_tools::output_test_stream. True implies 'save the pattern file'; false implies 'match against a previously stored pattern file'.
+        /// </summary>
+        /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
+        public bool SavePattern { get; set; }
+
+        /// <summary>
+        /// The Boost UTF lists all tests which are to be executed without actually executing the tests.
+        /// </summary>
+        /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
+        public bool ListContent { get; set; }
+
+        /// <summary>
         /// Path (relative to the WorkingDirectory) to the report file which will host the standard output content.
         /// </summary>
         public string StandardOutFile
@@ -250,21 +330,66 @@ namespace BoostTestAdapter.Boost.Runner
         {
             StringBuilder args = new StringBuilder();
 
+            // --list_content
+            if (this.ListContent)
+            {
+                AddArgument(ListContentArg, args);
+
+                // return immediately since Boost UTF should ignore the rest of the arguments
+                return args.ToString();
+            }
+
             // --run_tests=a,b,c
             if (this.Tests.Count > 0)
             {
                 AddArgument(RunTestArg, string.Join(TestSeparator, this.Tests), args);
             }
 
+            // --show_progress=yes
+            if (this.ShowProgress)
+            {
+                AddArgument(ShowProgressArg, Yes, args);
+            }
+
+            // --build_info=yes
+            if (this.BuildInfo)
+            {
+                AddArgument(BuildInfoArg, Yes, args);
+            }
+
+            // --auto_start_dbg=yes
+            if (string.IsNullOrEmpty(this.AutoStartDebug))
+            {
+                AddArgument(AutoStartDebugArg, this.AutoStartDebug, args);
+            }
+
+            // --catch_system_errors=no
+            if (!this.CatchSystemErrors)
+            {
+                AddArgument(CatchSystemErrorsArg, No, args);
+            }
+
+            // --break_exec_path=Test1:14 Test2:15
+            if (this.BreakExecPath.Count > 0)
+            {
+                AddArgument(BreakExecPathArg, string.Join(" ", this.BreakExecPath), args);
+            }
+
+            // --color_output=yes
+            if (this.ColorOutput)
+            {
+                AddArgument(ColorOutputArg, Yes, args);
+            }
+
+            // --log_format=xml
             if (this.LogFormat != OutputFormat.Default)
             {
-                // --log_format=xml
                 AddArgument(LogFormatArg, OutputFormatToString(this.LogFormat), args);
             }
 
+            // --log_level=test_suite
             if (this.LogLevel != LogLevel.Default)
             {
-                // --log_level=test_suite
                 AddArgument(LogLevelArg, LogLevelToString(this.LogLevel), args);
             }
 
@@ -274,15 +399,15 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(LogSinkArg, this._logFile, args);
             }
 
+            // --report_format=xml
             if (this.ReportFormat != OutputFormat.Default)
             {
-                // --report_format=xml
                 AddArgument(ReportFormatArg, OutputFormatToString(this.ReportFormat), args);
             }
 
+            // --report_level=detailed
             if (this.ReportLevel != ReportLevel.Default)
             {
-                // --report_level=detailed
                 AddArgument(ReportLevelArg, ReportLevelToString(this.ReportLevel), args);
             }
 
@@ -292,10 +417,40 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(ReportSinkArg, this._reportFile, args);
             }
 
+            // --result_code=no
+            if (!this.ResultCode)
+            {
+                AddArgument(ResultCodeArg, No, args);
+            }
+
+            // --random=8
+            if (this.Random > 0)
+            {
+                AddArgument(RandomArg, this.Random.ToString(CultureInfo.InvariantCulture), args);
+            }
+
+            // --detect_memory_leak=0
             if (this.DetectMemoryLeaks != 1)
             {
-                // --detect_memory_leak
                 AddArgument(DetectMemoryLeakArg, this.DetectMemoryLeaks.ToString(CultureInfo.InvariantCulture), args);
+            }
+
+            // --use_alt_stack=no
+            if (!this.UseAltStack)
+            {
+                AddArgument(UseAltStackArg, No, args);
+            }
+
+            // --detect_fp_exceptions=yes
+            if (this.DetectFPExceptions)
+            {
+                AddArgument(DetectFPExceptionsArg, Yes, args);
+            }
+
+            // --save_pattern=yes
+            if (this.SavePattern)
+            {
+                AddArgument(SavePatternArg, Yes, args);
             }
 
             // > std.out
@@ -320,7 +475,7 @@ namespace BoostTestAdapter.Boost.Runner
         /// <returns>The rooted path.</returns>
         protected string GetPath(string path)
         {
-            if (!string.IsNullOrEmpty(path) && !Path.IsPathRooted(path))
+            if (!string.IsNullOrEmpty(this.WorkingDirectory) && !string.IsNullOrEmpty(path) && !Path.IsPathRooted(path))
             {
                 return Path.Combine(this.WorkingDirectory, path);
             }
@@ -440,5 +595,55 @@ namespace BoostTestAdapter.Boost.Runner
         {
             return (string.IsNullOrEmpty(value)) ? value : ('"' + value + '"');
         }
+
+        #region ICloneable
+
+        public BoostTestRunnerCommandLineArgs Clone()
+        {
+            BoostTestRunnerCommandLineArgs clone = new BoostTestRunnerCommandLineArgs();
+            
+            clone.WorkingDirectory = this.WorkingDirectory;
+
+            // Deep copy
+            clone.Tests = new List<string>(this.Tests);
+
+            clone.LogFormat = this.LogFormat;
+            clone.LogLevel = this.LogLevel;
+            clone._logFile = this._logFile;
+
+            clone.ReportFormat = this.ReportFormat;
+            clone.ReportLevel = this.ReportLevel;
+            clone._reportFile = this._reportFile;
+
+            clone.DetectMemoryLeaks = this.DetectMemoryLeaks;
+
+            clone._stdOutFile = this._stdOutFile;
+            clone._stdErrFile = this._stdErrFile;
+
+            clone.ShowProgress = this.ShowProgress;
+            clone.BuildInfo = this.BuildInfo;
+            clone.AutoStartDebug = this.AutoStartDebug;
+            clone.CatchSystemErrors = this.CatchSystemErrors;
+
+            // Shallow copy
+            clone.BreakExecPath = new List<ExecutionPath>(this.BreakExecPath);
+
+            clone.ColorOutput = this.ColorOutput;
+            clone.ResultCode = this.ResultCode;
+            clone.Random = this.Random;
+            clone.UseAltStack = this.UseAltStack;
+            clone.DetectFPExceptions = this.DetectFPExceptions;
+            clone.SavePattern = this.SavePattern;
+            clone.ListContent = this.ListContent;
+
+            return clone;
+        }
+
+        object ICloneable.Clone()
+        {
+            return this.Clone();
+        }
+
+        #endregion ICloneable
     }
 }
