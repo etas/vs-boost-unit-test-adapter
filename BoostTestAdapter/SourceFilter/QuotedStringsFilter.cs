@@ -3,6 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System.Text;
 using System.Text.RegularExpressions;
 using VisualStudioAdapter;
 
@@ -13,55 +14,49 @@ namespace BoostTestAdapter.SourceFilter
     /// </summary>
     public class QuotedStringsFilter : ISourceFilter
     {
-        private static readonly Regex quotedStringsRegex = new Regex(@"(?<!#include\s{1,})""(.*?)(?<!\\)""", RegexOptions.Multiline);
-        /*
-        *
-        * Options: Case sensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
-        *
-        * Assert that it is impossible to match the regex below backwards at this position (negative lookbehind) «(?<!#include\s{1,})»
-        *    Match the character string “#include” literally (case sensitive) «#include»
-        *    Match a single character that is a “whitespace character” (any Unicode separator, tab, line feed, carriage return, vertical tab, form feed, next line) «\s{1,}»
-        *       Between one and unlimited times, as many times as possible, giving back as needed (greedy) «{1,}»
-        * Match the character “"” literally «"»
-        * Match the regex below and capture its match into backreference number 1 «(.*?)»
-        *    Match any single character «.*?»
-        *       Between zero and unlimited times, as few times as possible, expanding as needed (lazy) «*?»
-        * Assert that it is impossible to match the regex below backwards at this position (negative lookbehind) «(?<!\\)»
-        *    Match the backslash character «\\»
-        * Match the character “"” literally «"»
-         */
+        // Reference: http://stackoverflow.com/questions/2039795/regular-expression-for-a-string-literal-in-flex-lex
+        private static readonly Regex stringLiteralsRegex = new Regex(@"(L?R""(.*?)\((?:.*?)\)\k<2>"")|(?:""(?:\\.|[^""])*"")", RegexOptions.Singleline);
 
-        private static readonly Regex stringLiteralsRegex = new Regex(@"L?R""(.*)\((?:.*?)\)\k<1>""", RegexOptions.Singleline);
-        /*
-        * Options: Case sensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
-        *
-        * Match the character “L” literally (case sensitive) «L?»
-        *    Between zero and one times, as many times as possible, giving back as needed (greedy) «?»
-        * Match the character string “R"” literally (case sensitive) «R"»
-        * Match the regex below and capture its match into backreference number 1 «(.*)»
-        *    Match any single character «.*»
-        *       Between zero and unlimited times, as many times as possible, giving back as needed (greedy) «*»
-        * Match the character “(” literally «\(»
-        * Match the regular expression below «(?:.*?)»
-        *    Match any single character «.*?»
-        *       Between zero and unlimited times, as few times as possible, expanding as needed (lazy) «*?»
-        * Match the character “)” literally «\)»
-        * Match the same text that was most recently matched by capturing group number 1 (case sensitive; fail if the group did not participate in the match so far) «\k<1>»
-        * Match the character “"” literally «"»
-         */
+        //Options: Case sensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
+        //
+        //Match this alternative (attempting the next alternative only if this one fails) «(L?R"(.*)\((?:.*?)\)\k<2>")»
+        //   Match the regex below and capture its match into backreference number 1 «(L?R"(.*)\((?:.*?)\)\k<2>")»
+        //      Match the character “L” literally (case sensitive) «L?»
+        //         Between zero and one times, as many times as possible, giving back as needed (greedy) «?»
+        //      Match the character string “R"” literally (case sensitive) «R"»
+        //      Match the regex below and capture its match into backreference number 2 «(.*)»
+        //         Match any single character «.*»
+        //            Between zero and unlimited times, as many times as possible, giving back as needed (greedy) «*»
+        //      Match the character “(” literally «\(»
+        //      Match the regular expression below «(?:.*?)»
+        //         Match any single character «.*?»
+        //            Between zero and unlimited times, as few times as possible, expanding as needed (lazy) «*?»
+        //      Match the character “)” literally «\)»
+        //      Match the same text that was most recently matched by capturing group number 2 (case sensitive; fail if the group did not participate in the match so far) «\k<2>»
+        //      Match the character “"” literally «"»
+        //Or match this alternative (the entire match attempt fails if this one fails to match) «(?:"(?:\\.|[^"])*")»
+        //   Match the regular expression below «(?:"(?:\\.|[^"])*")»
+        //      Match the character “"” literally «"»
+        //      Match the regular expression below «(?:\\.|[^"])*»
+        //         Between zero and unlimited times, as many times as possible, giving back as needed (greedy) «*»
+        //         Match this alternative (attempting the next alternative only if this one fails) «\\.»
+        //            Match the backslash character «\\»
+        //            Match any single character «.»
+        //         Or match this alternative (the entire group fails if this one fails to match) «[^"]»
+        //            Match any character that is NOT a “"” «[^"]»
+        //      Match the character “"” literally «"»
 
-        private static readonly Regex lineBreakRegex = new Regex(@"(\r\n?|\n)", RegexOptions.Singleline | RegexOptions.Multiline);
-        // (\r\n?|\n)
+        private static readonly Regex lineBreakRegex = new Regex(@"\r\n?|\n", RegexOptions.Singleline | RegexOptions.Multiline);
+        
+        //Options: Case insensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
         //
-        // Options: Case insensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
-        //
-        // Match the regex below and capture its match into backreference number 1 «(\r\n?|\n)»
-        //    Match this alternative (attempting the next alternative only if this one fails) «\r\n?»
-        //       Match the carriage return character «\r»
-        //       Match the line feed character «\n?»
-        //          Between zero and one times, as many times as possible, giving back as needed (greedy) «?»
-        //    Or match this alternative (the entire group fails if this one fails to match) «\n»
-        //       Match the line feed character «\n»
+        //Match the regex below and capture its match into backreference number 1 «(\r\n?|\n)»
+        //   Match this alternative (attempting the next alternative only if this one fails) «\r\n?»
+        //      Match the carriage return character «\r»
+        //      Match the line feed character «\n?»
+        //         Between zero and one times, as many times as possible, giving back as needed (greedy) «?»
+        //   Or match this alternative (the entire group fails if this one fails to match) «\n»
+        //      Match the line feed character «\n»
 
         #region ISourceFilter
 
@@ -74,12 +69,7 @@ namespace BoostTestAdapter.SourceFilter
         {
             Utility.Code.Require(cppSourceFile, "cppSourceFile");
 
-            /*
-             * It is important not to the change order of the filters.
-             */
-            cppSourceFile.SourceCode = stringLiteralsRegex.Replace(cppSourceFile.SourceCode, new MatchEvaluator(ComputeReplacement));
-
-            cppSourceFile.SourceCode = quotedStringsRegex.Replace(cppSourceFile.SourceCode, "");
+            cppSourceFile.SourceCode = stringLiteralsRegex.Replace(cppSourceFile.SourceCode, ComputeReplacement);
         }
 
         #endregion ISourceFilter
@@ -92,16 +82,21 @@ namespace BoostTestAdapter.SourceFilter
         /// <returns>the replacement string</returns>
         private string ComputeReplacement(Match m)
         {
-            string replacementString = "";
-
-            Match matchLineBreak = lineBreakRegex.Match(m.Value);
-            while (matchLineBreak.Success)
+            if (m.Groups.Count > 1 && m.Groups[1].Success)
             {
-                replacementString = replacementString + matchLineBreak.Groups[0]; //line break types are preserved
-                matchLineBreak = matchLineBreak.NextMatch();
+                StringBuilder replacementString = new StringBuilder();
+
+                Match matchLineBreak = lineBreakRegex.Match(m.Groups[1].Value);
+                while (matchLineBreak.Success)
+                {
+                    replacementString.Append(matchLineBreak.Value); //line break types are preserved
+                    matchLineBreak = matchLineBreak.NextMatch();
+                }
+
+                return replacementString.ToString();
             }
 
-            return replacementString;
+            return string.Empty;
         }
     }
 }
