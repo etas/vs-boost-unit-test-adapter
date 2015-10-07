@@ -43,6 +43,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.ConditionalInclusionsFilteringEnabled, Is.True);
             Assert.That(settings.LogLevel, Is.EqualTo(LogLevel.TestSuite));
             Assert.That(settings.ExternalTestRunner, Is.Null);
+            Assert.That(settings.DetectFloatingPointExceptions, Is.False);
+            Assert.That(settings.CatchSystemErrors, Is.True);
         }
 
         /// <summary>
@@ -141,6 +143,9 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.sample.2.runsettings");
             Assert.That(settings.TimeoutMilliseconds, Is.EqualTo(100));
+
+            Assert.That(settings.CatchSystemErrors, Is.False);
+            Assert.That(settings.DetectFloatingPointExceptions, Is.True);
         }
 
         /// <summary>
