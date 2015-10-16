@@ -102,14 +102,20 @@ namespace BoostTestAdapter
                                         SourceCode = sr.ReadToEnd()
                                     };
 
-                                    /*
-                                     * it is important that the pre-processor defines at project level are not modified
-                                     * because every source file in the project has to have the same starting point.
-                                     */
+                                    // Filter out any false positives and quickly reject files which do not contain any Boost Unit Test eye-catchers
+                                    if ( ShouldConsiderSourceFile(cppSourceFile.SourceCode) )
+                                    {
+                                        /*
+                                         * it is important that the pre-processor defines at project level are not modified
+                                         * because every source file in the project has to have the same starting point.
+                                         */
 
-                                    ApplySourceFilter(cppSourceFile, new Defines(projectInfo.DefinesHandler));
-                                    //call to cpy ctor
-                                    DiscoverBoostTests(cppSourceFile, source, discoverySink);
+                                        //call to cpy ctor
+                                        Defines definitions = new Defines(projectInfo.DefinesHandler);
+
+                                        ApplySourceFilter(cppSourceFile, definitions);
+                                        DiscoverBoostTests(cppSourceFile, source, discoverySink);
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -131,6 +137,13 @@ namespace BoostTestAdapter
             {
                 Logger.Error("the solutionInfo object was found to be null whilst");
             }
+        }
+
+        private static bool ShouldConsiderSourceFile(string source)
+        {
+            // NOTE Using .Contains can be slightly faster then performing a Regex.IsMatch for a set of strings
+            // Reference: http://cc.davelozinski.com/c-sharp/fastest-way-to-check-if-a-string-occurs-within-a-string
+            return source.Contains("BOOST_");
         }
 
         /// <summary>
