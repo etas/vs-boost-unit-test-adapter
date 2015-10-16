@@ -56,9 +56,9 @@ Refer to [http://www.boost.org/](http://www.boost.org/) for detailed information
 In order to use the Boost Unit Test Adapter, the following components must be available:  
 - [Boost Libraries](http://www.boost.org/users/download/)
 - [Microsoft Visual Studio](https://www.visualstudio.com/). The following versions are supported:
-  + Visual Studio 2012 Update 1 (Pro, Premium, Ultimate).
-  + Visual Studio 2013 (Pro, Premium, Ultimate).
-  + Visual Studio 2015 RC (Enterprise).
+  + Visual Studio 2012 Update 1 (Professional, Premium, Ultimate).
+  + Visual Studio 2013 (Professional, Premium, Ultimate).
+  + Visual Studio 2015 (Community, Professional, Enterprise).
 
 ### Installation
 #### Boost Unit Test Adapter Extension
