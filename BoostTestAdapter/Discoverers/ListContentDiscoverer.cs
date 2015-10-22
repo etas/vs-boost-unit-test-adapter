@@ -97,22 +97,65 @@ namespace BoostTestAdapter.Discoverers
 
         private static bool IsSuite(QualifiedNameBuilder suiteNameBuilder, string unitName, IEnumerable<SymbolInfo> syms)
         {
-            var fullyQualifiedName = unitName;
-            if (!string.IsNullOrEmpty(suiteNameBuilder.ToString()))
-                fullyQualifiedName = string.Format(
-                    CultureInfo.InvariantCulture, 
-                    "{0}::{1}", 
-                    suiteNameBuilder.ToString().Replace("/", "::"),
-                    unitName
+            try
+            {
+                var fullyQualifiedName = unitName;
+                if (!string.IsNullOrEmpty(suiteNameBuilder.ToString()))
+                    fullyQualifiedName = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "{0}::{1}",
+                        suiteNameBuilder.ToString().Replace("/", "::"),
+                        unitName
+                    );
+
+                var symbolName = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}::`dynamic initializer for 'end_suite",
+                    fullyQualifiedName
                 );
 
-            var symbolName = string.Format(
-                CultureInfo.InvariantCulture, 
-                "{0}::`dynamic initializer for 'end_suite",
-                fullyQualifiedName
-            );
+                var suiteMatch = syms.FirstOrDefault(s => s.Name.Contains(symbolName));
 
-            return syms.Any(s => s.Name.StartsWith(symbolName, StringComparison.Ordinal));
+                symbolName = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}::test_method",
+                    fullyQualifiedName
+                );
+
+                var testMatch = syms.FirstOrDefault(s => s.Name.Contains(symbolName));
+
+                if (suiteMatch != null && testMatch == null)
+                    return true;
+
+                if (suiteMatch == null && testMatch != null)
+                    return false;
+
+                var idxEnd = suiteMatch.Name.LastIndexOf("::", StringComparison.Ordinal);
+                var idxStart = suiteMatch.Name.LastIndexOf("::", idxEnd - 1, StringComparison.Ordinal);
+
+                if (idxStart == -1)
+                    idxStart = -2;
+
+                var suiteIdentifier = suiteMatch.Name.Substring(idxStart + 2, idxEnd - idxStart - 2);
+
+                idxEnd = testMatch.Name.LastIndexOf("::", StringComparison.Ordinal);
+                idxStart = testMatch.Name.LastIndexOf("::", idxEnd - 1, StringComparison.Ordinal);
+
+                if (idxStart == -1)
+                    idxStart = -2;
+
+                var testIdentifier = testMatch.Name.Substring(idxStart + 2, idxEnd - idxStart - 2);
+
+                if (testIdentifier.Length - unitName.Length > suiteIdentifier.Length - unitName.Length)
+                    return true;
+
+                return false;
+            }
+            catch (Exception)
+            {
+                
+                throw;
+            }
         }
 
         #endregion

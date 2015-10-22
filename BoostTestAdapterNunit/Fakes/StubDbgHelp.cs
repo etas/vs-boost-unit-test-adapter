@@ -21,9 +21,9 @@ namespace BoostTestAdapterNunit.Fakes
             _symbolCache.AddRange(CreateFakeSuiteSymbols("UnitTest2", "UnitTest2"));
             _symbolCache.AddRange(CreateFakeSuiteSymbols("UnitTest2", "UnitTest2::NestedUnitTest21"));
             _symbolCache.AddRange(CreateFakeSuiteSymbols("UnitTest2", "UnitTest2::NestedUnitTest21::NestedUnitTest211"));
-            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest211::NestedUnitTest211::Test2111"));
-            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest211::NestedUnitTest211::DisabledTest2112"));
-            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest211::NestedUnitTest211::Test2113"));
+            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest21::NestedUnitTest211::Test2111"));
+            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest21::NestedUnitTest211::DisabledTest2112"));
+            _symbolCache.AddRange(CreateFakeTestSymbols("UnitTest2", "UnitTest2::NestedUnitTest21::NestedUnitTest211::Test2113"));
             _symbolCache.AddRange(CreateFakeTestSymbols("", "Test2"));
         }
 
