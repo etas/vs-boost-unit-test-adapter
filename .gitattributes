@@ -1,1 +1,1 @@
-BoostTestAdapterNunit/Resources/ -crlf
+BoostTestAdapterNunit/Resources/**/* -text
