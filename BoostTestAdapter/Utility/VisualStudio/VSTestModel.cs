@@ -35,6 +35,17 @@ namespace BoostTestAdapter.Utility.VisualStudio
         }
 
         /// <summary>
+        /// TestSuite trait name
+        /// </summary>
+        public static string DisabledTestSuiteTrait
+        {
+            get
+            {
+                return "Disabled";
+            }
+        }
+
+        /// <summary>
         /// Converts a Boost.Test.Result.TestResult model into an equivalent
         /// Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult model.
         /// </summary>

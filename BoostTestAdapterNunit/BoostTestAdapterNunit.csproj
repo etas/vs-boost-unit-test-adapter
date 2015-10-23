@@ -64,6 +64,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoostTestDiscovererFactoryTest.cs" />
     <Compile Include="BoostTestDiscovererTest.cs" />
     <Compile Include="BoostTestExecutorTest.cs" />
     <Compile Include="BoostTestResultTest.cs" />
@@ -73,17 +74,17 @@
     <Compile Include="CommandEvaluatorTest.cs" />
     <Compile Include="ConditionalInclusionsFilterTest.cs" />
     <Compile Include="CorrectReferencedAssembliesTest.cs" />
-    <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />
-    <Compile Include="DefaultTestDiscovererFactoryTest.cs" />
-    <Compile Include="ExternalBoostTestDiscovererTest.cs" />
+    <Compile Include="ExternalDiscovererTest.cs" />
     <Compile Include="Fakes\ConsoleMessageLogger.cs" />
+    <Compile Include="Fakes\StubDbgHelp.cs" />
     <Compile Include="Fakes\DefaultTestContext.cs" />
+    <Compile Include="Fakes\StubListContentHelper.cs" />
     <Compile Include="LoggerTest.cs" />
     <Compile Include="MultiLineCommentFilterTest.cs" />
     <Compile Include="QuotedStringsFilterTest.cs" />
     <Compile Include="SingleLineCommentFilterTest.cs" />
     <Compile Include="SourceFiltersTest.cs" />
-    <Compile Include="TestDiscovererNunit.cs" />
+    <Compile Include="SourceCodeDiscovererNunit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExpressionEvaluationTest.cs" />
     <Compile Include="Utility\DummySolution.cs" />
@@ -171,6 +172,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.log.txt" />
     <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.report.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ListContentSupport\SampleListContentOutput.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

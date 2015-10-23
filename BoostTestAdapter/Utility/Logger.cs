@@ -18,9 +18,9 @@ namespace BoostTestAdapter.Utility
     /// </summary>
     public static class Logger
     {
-        private static IMessageLogger _loggerInstance = null;
+        private static IMessageLogger _loggerInstance;
 
-        private static readonly ILog log4netLogger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log4netLogger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Accepts a handle to the logger instance so that subsequently, textual messages can be sent to it.
@@ -122,7 +122,7 @@ namespace BoostTestAdapter.Utility
         }
 
         /// <summary>
-        /// Disposes the underlying log module
+        /// Disposes the underlying log module.
         /// </summary>
         public static void Shutdown()
         {
@@ -130,6 +130,13 @@ namespace BoostTestAdapter.Utility
             {
                 log4netLogger.Logger.Repository.Shutdown();
             }
+        }
+
+        /// <summary>
+        /// Returns the current IMessageLogger instance.
+        /// </summary>
+        public static IMessageLogger Instance {
+            get { return _loggerInstance; }
         }
 
         /// <summary>

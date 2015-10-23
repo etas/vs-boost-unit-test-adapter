@@ -9,8 +9,18 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 namespace BoostTestAdapter
 {
+    /// <summary>
+    /// Interface to an object that discoverers tests.
+    /// </summary>
     public interface IBoostTestDiscoverer
     {
+        /// <summary>
+        /// Discoverers test in the sources if supported by the discoverer.
+        /// </summary>
+        /// <param name="sources">The list of sources to be analysed.</param>
+        /// <param name="discoveryContext">The discovery context.</param>
+        /// <param name="logger">The logger instance.</param>
+        /// <param name="discoverySink">The discovery sink where all the found test should be added.</param>
         void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger,
             ITestCaseDiscoverySink discoverySink);
     }
