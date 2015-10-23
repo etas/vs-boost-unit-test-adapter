@@ -5,8 +5,9 @@
 
 	<!-- BoostTest adapter -->
 	<BoostTest>
-        <TimeoutMilliseconds>600000</TimeoutMilliseconds>
-        <!-- Both 'true' and '1' are allowable values -->
+    <ExecutionTimeoutMilliseconds>600000</ExecutionTimeoutMilliseconds>
+    <DiscoveryTimeoutMilliseconds>600000</DiscoveryTimeoutMilliseconds>
+    <!-- Both 'true' and '1' are allowable values -->
         <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
 		<!-- <ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled> -->
         <!-- <LogLevel>TestSuite</LogLevel> -->

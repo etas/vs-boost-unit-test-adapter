@@ -93,7 +93,7 @@ namespace BoostTestAdapter.Boost.Runner
         private const string ReportSinkArg = "--report_sink";
 
         private const string DetectMemoryLeakArg = "--detect_memory_leak";
-        
+
         private const string ShowProgressArg = "--show_progress";
         private const string BuildInfoArg = "--build_info";
         private const string AutoStartDebugArg = "--auto_start_dbg";
@@ -106,6 +106,7 @@ namespace BoostTestAdapter.Boost.Runner
         private const string DetectFPExceptionsArg = "--detect_fp_exceptions";
         private const string SavePatternArg = "--save_pattern";
         private const string ListContentArg = "--list_content";
+        private const string HelpArg = "--help";
 
         private const string TestSeparator = ",";
 
@@ -146,7 +147,7 @@ namespace BoostTestAdapter.Boost.Runner
             this.ReportLevel = ReportLevel.Default;
 
             this.DetectMemoryLeaks = 1;
-            
+
             this.ShowProgress = false;
             this.BuildInfo = false;
             this.AutoStartDebug = "no";
@@ -159,6 +160,7 @@ namespace BoostTestAdapter.Boost.Runner
             this.DetectFPExceptions = false;
             this.SavePattern = false;
             this.ListContent = false;
+            this.Help = false;
         }
 
         #endregion Constructors
@@ -296,6 +298,11 @@ namespace BoostTestAdapter.Boost.Runner
         public bool ListContent { get; set; }
 
         /// <summary>
+        /// Help output.
+        /// </summary>
+        public bool Help { get; set; }
+
+        /// <summary>
         /// Path (relative to the WorkingDirectory) to the report file which will host the standard output content.
         /// </summary>
         public string StandardOutFile
@@ -335,13 +342,22 @@ namespace BoostTestAdapter.Boost.Runner
         {
             StringBuilder args = new StringBuilder();
 
+            // --help
+            if (this.Help)
+            {
+                AddArgument(HelpArg, args);
+
+                // return immediately since Boost UTF should ignore the rest of the arguments
+                return AppendRedirection(args).ToString();
+            }
+
             // --list_content
             if (this.ListContent)
             {
                 AddArgument(ListContentArg, args);
 
                 // return immediately since Boost UTF should ignore the rest of the arguments
-                return args.ToString();
+                return AppendRedirection(args).ToString();
             }
 
             // --run_tests=a,b,c
@@ -458,6 +474,11 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(SavePatternArg, Yes, args);
             }
 
+            return AppendRedirection(args).ToString().TrimEnd();
+        }
+
+        private StringBuilder AppendRedirection(StringBuilder args)
+        {
             // > std.out
             if (!string.IsNullOrEmpty(this._stdOutFile))
             {
@@ -470,7 +491,7 @@ namespace BoostTestAdapter.Boost.Runner
                 args.Append(ErrRedirectionOperator).Append(ArgSeparator).Append(Quote(this._stdErrFile));
             }
 
-            return args.ToString().TrimEnd();
+            return args;
         }
 
         /// <summary>
@@ -606,7 +627,7 @@ namespace BoostTestAdapter.Boost.Runner
         public BoostTestRunnerCommandLineArgs Clone()
         {
             BoostTestRunnerCommandLineArgs clone = new BoostTestRunnerCommandLineArgs();
-            
+
             clone.WorkingDirectory = this.WorkingDirectory;
 
             // Deep copy

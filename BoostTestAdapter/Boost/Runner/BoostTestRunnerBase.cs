@@ -50,7 +50,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             using (Process process = Debug(framework, GetStartInfo(args, settings)))
             {
-                MonitorProcess(process, settings.Timeout);
+                MonitorProcess(process, settings.RunnerTimeout);
             }
         }
 
@@ -60,7 +60,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             using (Process process = Run(GetStartInfo(args, settings)))
             {
-                MonitorProcess(process, settings.Timeout);
+                MonitorProcess(process, settings.RunnerTimeout);
             }
         }
 

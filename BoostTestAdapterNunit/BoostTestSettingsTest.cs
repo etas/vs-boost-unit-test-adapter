@@ -43,7 +43,8 @@ namespace BoostTestAdapterNunit
         /// <param name="settings">The BoostTestAdapterSettings instance to test</param>
         private void AssertDefaultSettings(BoostTestAdapterSettings settings)
         {
-            Assert.That(settings.TimeoutMilliseconds, Is.EqualTo(-1));
+            Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(-1));
+            Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(5000));
             Assert.That(settings.FailTestOnMemoryLeak, Is.False);
             Assert.That(settings.ConditionalInclusionsFilteringEnabled, Is.True);
             Assert.That(settings.LogLevel, Is.EqualTo(LogLevel.TestSuite));
@@ -101,7 +102,8 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.sample.runsettings");
 
-            Assert.That(settings.TimeoutMilliseconds, Is.EqualTo(600000));
+            Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(600000));
+            Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(600000));
             Assert.That(settings.FailTestOnMemoryLeak, Is.True);
 
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
@@ -147,7 +149,8 @@ namespace BoostTestAdapterNunit
         public void ParseComplexSettings()
         {
             BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.sample.2.runsettings");
-            Assert.That(settings.TimeoutMilliseconds, Is.EqualTo(100));
+            Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(100));
+            Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(100));
 
             Assert.That(settings.CatchSystemErrors, Is.False);
             Assert.That(settings.DetectFloatingPointExceptions, Is.True);
@@ -165,7 +168,8 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = new BoostTestAdapterSettings();
 
-            settings.TimeoutMilliseconds = 600000;
+            settings.ExecutionTimeoutMilliseconds = 600000;
+            settings.DiscoveryTimeoutMilliseconds = 600000;
             settings.FailTestOnMemoryLeak = true;
 
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings()
@@ -190,7 +194,8 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.externalTestRunner.runsettings");
 
-            Assert.That(settings.TimeoutMilliseconds, Is.EqualTo(-1));
+            Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(-1));
+            Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(5000));
             Assert.That(settings.FailTestOnMemoryLeak, Is.False);
             Assert.That(settings.ConditionalInclusionsFilteringEnabled, Is.True);
             Assert.That(settings.LogLevel, Is.EqualTo(LogLevel.TestSuite));
