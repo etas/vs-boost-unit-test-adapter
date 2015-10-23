@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using BoostTestAdapter.Settings;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using BoostTestAdapter.Utility;
+using BoostTestAdapter.Discoverers;
 
 namespace BoostTestAdapter
 {
@@ -27,69 +29,82 @@ namespace BoostTestAdapter
 
         #endregion Constants
 
+
         #region Constructors
 
-        /// <summary>
-        /// Default constructor (the one that is called off by Visual Studio before being able to call method DiscoverTests)
-        /// </summary>
         public BoostTestDiscoverer()
-            :this(new DefaultBoostTestDiscovererFactory())
+            :this(new BoostTestDiscovererFactory(new ListContentHelper()))
         {
+        
         }
 
-        /// <summary>
-        /// Constructor accepting an object of type IBoostTestDiscovererFactory (for mocking)
-        /// </summary>
-        /// <param name="newTestDiscovererFactory"></param>
-        public BoostTestDiscoverer(IBoostTestDiscovererFactory newTestDiscovererFactory)
+        public BoostTestDiscoverer(IBoostTestDiscovererFactory boostTestDiscovererFactory)
         {
-            this.TestDiscovererFactory = newTestDiscovererFactory;
+            _boostTestDiscovererFactory = boostTestDiscovererFactory;
         }
 
-        #endregion Constructors
+        #endregion
 
-        #region Properties
 
-        private IBoostTestDiscovererFactory TestDiscovererFactory { get; set; }
+        #region Members
 
-        #endregion Properties
+        private readonly IBoostTestDiscovererFactory _boostTestDiscovererFactory;
+
+        #endregion
+
 
         #region ITestDiscoverer
 
         /// <summary>
-        /// Method call by Visual studio ("discovered via reflection") for test enumeration
+        /// Method called by Visual Studio (discovered via reflection) for test enumeration
         /// </summary>
         /// <param name="sources">path, target name and target extensions to discover</param>
         /// <param name="discoveryContext">discovery context settings</param>
         /// <param name="logger"></param>
         /// <param name="discoverySink">Unit test framework Sink</param>
         /// <remarks>Entry point of the discovery procedure</remarks>
-        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger,
-            ITestCaseDiscoverySink discoverySink)
+        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
 #if DEBUG && LAUNCH_DEBUGGER
             System.Diagnostics.Debugger.Launch();
 #endif
 
-            BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(discoveryContext);
+            if (sources == null)
+                return;
 
-            BoostTestDiscovererFactoryOptions options = new BoostTestDiscovererFactoryOptions();
-            options.ExternalTestRunnerSettings = settings.ExternalTestRunner;
+            Logger.Initialize(logger);
+
+            DiscoverTests(sources, discoveryContext, discoverySink);
+
+            Logger.Shutdown();
+        }
+
+        #endregion ITestDiscoverer
+
+        /// <summary>
+        /// Method called by BoostTestExecutor for test enumeration
+        /// </summary>
+        /// <param name="sources">path, target name and target extensions to discover</param>
+        /// <param name="discoveryContext">discovery context settings</param>
+        /// <param name="discoverySink">Unit test framework Sink</param>
+        /// <remarks>This method assumes that the Logger singleton is maintained by the caller.</remarks>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)
+        {
+            if (sources == null)
+                return;
+
+            BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(discoveryContext);
 
             try
             {
-                Logger.Initialize(logger);
+                var results = _boostTestDiscovererFactory.GetDiscoverers(sources.ToList(), settings);
 
-                var sourceGroups = sources.GroupBy(Path.GetExtension);
-
-                foreach (IGrouping<string, string> sourceGroup in sourceGroups)
+                // Test discovery
+                foreach (var d in results)
                 {
-                    IBoostTestDiscoverer discoverer = TestDiscovererFactory.GetTestDiscoverer(sourceGroup.Key, options);
-
-                    if (discoverer != null)
-                    {
-                        discoverer.DiscoverTests(sourceGroup, discoveryContext, logger, discoverySink);
-                    }
+                    if (d.Sources.Count > 0)
+                        d.Discoverer.DiscoverTests(d.Sources, discoveryContext, Logger.Instance, discoverySink);
                 }
             }
             catch (Exception ex)
@@ -97,13 +112,6 @@ namespace BoostTestAdapter
                 Logger.Error("Exception caught while discovering tests: {0} ({1})", ex.Message, ex.HResult);
                 Logger.Error(ex.StackTrace);
             }
-            finally
-            {
-                Logger.Shutdown();
-            }
         }
-
-        #endregion ITestDiscoverer
-
     }
 }

@@ -3,7 +3,11 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using BoostTestAdapter.Utility;
 
 namespace BoostTestAdapter.Boost.Results
@@ -23,7 +27,7 @@ namespace BoostTestAdapter.Boost.Results
         protected BoostTestResultXMLOutput(Stream stream)
             : base(stream)
         {
-            
+
         }
 
         /// <summary>
@@ -37,29 +41,22 @@ namespace BoostTestAdapter.Boost.Results
             MemoryStream memoryStream = null;
             try
             {
-                memoryStream = new MemoryStream();
-                StreamWriter writer = new StreamWriter(memoryStream);
-                writer.WriteLine("<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>");
-                writer.Flush();
-                FileStream fileStream = null;
-                try
+                if (File.Exists(path))
                 {
-                    fileStream = File.OpenRead(path);
-                    fileStream.CopyTo(memoryStream);
-                }
-                finally
-                {
-                    if (fileStream != null)
-                    {
-                        fileStream.Close();
-                    }
-                    else
-                    {
-                        Logger.Error("filestream was found to be null when handling path: " + path);
-                    }
-                }
+                    var enc = Encoding.GetEncoding("iso-8859-1");
+                    enc = (Encoding)enc.Clone();
+                    enc.EncoderFallback = new EncoderReplacementFallback(string.Empty);
 
-                memoryStream.Position = 0;
+                    var fileContent = File.ReadAllText(path, enc);
+                    fileContent = ParseCDataSection(fileContent);
+                    if (!fileContent.StartsWith("<?xml", StringComparison.Ordinal))
+                        fileContent = fileContent.Insert(0, "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n");
+
+                    byte[] encodedBuffer = enc.GetBytes(fileContent).Where(x => x > 0).ToArray();
+
+                    memoryStream = new MemoryStream(encodedBuffer);
+                    memoryStream.Position = 0;
+                }
             }
             catch
             {
@@ -71,6 +68,41 @@ namespace BoostTestAdapter.Boost.Results
             }
 
             return memoryStream;
+        }
+
+        /// <summary>
+        /// Replaces all the control characters (less than 32) in the CDATA section with the hexadecimal representation.
+        /// </summary>
+        /// <param name="fileContent">The XML content to be filtered.</param>
+        /// <returns>The filtered content.</returns>
+        /// <remarks>
+        /// Until version 1.58 Boost Unit Test Library outputs non-filtered content of arrays in the log/report.
+        /// This function fixes the output to avoid XML parsing crashes using the same approach the library uses starting from version 1.59.
+        /// </remarks>
+        private static string ParseCDataSection(string fileContent)
+        {
+            var startPos = fileContent.IndexOf("<![CDATA[", StringComparison.Ordinal);
+            while (startPos > -1)
+            {
+                var endPos = fileContent.IndexOf("]]>", startPos, StringComparison.Ordinal);
+
+                var dataSectionContent = fileContent.Substring(startPos, endPos - startPos);
+
+                for (int i = 0; i < 32; i++)
+                {
+                    if (i == 10 || i == 13)
+                        continue;
+
+                    string c = char.ConvertFromUtf32(i);
+                    dataSectionContent = dataSectionContent.Replace(c, string.Format(CultureInfo.InvariantCulture, "0x{0:X2}", i));
+                }
+
+                fileContent = fileContent.Substring(0, startPos) + dataSectionContent + fileContent.Substring(endPos);
+
+                startPos = fileContent.IndexOf("<![CDATA[", endPos, StringComparison.Ordinal);
+            }
+
+            return fileContent;
         }
     }
 }
