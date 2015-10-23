@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -75,10 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoostTestDiscoverer.cs" />
+    <Compile Include="BoostTestDiscovererFactory.cs" />
     <Compile Include="BoostTestDiscovererFactoryOptions.cs" />
-    <Compile Include="BoostTestDiscovererInternal.cs" />
     <Compile Include="BoostTestExecutor.cs" />
-    <Compile Include="BoostTestExeDiscoverer.cs" />
     <Compile Include="Boost\Results\BoostStandardError.cs" />
     <Compile Include="Boost\Results\BoostStandardOutput.cs" />
     <Compile Include="Boost\Results\BoostTestResultOutputBase.cs" />
@@ -115,11 +114,15 @@
     <Compile Include="Boost\Test\TestFrameworkBuilder.cs" />
     <Compile Include="Boost\Test\TestSuite.cs" />
     <Compile Include="Boost\Test\TestUnit.cs" />
-    <Compile Include="DefaultBoostTestDiscovererFactory.cs" />
-    <Compile Include="ExternalBoostTestDiscoverer.cs" />
+    <Compile Include="Discoverers\ListContentDiscoverer.cs" />
+    <Compile Include="Discoverers\SourceCodeDiscoverer.cs" />
+    <Compile Include="Discoverers\ExternalDiscoverer.cs" />
+    <Compile Include="Discoverers\TestCaseUtils.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IBoostTestDiscoverer.cs" />
     <Compile Include="IBoostTestDiscovererFactory.cs" />
+    <Compile Include="IListContentHelper.cs" />
+    <Compile Include="ListContentHelper.cs" />
     <Compile Include="ProjectInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\BoostTestAdapterSettings.cs" />
@@ -145,6 +148,8 @@
     <Compile Include="Utility\Code.cs" />
     <Compile Include="Utility\CommandEvaluator.cs" />
     <Compile Include="Utility\CommandLine.cs" />
+    <Compile Include="Utility\DebugHelperNative.cs" />
+    <Compile Include="Utility\IDebugHelper.cs" />
     <Compile Include="Utility\Logger.cs" />
     <Compile Include="Utility\NativeMethods.cs" />
     <Compile Include="Utility\ProcessStartInfoEx.cs" />

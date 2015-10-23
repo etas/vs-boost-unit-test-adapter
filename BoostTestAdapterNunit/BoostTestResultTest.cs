@@ -3,11 +3,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using BoostTestAdapter.Boost.Results;
 using BoostTestAdapter.Boost.Results.LogEntryTypes;
@@ -139,12 +138,13 @@ namespace BoostTestAdapterNunit
             foreach (LogEntry entry in entries)
             {
                 LogEntry found =
-                    testResult.LogEntries.Where(
-                        (e) =>
+                    testResult.LogEntries.FirstOrDefault(
+                        e =>
                         {
-                           return (e.ToString() == entry.ToString()) && (e.Detail == entry.Detail);
-                        })
-                        .FirstOrDefault();
+                            var entryDetail = Regex.Replace(entry.Detail, @"\r|\n", string.Empty);
+                            var eDetail = Regex.Replace(e.Detail, @"\r|\n", string.Empty);
+                            return (e.ToString() == entry.ToString()) && (eDetail == entryDetail);
+                        });
                 Assert.That(found, Is.Not.Null);
 
                 AssertSourceInfoDetails(found.Source, entry.Source);
@@ -155,8 +155,8 @@ namespace BoostTestAdapterNunit
 
             while (testResultMemleaks.MoveNext() && entriesMemLeaks.MoveNext())
             {
-                AssertMemoryLeakDetails((LogEntryMemoryLeak) testResultMemleaks.Current,
-                    (LogEntryMemoryLeak) entriesMemLeaks.Current);
+                AssertMemoryLeakDetails((LogEntryMemoryLeak)testResultMemleaks.Current,
+                    (LogEntryMemoryLeak)entriesMemLeaks.Current);
             }
         }
 
@@ -325,9 +325,46 @@ namespace BoostTestAdapterNunit
             
                 });
 
-           Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(4));
+            Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(4));
 
         }
+
+        /// <summary>
+        /// Boost Test XML log containing control characters.
+        /// </summary>
+        /// Test aims:
+        ///         - The aim of the test is to make sure that we are able to handle Boost xml logs that contain invalid or control characters. Boost UTF does
+        /// not technically generate a valid XML document so we need to add the encoding declaration ourselves (this is done in class BoostTestXMLOutput).
+        /// We also filter out all the NUL characters and replace all the control (less than 32) characters in the CDATA section with the hexadecimal representation.
+        [Test]
+        public void ParseBoostReportLogContainingControlCharacters()
+        {
+
+            string reportFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.report.txt", Path.GetTempPath());
+            string logFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.log.txt", Path.GetTempPath());
+
+            Parse(reportFilePath, logFilePath);
+
+            BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+            Assert.That(masterSuiteResult, Is.Not.Null);
+
+            AssertReportDetails(masterSuiteResult, null, "ControlCharactersUnitTests", TestResultType.Failed, 0, 1, 0, 0, 1, 0, 0);
+
+            BoostTestResult testCaseResult = this.TestResultCollection["TestControlChar"];
+            Assert.That(testCaseResult, Is.Not.Null);
+
+            AssertReportDetails(testCaseResult, masterSuiteResult, "TestControlChar", TestResultType.Failed, 0, 1, 0);
+            AssertLogDetails(testCaseResult
+                , 2000
+                , new[]
+                {
+                    new LogEntryError("check { vect1.cbegin(), vect1.cend() } == { vect2.cbegin(), vect2.cend() } failed. \nMismatch in a position 1: 0x00 != 0x01\nMismatch in a position 2: 0x01 != 0x02\nMismatch in a position 3: 0x03 != 0x04\nMismatch in a position 7: 0x00 != A\nCollections size mismatch: 32 != 31",new SourceFileInfo("boostunittest.cpp", 8)), 
+                });
+
+            Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(1));
+
+        }
+
 
 
         /// <summary>
@@ -359,7 +396,7 @@ namespace BoostTestAdapterNunit
 
                 LogEntry entry = testCaseResult.LogEntries.First();
                 AssertLogEntryDetails(entry, "Exception", "C string: some error", new SourceFileInfo("unknown location", 0));
-                AssertLogEntryExceptionDetails((LogEntryException) entry, new SourceFileInfo("boostunittestsample.cpp", 13), "Going to throw an exception");
+                AssertLogEntryExceptionDetails((LogEntryException)entry, new SourceFileInfo("boostunittestsample.cpp", 13), "Going to throw an exception");
             }
         }
 
@@ -677,7 +714,7 @@ namespace BoostTestAdapterNunit
                         LeakSourceFileAndLineNumberReportingActive = true
                     }
                 });
-            }           
+            }
         }
 
         /// <summary>

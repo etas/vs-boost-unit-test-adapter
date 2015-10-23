@@ -7,19 +7,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using BoostTestAdapter.Settings;
 using BoostTestAdapter.SourceFilter;
 using BoostTestAdapter.Utility;
 using BoostTestAdapter.Utility.VisualStudio;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using VisualStudioAdapter;
-using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 
-namespace BoostTestAdapter
+namespace BoostTestAdapter.Discoverers
 {
     /// <summary>
-    /// Contains method to find boost test cases from list of files
+    /// A Boost Test Discoverer that parses the source code of the source project to discover tests.
     /// </summary>
-    public class BoostTestDiscovererInternal
+    internal class SourceCodeDiscoverer : IBoostTestDiscoverer
     {
         #region Constants
 
@@ -41,36 +43,82 @@ namespace BoostTestAdapter
 
         #endregion Constants
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="provider">The Visual Studio instance provider</param>
-        /// <param name="newSourceFilters">source filters object that will be used to filter inactive code</param>
-        public BoostTestDiscovererInternal(IVisualStudioInstanceProvider provider, ISourceFilter[] newSourceFilters)
-        {
-            this.VSProvider = provider;
-            this._sourceFilters = newSourceFilters;
-        }
-
         #region Members
+
+        /// <summary>
+        /// The Visual Studio instance provider
+        /// </summary>
+        private readonly IVisualStudioInstanceProvider _vsProvider;
 
         /// <summary>
         /// Collection of source filters which are applied to sources for correct test extraction
         /// </summary>
-        private readonly ISourceFilter[] _sourceFilters;
+        private ISourceFilter[] _sourceFilters;
 
         #endregion Members
 
-        #region Properties
+        #region Constructors
 
         /// <summary>
-        /// Visual Studio Instance provider
+        /// Default constructor
         /// </summary>
-        public IVisualStudioInstanceProvider VSProvider { get; private set; }
+        public SourceCodeDiscoverer()
+            : this(new DefaultVisualStudioInstanceProvider())
+        {
+        }
 
-        #endregion Properties
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="provider">The Visual Studio instance provider</param>
+        public SourceCodeDiscoverer(IVisualStudioInstanceProvider provider)
+        {
+            _vsProvider = provider;
+        }
 
-        #region Public methods
+        #endregion
+
+        #region IBoostTestDiscoverer
+
+        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
+        {
+            Code.Require(sources, "sources");
+            Code.Require(discoverySink, "discoverySink");
+
+            BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(discoveryContext);
+            _sourceFilters = SourceFilterFactory.Get(settings);
+            IDictionary<string, ProjectInfo> solutioninfo = null;
+
+            var numberOfAttempts = 100;
+
+            // try several times to overcome "Application is Busy" COMException
+            while (numberOfAttempts > 0)
+            {
+                try
+                {
+                    solutioninfo = PrepareTestCaseData(sources);
+                    // set numberOfAttempts = 0, because there is no need to try again,
+                    // since obviously no exception was thrown at this point
+                    numberOfAttempts = 0;
+                }
+                catch (COMException)
+                {
+                    --numberOfAttempts;
+
+                    // re-throw after all attempts have failed
+                    if (numberOfAttempts == 0)
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            GetBoostTests(solutioninfo, discoverySink);
+        }
+
+        #endregion
+
+        #region Private methods
 
         /// <summary>
         /// gets (parses) all testcases from cpp files checking for
@@ -79,7 +127,7 @@ namespace BoostTestAdapter
         /// <param name="solutionInfo">mapping between projectexe and the corresponding .cpp files</param>
         /// <param name="discoverySink">UTF component for collecting testcases</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        public void GetBoostTests(IDictionary<string, ProjectInfo> solutionInfo, ITestCaseDiscoverySink discoverySink)
+        private void GetBoostTests(IDictionary<string, ProjectInfo> solutionInfo, ITestCaseDiscoverySink discoverySink)
         {
             if (solutionInfo != null)
             {
@@ -88,7 +136,7 @@ namespace BoostTestAdapter
                     string source = info.Key;
                     ProjectInfo projectInfo = info.Value;
 
-                    foreach(var sourceFile in projectInfo.CppSourceFiles)
+                    foreach (var sourceFile in projectInfo.CppSourceFiles)
                     {
                         try
                         {
@@ -168,7 +216,7 @@ namespace BoostTestAdapter
             {
                 ++sourceInfo.LineNumber;
 
-                string[] splitMacro = line.Split(new[] { '<', '>', '(', ',', ')', ';' });
+                string[] splitMacro = line.Split('<', '>', '(', ',', ')', ';');
                 string desiredMacro = splitMacro[0].Trim();
 
                 /*
@@ -205,10 +253,9 @@ namespace BoostTestAdapter
                                     //first parameter is the test case name
                                     string testCaseNameWithDataType = testCaseName + "<" + dataType + ">";
 
-                                    var testCase = CreateTestCase(source, sourceInfo,
-                                        suite, testCaseNameWithDataType);
+                                    var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseNameWithDataType);
 
-                                    AddTestCase(testCase, discoverySink);
+                                    TestCaseUtils.AddTestCase(testCase, discoverySink);
                                 }
                             }
                             break;
@@ -226,10 +273,9 @@ namespace BoostTestAdapter
                         {
                             string testCaseName = splitMacro[1].Trim();
 
-                            var testCase = CreateTestCase(source, sourceInfo, suite,
-                                testCaseName);
+                            var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseName);
 
-                            AddTestCase(testCase, discoverySink);
+                            TestCaseUtils.AddTestCase(testCase, discoverySink);
                             break;
                         }
 
@@ -262,27 +308,27 @@ namespace BoostTestAdapter
         /// </summary>
         /// <param name="sources">List of exe files present in the solution.</param>
         /// <returns>Dictionary mapping each source to a ProjectInfo that will be populated with the project information</returns>
-        public IDictionary<string, ProjectInfo> PrepareTestCaseData(IEnumerable<string> sources)
+        private IDictionary<string, ProjectInfo> PrepareTestCaseData(IEnumerable<string> sources)
         {
             Dictionary<string, ProjectInfo> solutionInfo = new Dictionary<string, ProjectInfo>();
 
             // Get the currently loaded VisualStudio instance
-            IVisualStudio vs = this.VSProvider.Instance;
+            var vs = _vsProvider.Instance;
 
             if (vs != null)
             {
                 // Copy the enumerable to a list so that we can maintain/modify this local copy
                 List<string> sourcesCopy = sources.ToList();
 
-                foreach (IProject project in vs.Solution.Projects)
+                foreach (var project in vs.Solution.Projects)
                 {
-                    IProjectConfiguration configuration = project.ActiveConfiguration;
+                    var configuration = project.ActiveConfiguration;
 
                     //Iterating over projects and then the sources for improved performance
                     int index = sourcesCopy.FindIndex(source => string.Equals(source, configuration.PrimaryOutput, StringComparison.Ordinal));
                     if (index != -1)
                     {
-                        ProjectInfo projectInfo = new ProjectInfo(sourcesCopy[index]);
+                        var projectInfo = new ProjectInfo(sourcesCopy[index]);
 
                         // Maintain (copied) list of sources so that we may exit early if possible
                         sourcesCopy.RemoveAt(index);
@@ -306,70 +352,6 @@ namespace BoostTestAdapter
             return solutionInfo;
         }
 
-        #endregion Public methods
-
-        #region Private helper methods
-
-        /// <summary>
-        /// Creates a new TestCase object.
-        /// </summary>
-        /// <param name="sourceExe">Name of the project executable</param>
-        /// <param name="sourceInfo">.cpp file path and TestCase line number</param>
-        /// <param name="suite">The suite in which testcase is present</param>
-        /// <param name="testCaseName">Name of the testcase</param>
-        /// <returns>The created TestCase object</returns>
-        private static VSTestCase CreateTestCase(string sourceExe, SourceFileInfo sourceInfo, QualifiedNameBuilder suite, string testCaseName)
-        {
-            suite.Push(testCaseName);
-
-            string qualifiedName = suite.ToString();
-
-            suite.Pop();
-
-            var testCase = new VSTestCase(qualifiedName, BoostTestExecutor.ExecutorUri, sourceExe)
-            {
-                CodeFilePath = sourceInfo.File,
-                LineNumber = sourceInfo.LineNumber,
-                DisplayName = testCaseName,
-            };
-
-            GroupViaTraits(suite.ToString(), testCase);
-
-            return testCase;
-        }
-
-        /// <summary>
-        /// Sets the Traits property for the testcase object.
-        /// </summary>
-        /// <param name="suiteName">Name of the test suite to which the testcase belongs</param>
-        /// <param name="testCase">[ref] The testcase object</param>
-        private static void GroupViaTraits(string suiteName, VSTestCase testCase)
-        {
-            string traitName = suiteName;
-
-            if (string.IsNullOrEmpty(suiteName))
-            {
-                traitName = QualifiedNameBuilder.DefaultMasterTestSuiteName;
-            }
-
-            testCase.Traits.Add(VSTestModel.TestSuiteTrait, traitName);
-        }
-
-        /// <summary>
-        /// Helper methods which adds a test case to an internal list and sends the test to the discovery sink
-        /// </summary>
-        /// <param name="testCase">the test case to be added</param>
-        /// <param name="discoverySink">the discovery sink where the test case is sent to</param>
-        private static void AddTestCase(VSTestCase testCase, ITestCaseDiscoverySink discoverySink)
-        {
-            //send to discovery sink
-            if (null != discoverySink)
-            {
-                Logger.Info("Found test: {0}", testCase.FullyQualifiedName);
-                discoverySink.SendTestCase(testCase);
-            }
-        }
-
-        #endregion Private helper methods
+        #endregion Private methods
     }
 }
