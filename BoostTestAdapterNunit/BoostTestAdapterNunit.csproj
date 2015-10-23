@@ -168,6 +168,10 @@
     <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.log.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.report.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.log.txt" />
+    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.report.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
