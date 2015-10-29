@@ -10,6 +10,7 @@
         <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
 		<ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled>
         <LogLevel>TestSuite</LogLevel>
+		<CatchSystemErrors>true</CatchSystemErrors>
 	</BoostTest>
 
 </RunSettings>
