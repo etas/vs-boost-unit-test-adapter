@@ -1,4 +1,7 @@
 # Boost Unit Test Adapter for Microsoft Visual Studio
+
+Build Status: [![Build status](https://ci.appveyor.com/api/projects/status/7awkwecxxtl36kje?svg=true)](https://ci.appveyor.com/project/netspiri/vs-boost-unit-test-adapter-du7c4)
+
 ### User Manual
 
 ## Contents
