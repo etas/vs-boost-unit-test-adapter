@@ -17,12 +17,12 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using TestCase = BoostTestAdapter.Boost.Test.TestCase;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 
-namespace BoostTestAdapter
+namespace BoostTestAdapter.Discoverers
 {
     /// <summary>
     /// A Boost Test Discoverer which discovers tests based on configuration.
     /// </summary>
-    public class ExternalBoostTestDiscoverer : IBoostTestDiscoverer
+    internal class ExternalDiscoverer : IBoostTestDiscoverer
     {
         #region Constants
 
@@ -30,19 +30,26 @@ namespace BoostTestAdapter
 
         #endregion Constants
 
-        public ExternalBoostTestDiscoverer(ExternalBoostTestRunnerSettings settings)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="settings">Settings for this instance of the discoverer.</param>
+        public ExternalDiscoverer(ExternalBoostTestRunnerSettings settings)
         {
-            this.Settings = settings;
+            Settings = settings;
         }
 
+        /// <summary>
+        /// Settings for this instance of the discoverer.
+        /// </summary>
         public ExternalBoostTestRunnerSettings Settings { get; private set; }
 
         #region IBoostTestDiscoverer
 
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
-            Utility.Code.Require(sources, "sources");
-            Utility.Code.Require(discoverySink, "discoverySink");
+            Code.Require(sources, "sources");
+            Code.Require(discoverySink, "discoverySink");
 
             foreach (string source in sources)
             {
@@ -65,11 +72,11 @@ namespace BoostTestAdapter
         /// <returns>The test framework describing all tests contained within the test source or null if one cannot be provided.</returns>
         private TestFramework DiscoverTestFramework(string source)
         {
-            if (this.Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryFileMap)
+            if (Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryFileMap)
             {
                 return ParseStaticTestList(source);
             }
-            else if (this.Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryCommandLine)
+            else if (Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryCommandLine)
             {
                 return ExecuteExternalDiscoveryCommand(source);
             }
@@ -101,8 +108,8 @@ namespace BoostTestAdapter
             // Evaluate the discovery command
             CommandLine commandLine = new CommandLine
             {
-                FileName = evaluator.Evaluate(this.Settings.DiscoveryCommandLine.FileName).Result,
-                Arguments = evaluator.Evaluate(this.Settings.DiscoveryCommandLine.Arguments).Result
+                FileName = evaluator.Evaluate(Settings.DiscoveryCommandLine.FileName).Result,
+                Arguments = evaluator.Evaluate(Settings.DiscoveryCommandLine.Arguments).Result
             };
 
             // Execute the discovery command via an external process
@@ -137,7 +144,7 @@ namespace BoostTestAdapter
             Process process = Process.Start(ProcessStartInfoEx.StartThroughCmdShell(info));
             if (process != null)
             {
-                process.WaitForExit();
+                process.WaitForExit(60000);
 
                 return (process.ExitCode == 0);
             }
@@ -152,8 +159,8 @@ namespace BoostTestAdapter
         /// <returns>The test framework describing all tests contained within the test source or null if one cannot be provided.</returns>
         private TestFramework ParseStaticTestList(string source)
         {
-            string path = null;
-            if (this.Settings.DiscoveryFileMap.TryGetValue(Path.GetFileName(source), out path))
+            string path;
+            if (Settings.DiscoveryFileMap.TryGetValue(Path.GetFileName(source), out path))
             {
                 return ParseTestFramework(path);   
             }
@@ -190,10 +197,10 @@ namespace BoostTestAdapter
             /// <param name="sink">The ITestCaseDiscoverySink which will have tests registered with</param>
             public BoostTestCaseDiscoverer(string source, ITestCaseDiscoverySink sink)
             {
-                this.Source = source;
-                this.Sink = sink;
+                Source = source;
+                Sink = sink;
 
-                this.TestSuite = new QualifiedNameBuilder();
+                TestSuite = new QualifiedNameBuilder();
             }
 
             #endregion Constructors
@@ -212,9 +219,9 @@ namespace BoostTestAdapter
 
             #endregion Properties
 
-            public void Visit(Boost.Test.TestCase testCase)
+            public void Visit(TestCase testCase)
             {
-                Utility.Code.Require(testCase, "testCase");
+                Code.Require(testCase, "testCase");
 
                 // Convert from Boost.Test.TestCase to a Visual Studio TestCase object
                 VSTestCase test = GenerateTestCase(testCase);
@@ -223,23 +230,23 @@ namespace BoostTestAdapter
                 {
                     Logger.Info("Found test: {0}", testCase.FullyQualifiedName);
 
-                    ++this.Count;
+                    ++Count;
 
                     // Register test case
-                    this.Sink.SendTestCase(test);
+                    Sink.SendTestCase(test);
                 }
             }
 
             public void Visit(TestSuite testSuite)
             {
-                Utility.Code.Require(testSuite, "testSuite");
+                Code.Require(testSuite, "testSuite");
 
-                this.TestSuite.Push(testSuite);
+                TestSuite.Push(testSuite);
 
                 // Identify Master Test Suite
-                if ((this.MasterTestSuite == null) && (testSuite.Parent == null))
+                if ((MasterTestSuite == null) && (testSuite.Parent == null))
                 {
-                    this.MasterTestSuite = testSuite;
+                    MasterTestSuite = testSuite;
                 }
 
                 foreach (TestUnit child in testSuite.Children)
@@ -247,7 +254,7 @@ namespace BoostTestAdapter
                     child.Apply(this);
                 }
 
-                this.TestSuite.Pop();
+                TestSuite.Pop();
             }
 
             /// <summary>
@@ -258,16 +265,16 @@ namespace BoostTestAdapter
             private VSTestCase GenerateTestCase(TestCase testCase)
             {
                 // Temporarily push TestCase on TestSuite name builder to acquire the fully qualified name of the TestCase
-                this.TestSuite.Push(testCase);
+                TestSuite.Push(testCase);
 
                 VSTestCase test = new VSTestCase(
-                    this.TestSuite.ToString(),
+                    TestSuite.ToString(),
                     BoostTestExecutor.ExecutorUri,
-                    this.Source
+                    Source
                 );
 
                 // Reset TestSuite QualifiedNameBuilder to original value
-                this.TestSuite.Pop();
+                TestSuite.Pop();
 
                 if (testCase.Source != null)
                 {
@@ -291,12 +298,12 @@ namespace BoostTestAdapter
             {
                 // Since the master test suite name is not included in the fully qualified name, identify
                 // this edge case and explicitly return the master test suite name in such cases.
-                if (this.TestSuite.Level == QualifiedNameBuilder.MasterTestSuiteLevel)
+                if (TestSuite.Level == QualifiedNameBuilder.MasterTestSuiteLevel)
                 {
-                    return (this.MasterTestSuite == null) ? QualifiedNameBuilder.DefaultMasterTestSuiteName : this.MasterTestSuite.Name;
+                    return (MasterTestSuite == null) ? QualifiedNameBuilder.DefaultMasterTestSuiteName : MasterTestSuite.Name;
                 }
 
-                return this.TestSuite.ToString();
+                return TestSuite.ToString();
             }
         }
     }
