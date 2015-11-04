@@ -1,7 +1,6 @@
-Build Status: [![Build status](https://ci.appveyor.com/api/projects/status/abld4mbvrr49fx40/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/branch/master)
-Last Snapshot: [Download](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/deployments)
-
 # Boost Unit Test Adapter for Microsoft Visual Studio
+
+[![Build status](https://ci.appveyor.com/api/projects/status/abld4mbvrr49fx40/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/branch/master)
 
 ### User Manual
 
