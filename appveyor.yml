@@ -1,19 +1,35 @@
-version: '1.0.5.{build}'
-os: Windows Server 2012
+# AppVeyor version is just a placeholder. Version is retrieved from source.extension.vsixmanifest and is automatically updated on build.
+version: '0.0.0.{build}'
+os: Windows Server 2012 R2
 install:
-# Download and install Visual Studio 2012 KB2707250 patch if Test Platform is older than the one we expect
-# Leave an update token on the build machine to identify that Visual Studio 2012 has been updated
-# NOTE Patch installation is a relatively lengthy process
+  - cmd: mkdir C:\logs
+  # Download and install Visual Studio 2012 KB2707250 patch if Test Platform is older than the one we expect
+  # Leave an update token on the build machine to identify that Visual Studio 2012 has been updated
+  # NOTE Patch installation is a relatively lengthy process
   - ps: |
       if (!(Test-Path -Path "C:\kb2707250.msp.applied")) {
-        Write-Host -ForegroundColor Yellow "Downloading Visual Studio 2012 KB2707250 patch..."
-        (New-Object System.Net.WebClient).DownloadFile('http://go.microsoft.com/fwlink/?LinkId=621427&clcid=0x409', 'C:\kb2707250.msp')
-        Write-Host -ForegroundColor Yellow "Installing Visual Studio 2012 KB2707250 patch..."
-        Start-Process -FilePath "msiexec" -ArgumentList "/p C:\kb2707250.msp /quiet /norestart /log C:\kb2707250.msp.log REINSTALL=ALL REINSTALLMODE=omus" -Wait
-        Write-Output $null >> "C:\kb2707250.msp.applied"
-        Write-Host -ForegroundColor Green "Visual Studio 2012 KB2707250 installation completed successfully."
+
+        Write-Host "Downloading Visual Studio 2012 KB2707250 patch..." -ForegroundColor Yellow
+        (New-Object System.Net.WebClient).DownloadFile("http://go.microsoft.com/fwlink/?LinkId=621427&clcid=0x409", "C:\kb2707250.msp")
+
+        Write-Host "Installing Visual Studio 2012 KB2707250 patch..." -ForegroundColor Yellow
+        $exitCode = (Start-Process -FilePath "msiexec" -ArgumentList "/p C:\kb2707250.msp /quiet /norestart /log C:\logs\kb2707250.msp.log REINSTALL=ALL REINSTALLMODE=omus" -Wait -PassThru).ExitCode
+
+        if ($exitCode -eq 0) {
+
+          Write-Output $null >> "C:\kb2707250.msp.applied"
+          Write-Host "Visual Studio 2012 KB2707250 installation completed successfully." -ForegroundColor Green
+
+        } else {
+
+          Write-Host "Visual Studio 2012 KB2707250 installation failed with exit code $exitCode. Build may fail." -ForegroundColor Red
+
+        }
+
       } else {
-        Write-Host -ForegroundColor Green "Found Visual Studio 2012 KB2707250 update token. Update skipped."
+
+        Write-Host "Found Visual Studio 2012 KB2707250 update token. Update skipped." -ForegroundColor Green
+
       }
 # Download and execute madskristensen AppVeyor VSIX ExtensionScripts in order to update revision number before project build
   - ps: (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/netspiri/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
@@ -21,9 +37,9 @@ cache:
 # Retain NuGet packages unless packages.config is not updated to possibly minimize subsequent build times
   - packages -> **\packages.config
 # Retain Visual Studio 2012 update token to identify whether this build machine has already update been updated
-  - C:\kb2707250.msp.applied
+  - C:\kb2707250.msp.applied -> appveyor.yml
 # Retain the necessary Visual Studio 2012 update content to avoid re-updating on each build
-  - C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+  - C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll -> appveyor.yml
 configuration:
   - Debug
   - Release
@@ -31,7 +47,15 @@ before_build:
 # Restore NuGet package dependencies for proper compilation
   - cmd: nuget restore
 # Updates the version number in the .vsixmanifest and updates the AppVeyor build number to match
-  - ps: Vsix-IncrementVsixVersion .\BoostTestPlugin\source.extension.vsixmanifest $env:APPVEYOR_BUILD_NUMBER revision | Vsix-UpdateBuildVersion
+# If the build is triggered due to a tag, version number is not incremented.
+  - ps: |
+      $revision = $env:APPVEYOR_BUILD_NUMBER
+
+      if ($env:APPVEYOR_REPO_TAG -eq $true) {
+        $revision = 0
+      }
+
+      Vsix-IncrementVsixVersion .\BoostTestPlugin\source.extension.vsixmanifest $revision revision | Vsix-UpdateBuildVersion
 build:
   verbosity: minimal
 test:
@@ -39,3 +63,20 @@ test:
     - BoostTestAdapterNunit\bin\$(configuration)\BoostTestAdapterNunit.dll
 artifacts:
   - path: BoostTestPlugin\bin\$(configuration)\BoostUnitTestAdapter.vsix
+on_failure:
+# Retain all environment variables which are currently specified
+  - cmd: SET > C:\logs\env-vars.log
+# Reference: http://www.appveyor.com/docs/installed-software
+# Retain the list of installed software available on the build machine
+  - ps: |
+      $x64items = @(Get-ChildItem "HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")
+      $x64items + @(Get-ChildItem "HKLM:SOFTWARE\wow6432node\Microsoft\Windows\CurrentVersion\Uninstall") `
+         | ForEach-object { Get-ItemProperty Microsoft.PowerShell.Core\Registry::$_ } `
+         | Sort-Object -Property DisplayName `
+         | Select-Object -Property DisplayName,DisplayVersion > C:\logs\installed-software.log
+# Zip the logs folder
+  - ps: |
+      Add-Type -Assembly System.IO.Compression.FileSystem
+      [System.IO.Compression.ZipFile]::CreateFromDirectory("C:\logs", "C:\logs.zip", [System.IO.Compression.CompressionLevel]::Optimal, $false)
+# Post the zipped logs as an artifact for later inspection
+  - ps: Push-AppveyorArtifact "C:\logs.zip"
