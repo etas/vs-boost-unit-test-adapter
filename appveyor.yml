@@ -1,5 +1,5 @@
 version: '1.0.5.{build}'
-os: Windows Server 2012
+os: Visual Studio 2015
 install:
 # Download and install Visual Studio 2012 KB2707250 patch if Test Platform is older than the one we expect
 # Leave an update token on the build machine to identify that Visual Studio 2012 has been updated
