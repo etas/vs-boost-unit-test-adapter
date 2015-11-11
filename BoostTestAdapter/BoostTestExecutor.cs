@@ -11,6 +11,7 @@ using System.Xml;
 using BoostTestAdapter.Boost.Results;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
+using BoostTestAdapter.TestBatch;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
@@ -83,33 +84,9 @@ namespace BoostTestAdapter
 
         #endregion Member variables
 
-
-        #region Delegates
-
-        private delegate BoostTestRunnerCommandLineArgs CommandLineArgsBuilder(string source, BoostTestAdapterSettings settings);
-
-        #endregion Delegates
-
+        
         /// <summary>
-        /// Factory function which returns an appropriate IBoostTestRunner
-        /// for the provided source or null if not applicable.
-        /// </summary>
-        /// <param name="testCase">The test for which to retrieve the IBoostTestRunner</param>
-        /// <param name="settings"></param>
-        /// <returns>An IBoostTestRunner valid for the provided source or null if none are available</returns>
-        private IBoostTestRunner GetTestRunner(VSTestCase testCase, BoostTestAdapterSettings settings)
-        {
-            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions
-            {
-                ExternalTestRunnerSettings = (settings == null) ? null : settings.ExternalTestRunner
-            };
-
-            IBoostTestRunner runner = _testRunnerFactory.GetRunner(testCase.Source, options);
-
-            // Using null instance pattern to avoid null reference exceptions raised with use of Linq GroupBy statements
-            return runner ?? NullTestRunner.Instance;
-        }
-
+        
         /// <summary>
         /// Initialization routine for running tests
         /// </summary>
@@ -175,17 +152,19 @@ namespace BoostTestAdapter
                         // and have a list of tests over which we can generate test results for.
                         discoverer.DiscoverTests(new[] { source }, runContext, frameworkHandle, sink);
 
-                        IEnumerable<TestRun> batches;
-                        if (runContext.IsDataCollectionEnabled)
+                        // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
+                        // Batching by source since this overload is called when 'Run All...' or equivalent is triggered
+                        // NOTE For code-coverage speed is given preference over adapter responsiveness.
+                        TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.Source : settings.TestBatchStrategy);
+
+                        ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
+                        if (batchStrategy == null)
                         {
-                            // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
-                            // NOTE For code-coverage speed is given preference over adapter responsiveness.
-                            batches = BatchTestsPerSource(sink.Tests, settings, GetCodeCoverageArguments);
+                            Logger.Error("No valid test batching strategy was found for {0}. Source skipped.", source);
+                            continue;
                         }
-                        else
-                        {
-                            batches = BatchTestsIndividually(sink.Tests, settings, GetDefaultArguments);
-                        }
+
+                        IEnumerable<TestRun> batches = batchStrategy.BatchTests(sink.Tests);
 
                         // Delegate to the RunBoostTests overload which takes an enumeration of test batches
                         RunBoostTests(batches, runContext, frameworkHandle);
@@ -217,23 +196,29 @@ namespace BoostTestAdapter
 
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
-            IEnumerable<TestRun> batches;
-            if (runContext.IsDataCollectionEnabled)
+            // Batch tests into grouped runs based on test source and test suite so that we minimize symbol reloading
+            //
+            // NOTE Required batching at test suite level since Boost Unit Test Framework command-line arguments only allow
+            //      multiple test name specification for tests which reside in the same test suite
+            //
+            // NOTE For code-coverage speed is given preference over adapter responsiveness.
+            TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.TestSuite : settings.TestBatchStrategy);
+            // Source strategy is invalid in such context since explicit tests are chosen. TestSuite is used instead.
+            if (strategy == Strategy.Source)
             {
-                // Batch tests into grouped runs based on test source and test suite so that we minimize symbol reloading
-                //
-                // NOTE Required batching at test suite level since Boost Unit Test Framework command-line arguments only allow
-                //      multiple test name specification for tests which reside in the same test suite
-                //
-                // NOTE For code-coverage speed is given preference over adapter responsiveness.
-                batches = BatchTestsPerTestSuite(tests, settings, GetCodeCoverageArguments);
+                strategy = Strategy.TestSuite;
+            }
+
+            ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
+            if (batchStrategy == null)
+            {
+                Logger.Error("No valid test batching strategy was found. Tests skipped.");
             }
             else
             {
-                batches = BatchTestsIndividually(tests, settings, GetDefaultArguments);
+                IEnumerable<TestRun> batches = batchStrategy.BatchTests(tests);
+                RunBoostTests(batches, runContext, frameworkHandle);
             }
-
-            RunBoostTests(batches, runContext, frameworkHandle);
 
             TearDown();
         }
@@ -251,116 +236,27 @@ namespace BoostTestAdapter
         #region Test Batching
 
         /// <summary>
-        /// Produces test runs, one per test source
+        /// Provides a test batching strategy based on the provided arguments
         /// </summary>
-        /// <param name="tests">The tests to prepare in batches</param>
-        /// <param name="settings">Adapter settings which are currently in use</param>
-        /// <param name="argsBuilder">A builder which produces an appropriate BoostTestRunnerCommandLineArgs structure for a given test and settings pair</param>
-        /// <returns>An enumeration of batched test runs, one per distinct test source</returns>
-        private IEnumerable<TestRun> BatchTestsPerSource(IEnumerable<VSTestCase> tests, BoostTestAdapterSettings settings, CommandLineArgsBuilder argsBuilder)
+        /// <param name="strategy">The base strategy to provide</param>
+        /// <param name="settings">Adapter settings currently in use</param>
+        /// <returns>An ITestBatchingStrategy instance or null if one cannot be provided</returns>
+        private ITestBatchingStrategy GetBatchStrategy(TestBatch.Strategy strategy, BoostTestAdapterSettings settings)
         {
-            BoostTestRunnerSettings adaptedSettings = settings.TestRunnerSettings.Clone();
-            adaptedSettings.RunnerTimeout = -1;
-
-            return tests.
-                GroupBy(source => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
-                Where(group => group.Key != NullTestRunner.Instance).
-                // Project IGrouping<IBoostTestRunner, VSTestCase> into TestRun instances
-                Select(group =>
-                {
-                    BoostTestRunnerCommandLineArgs args = argsBuilder(group.Key.Source, settings);
-
-                    // NOTE the --run_test command-line arg is left empty so that all tests are executed
-
-                    return new TestRun(group.Key, group, args, adaptedSettings);
-                });
-        }
-
-        /// <summary>
-        /// Produces batched test runs grouped by source and test suite
-        /// </summary>
-        /// <param name="tests">The tests to prepare in batches</param>
-        /// <param name="settings">Adapter settings which are currently in use</param>
-        /// <param name="argsBuilder">A builder which produces an appropriate BoostTestRunnerCommandLineArgs structure for a given test and settings pair</param>
-        /// <returns>An enumeration of groups of tests batched into test runs</returns>
-        private IEnumerable<TestRun> BatchTestsPerTestSuite(IEnumerable<VSTestCase> tests, BoostTestAdapterSettings settings, CommandLineArgsBuilder argsBuilder)
-        {
-            BoostTestRunnerSettings adaptedSettings = settings.TestRunnerSettings.Clone();
-            adaptedSettings.RunnerTimeout = -1;
-
-            // Group by test runner
-            IEnumerable<IGrouping<IBoostTestRunner, VSTestCase>> sourceGroups =
-                tests.GroupBy(source => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
-                        Where(group => group.Key != NullTestRunner.Instance);
-
-            foreach (IGrouping<IBoostTestRunner, VSTestCase> sourceGroup in sourceGroups)
+            TestBatch.CommandLineArgsBuilder argsBuilder = GetDefaultArguments;
+            if (strategy != Strategy.TestCase)
             {
-                // Group by test suite
-                IEnumerable<IGrouping<string, VSTestCase>> suiteGroups = sourceGroup.GroupBy(test => test.Traits.First(trait => (trait.Name == VSTestModel.TestSuiteTrait)).Value);
-                foreach (IGrouping<string, VSTestCase> suiteGroup in suiteGroups)
-                {
-                    BoostTestRunnerCommandLineArgs args = argsBuilder(sourceGroup.Key.Source, settings);
-
-                    foreach (VSTestCase test in suiteGroup)
-                    {
-                        // List all tests by display name
-                        // but ensure that the first test is fully qualified so that remaining tests are taken relative to this test suite
-                        args.Tests.Add((args.Tests.Count == 0) ? test.FullyQualifiedName : test.DisplayName);
-                    }
-
-                    yield return new TestRun(sourceGroup.Key, suiteGroup, args, adaptedSettings);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Produces test runs, one per test case provided
-        /// </summary>
-        /// <param name="tests">The tests to prepare in batches</param>
-        /// <param name="settings">Adapter settings which are currently in use</param>
-        /// <param name="argsBuilder">A builder which produces an appropriate BoostTestRunnerCommandLineArgs structure for a given test and settings pair</param>
-        /// <returns>An enumeration of batched test runs, one per test</returns>
-        private IEnumerable<TestRun> BatchTestsIndividually(IEnumerable<VSTestCase> tests, BoostTestAdapterSettings settings, CommandLineArgsBuilder argsBuilder)
-        {
-            return tests.Select(test =>
-            {
-                IBoostTestRunner runner = GetTestRunner(test, settings);
-
-                if (runner == NullTestRunner.Instance)
-                {
-                    return null;
-                }
-
-                BoostTestRunnerCommandLineArgs args = argsBuilder(runner.Source, settings);
-                args.Tests.Add(test.FullyQualifiedName);
-
-                return new TestRun(runner, new[] { test }, args, settings.TestRunnerSettings);
-            }).Where(testRun => testRun != null);
-        }
-
-        /// <summary>
-        /// An equality comparer useful for grouping equivalent BoostTestRunners
-        /// </summary>
-        private class BoostTestRunnerComparer : IEqualityComparer<IBoostTestRunner>
-        {
-            #region IEqualityComparer<IBoostTestRunner>
-
-            public bool Equals(IBoostTestRunner x, IBoostTestRunner y)
-            {
-                Code.Require(x, "x");
-                Code.Require(y, "y");
-
-                return x.Source == y.Source;
+                argsBuilder = GetBatchedTestRunsArguments;
             }
 
-            public int GetHashCode(IBoostTestRunner obj)
+            switch (strategy)
             {
-                Code.Require(obj, "obj");
-
-                return obj.Source.GetHashCode();
+                case Strategy.Source: return new SourceTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
+                case Strategy.TestSuite: return new TestSuiteTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
+                case Strategy.TestCase: return new IndividualTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
             }
 
-            #endregion IEqualityComparer<IBoostTestRunner>
+            return null;
         }
 
         #endregion Test Batching
@@ -505,12 +401,12 @@ namespace BoostTestAdapter
         }
 
         /// <summary>
-        /// Factory function which returns an appropriate BoostTestRunnerCommandLineArgs structure for code coverage
+        /// Factory function which returns an appropriate BoostTestRunnerCommandLineArgs structure for batched test runs
         /// </summary>
         /// <param name="source">The TestCases source</param>
         /// <param name="settings">The Boost Test adapter settings currently in use</param>
         /// <returns>A BoostTestRunnerCommandLineArgs structure for the provided source</returns>
-        private BoostTestRunnerCommandLineArgs GetCodeCoverageArguments(string source, BoostTestAdapterSettings settings)
+        private BoostTestRunnerCommandLineArgs GetBatchedTestRunsArguments(string source, BoostTestAdapterSettings settings)
         {
             BoostTestRunnerCommandLineArgs args = GetDefaultArguments(source, settings);
 
@@ -659,33 +555,5 @@ namespace BoostTestAdapter
         }
 
         #endregion Helper methods
-
-        #region Helper classes
-
-        private class NullTestRunner : IBoostTestRunner
-        {
-            #region IBoostTestRunner
-
-            public void Debug(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IFrameworkHandle framework)
-            {
-                // NO OP
-            }
-
-            public void Run(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
-            {
-                // NO OP
-            }
-
-            public string Source
-            {
-                get { return string.Empty; }
-            }
-
-            #endregion IBoostTestRunner
-
-            public static readonly IBoostTestRunner Instance = new NullTestRunner();
-        }
-
-        #endregion Helper classes
     }
 }

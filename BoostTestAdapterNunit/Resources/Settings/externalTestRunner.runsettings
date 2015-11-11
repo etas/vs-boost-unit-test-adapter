@@ -11,5 +11,6 @@
 			</DiscoveryFileMap>
 			<ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
 		</ExternalTestRunner>
-	</BoostTest>		
+        <TestBatchStrategy>TestCase</TestBatchStrategy>
+    </BoostTest>		
 </RunSettings>

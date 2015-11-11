@@ -123,7 +123,16 @@ namespace BoostTestAdapterNunit.Fakes
         /// <param name="path">The path to the embedded resource</param>
         public void LoadEmbeddedSettings(string path)
         {
-            this.SettingsXml = TestHelper.ReadEmbeddedResource(path);
+            LoadSettings(TestHelper.ReadEmbeddedResource(path));
+        }
+
+        /// <summary>
+        /// Loads the xml string and populates the registered providers accordingly.
+        /// </summary>
+        /// <param name="settingsXml">The xml string describing the settings configuration</param>
+        public void LoadSettings(string settingsXml)
+        {
+            this.SettingsXml = settingsXml;
 
             // Populate SettingProviders
             using (StringReader reader = new StringReader(this.SettingsXml))
