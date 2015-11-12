@@ -17,13 +17,19 @@ namespace BoostTestAdapter.Boost.Runner
         /// </summary>
         public BoostTestRunnerSettings()
         {
-            this.Timeout = -1;
+            this.RunnerTimeout = -1;
+            this.DiscovererTimeout = 5000;
         }
 
         /// <summary>
         /// Timeout for unit test execution.
         /// </summary>
-        public int Timeout { get; set; }
+        public int RunnerTimeout { get; set; }
+
+        /// <summary>
+        /// Timeout for process spawning to check list content support.
+        /// </summary>
+        public int DiscovererTimeout { get; set; }
 
         #region IClonable
 
@@ -31,7 +37,8 @@ namespace BoostTestAdapter.Boost.Runner
         {
             return new BoostTestRunnerSettings()
             {
-                Timeout = this.Timeout
+                RunnerTimeout = this.RunnerTimeout,
+                DiscovererTimeout = this.DiscovererTimeout
             };
         }
 

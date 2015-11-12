@@ -38,8 +38,8 @@ namespace BoostTestAdapterNunit
             this.RunnerFactory = new StubBoostTestRunnerFactory(this);
 
             this.Executor = new BoostTestExecutor(
-                new StubBoostTestDiscovererFactory(this),
-                this.RunnerFactory
+                this.RunnerFactory,
+                new StubBoostTestDiscovererFactory(this)
             );
 
             this.FrameworkHandle = new StubFrameworkHandle();
@@ -88,7 +88,7 @@ namespace BoostTestAdapterNunit
                 return Path.Combine(TempDir, "default");
             }
         }
-        
+
         private string _tempdir = null;
 
         private string TempDir
@@ -151,16 +151,28 @@ namespace BoostTestAdapterNunit
         /// </summary>
         private class StubBoostTestDiscovererFactory : InnerClass<BoostTestExecutorTest>, IBoostTestDiscovererFactory
         {
-            public StubBoostTestDiscovererFactory(BoostTestExecutorTest parent) : 
+            public StubBoostTestDiscovererFactory(BoostTestExecutorTest parent) :
                 base(parent)
             {
             }
 
             #region ITestDiscovererFactory
 
-            public IBoostTestDiscoverer GetTestDiscoverer(string identifier, BoostTestDiscovererFactoryOptions options)
+            public IBoostTestDiscoverer GetDiscoverer(string source, BoostTestAdapterSettings settings)
             {
                 return new StubBoostTestDiscoverer(this.Parent);
+            }
+
+            public IEnumerable<FactoryResult> GetDiscoverers(IReadOnlyCollection<string> sources, BoostTestAdapterSettings settings)
+            {
+                return new List<FactoryResult>()
+                {
+                    new FactoryResult()
+                    {
+                        Discoverer = new StubBoostTestDiscoverer(this.Parent), 
+                        Sources = sources
+                    }
+                };
             }
 
             #endregion ITestDiscovererFactory
@@ -221,14 +233,14 @@ namespace BoostTestAdapterNunit
                 switch (identifier)
                 {
                     case TimeoutTestCase:
-                    {
-                        IBoostTestRunner timeoutRunner = A.Fake<IBoostTestRunner>();
-                        A.CallTo(() => timeoutRunner.Source).Returns(identifier);
-                        A.CallTo(() => timeoutRunner.Run(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._)).Throws(new TimeoutException(Timeout));
-                        A.CallTo(() => timeoutRunner.Debug(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IFrameworkHandle>._)).Throws(new TimeoutException(Timeout));
+                        {
+                            IBoostTestRunner timeoutRunner = A.Fake<IBoostTestRunner>();
+                            A.CallTo(() => timeoutRunner.Source).Returns(identifier);
+                            A.CallTo(() => timeoutRunner.Run(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._)).Throws(new TimeoutException(Timeout));
+                            A.CallTo(() => timeoutRunner.Debug(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IFrameworkHandle>._)).Throws(new TimeoutException(Timeout));
 
-                        return Provision(timeoutRunner);
-                    }
+                            return Provision(timeoutRunner);
+                        }
                 }
 
                 return Provision(new MockBoostTestRunner(this.Parent, identifier));
@@ -427,7 +439,7 @@ namespace BoostTestAdapterNunit
         private IEnumerable<VSTestCase> GetDefaultTests()
         {
             VSTestCase test = CreateTestCase(
-                DefaultTestCase, 
+                DefaultTestCase,
                 DefaultSource
             );
 
@@ -443,7 +455,7 @@ namespace BoostTestAdapterNunit
         private VSTestCase CreateTestCase(string fullyQualifiedName, string source)
         {
             VSTestCase test = new VSTestCase(fullyQualifiedName, BoostTestExecutor.ExecutorUri, source);
-            
+
             test.Traits.Add(VSTestModel.TestSuiteTrait, QualifiedNameBuilder.FromString(fullyQualifiedName).Pop().ToString());
 
             return test;
@@ -466,7 +478,7 @@ namespace BoostTestAdapterNunit
             Assert.That(result.TestCase.Source, Is.EqualTo(DefaultSource));
             Assert.That(result.TestCase.FullyQualifiedName, Is.EqualTo(DefaultTestCase));
         }
-        
+
         #endregion Helper Methods
 
         #region Tests
@@ -571,10 +583,10 @@ namespace BoostTestAdapterNunit
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
 
             MockBoostTestRunner runner = this.RunnerFactory.LastTestRunner as MockBoostTestRunner;
-            
+
             Assert.That(runner, Is.Not.Null);
 
-            Assert.That(runner.Settings.Timeout, Is.EqualTo(600000));
+            Assert.That(runner.Settings.RunnerTimeout, Is.EqualTo(600000));
         }
 
         /// <summary>
@@ -676,11 +688,11 @@ namespace BoostTestAdapterNunit
                 this.RunContext,
                 this.FrameworkHandle
             );
-            
+
             IList<MockBoostTestRunner> runners = this.RunnerFactory.ProvisionedRunners.OfType<MockBoostTestRunner>().ToList();
-            
+
             Assert.That(runners.GroupBy(runner => runner.Source).Count(), Is.EqualTo(1));
-            
+
             MockBoostTestRunner testRunner = runners.FirstOrDefault(runner => runner.RunCount == 1);
 
             Assert.That(testRunner, Is.Not.Null);

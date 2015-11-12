@@ -51,16 +51,30 @@ namespace BoostTestAdapter.Settings
         #region Serialisable Fields
 
         [DefaultValue(-1)]
-        public int TimeoutMilliseconds
+        public int ExecutionTimeoutMilliseconds
         {
             get
             {
-                return this.TestRunnerSettings.Timeout;
+                return this.TestRunnerSettings.RunnerTimeout;
             }
 
             set
             {
-                this.TestRunnerSettings.Timeout = value;
+                this.TestRunnerSettings.RunnerTimeout = value;
+            }
+        }
+
+        [DefaultValue(5000)]
+        public int DiscoveryTimeoutMilliseconds
+        {
+            get
+            {
+                return this.TestRunnerSettings.DiscovererTimeout;
+            }
+
+            set
+            {
+                this.TestRunnerSettings.DiscovererTimeout = value;
             }
         }
 

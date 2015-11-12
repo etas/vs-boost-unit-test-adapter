@@ -54,38 +54,35 @@ namespace BoostTestAdapter
         /// Default constructor
         /// </summary>
         public BoostTestExecutor()
-            : this(new DefaultBoostTestDiscovererFactory(), new DefaultBoostTestRunnerFactory())
+            : this(new DefaultBoostTestRunnerFactory(),
+            new BoostTestDiscovererFactory(new ListContentHelper()))
         {
         }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="discovererFactory">The ITestDiscovererFactory which is to be used</param>
         /// <param name="testRunnerFactory">The IBoostTestRunnerFactory which is to be used</param>
-        public BoostTestExecutor(IBoostTestDiscovererFactory discovererFactory, IBoostTestRunnerFactory testRunnerFactory)
+        /// <param name="boostTestDiscovererFactory">The IBoostTestDiscovererFactory which is to be used</param>
+        public BoostTestExecutor(IBoostTestRunnerFactory testRunnerFactory, IBoostTestDiscovererFactory boostTestDiscovererFactory)
         {
-            this.DiscovererFactory = discovererFactory;
-            this.TestRunnerFactory = testRunnerFactory;
+            _testRunnerFactory = testRunnerFactory;
+            _boostTestDiscovererFactory = boostTestDiscovererFactory;
 
-            this._cancelled = false;
+            _cancelled = false;
         }
 
         #endregion Constructors
 
+
         #region Member variables
 
-        private volatile bool _cancelled = false;
+        private volatile bool _cancelled;
+        private readonly IBoostTestDiscovererFactory _boostTestDiscovererFactory;
+        private readonly IBoostTestRunnerFactory _testRunnerFactory;
 
         #endregion Member variables
 
-        #region Properties
-
-        private IBoostTestDiscovererFactory DiscovererFactory { get; set; }
-
-        private IBoostTestRunnerFactory TestRunnerFactory { get; set; }
-
-        #endregion Properties
 
         #region Delegates
 
@@ -94,36 +91,23 @@ namespace BoostTestAdapter
         #endregion Delegates
 
         /// <summary>
-        /// Factory function which returns an appropriate ITestDiscoverer
-        /// for the provided source or null if not applicable.
-        /// </summary>
-        /// <param name="source">The source module which requires test discovery</param>
-        /// <returns>An IBoostTestDiscoverer valid for the provided source or null if none are available</returns>
-        private IBoostTestDiscoverer GetTestDiscoverer(string source, BoostTestAdapterSettings settings)
-        {
-            Utility.Code.Require(settings, "settings");
-
-            BoostTestDiscovererFactoryOptions options = new BoostTestDiscovererFactoryOptions();
-            options.ExternalTestRunnerSettings = settings.ExternalTestRunner;
-
-            return this.DiscovererFactory.GetTestDiscoverer(source, options);
-        }
-
-        /// <summary>
         /// Factory function which returns an appropriate IBoostTestRunner
         /// for the provided source or null if not applicable.
         /// </summary>
         /// <param name="testCase">The test for which to retrieve the IBoostTestRunner</param>
+        /// <param name="settings"></param>
         /// <returns>An IBoostTestRunner valid for the provided source or null if none are available</returns>
         private IBoostTestRunner GetTestRunner(VSTestCase testCase, BoostTestAdapterSettings settings)
         {
-            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions();
-            options.ExternalTestRunnerSettings = (settings == null) ? null : settings.ExternalTestRunner;
+            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions
+            {
+                ExternalTestRunnerSettings = (settings == null) ? null : settings.ExternalTestRunner
+            };
 
-            IBoostTestRunner runner = this.TestRunnerFactory.GetRunner(testCase.Source, options);
+            IBoostTestRunner runner = _testRunnerFactory.GetRunner(testCase.Source, options);
 
             // Using null instance pattern to avoid null reference exceptions raised with use of Linq GroupBy statements
-            return (runner == null) ? NullTestRunner.Instance : runner;
+            return runner ?? NullTestRunner.Instance;
         }
 
         /// <summary>
@@ -136,7 +120,7 @@ namespace BoostTestAdapter
             System.Diagnostics.Debugger.Launch();
 #endif
 
-            this._cancelled = false;
+            _cancelled = false;
             Logger.Initialize(logger);
         }
 
@@ -161,9 +145,9 @@ namespace BoostTestAdapter
             IRunContext runContext,
             IFrameworkHandle frameworkHandle)
         {
-            Utility.Code.Require(sources, "sources");
-            Utility.Code.Require(runContext, "runContext");
-            Utility.Code.Require(frameworkHandle, "frameworkHandle");
+            Code.Require(sources, "sources");
+            Code.Require(runContext, "runContext");
+            Code.Require(frameworkHandle, "frameworkHandle");
 
             SetUp(frameworkHandle);
 
@@ -171,13 +155,12 @@ namespace BoostTestAdapter
 
             foreach (string source in sources)
             {
-                if (this._cancelled)
+                if (_cancelled)
                 {
                     break;
                 }
 
-                IBoostTestDiscoverer discoverer = GetTestDiscoverer(source, settings);
-
+                var discoverer = _boostTestDiscovererFactory.GetDiscoverer(source, settings);
                 if (discoverer != null)
                 {
                     try
@@ -190,9 +173,9 @@ namespace BoostTestAdapter
                         // Re-discover tests so that we could make use of the RunTests overload which takes an enumeration of test cases.
                         // This is necessary since we need to run tests one by one in order to have the test adapter remain responsive
                         // and have a list of tests over which we can generate test results for.
-                        discoverer.DiscoverTests(new string[] { source }, runContext, frameworkHandle, sink);
+                        discoverer.DiscoverTests(new[] { source }, runContext, frameworkHandle, sink);
 
-                        IEnumerable<TestRun> batches = null;
+                        IEnumerable<TestRun> batches;
                         if (runContext.IsDataCollectionEnabled)
                         {
                             // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
@@ -212,10 +195,6 @@ namespace BoostTestAdapter
                         Logger.Error("Exception caught while running tests from {0} ({1})", source, ex.Message);
                     }
                 }
-                else
-                {
-                    Logger.Error("No suitable discoverer found for {0}.", source);
-                }
             }
 
             TearDown();
@@ -230,15 +209,15 @@ namespace BoostTestAdapter
         /// <remarks>Entry point of the execution procedure whenever the user requests to run one or a specific lists of tests</remarks>
         public void RunTests(IEnumerable<VSTestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
-            Utility.Code.Require(tests, "tests");
-            Utility.Code.Require(runContext, "runContext");
-            Utility.Code.Require(frameworkHandle, "frameworkHandle");
+            Code.Require(tests, "tests");
+            Code.Require(runContext, "runContext");
+            Code.Require(frameworkHandle, "frameworkHandle");
 
             SetUp(frameworkHandle);
 
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
-            IEnumerable<TestRun> batches = null;
+            IEnumerable<TestRun> batches;
             if (runContext.IsDataCollectionEnabled)
             {
                 // Batch tests into grouped runs based on test source and test suite so that we minimize symbol reloading
@@ -281,11 +260,11 @@ namespace BoostTestAdapter
         private IEnumerable<TestRun> BatchTestsPerSource(IEnumerable<VSTestCase> tests, BoostTestAdapterSettings settings, CommandLineArgsBuilder argsBuilder)
         {
             BoostTestRunnerSettings adaptedSettings = settings.TestRunnerSettings.Clone();
-            adaptedSettings.Timeout = -1;
+            adaptedSettings.RunnerTimeout = -1;
 
             return tests.
-                GroupBy((source) => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
-                Where((group) => (group.Key != NullTestRunner.Instance)).
+                GroupBy(source => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
+                Where(group => group.Key != NullTestRunner.Instance).
                 // Project IGrouping<IBoostTestRunner, VSTestCase> into TestRun instances
                 Select(group =>
                 {
@@ -307,12 +286,12 @@ namespace BoostTestAdapter
         private IEnumerable<TestRun> BatchTestsPerTestSuite(IEnumerable<VSTestCase> tests, BoostTestAdapterSettings settings, CommandLineArgsBuilder argsBuilder)
         {
             BoostTestRunnerSettings adaptedSettings = settings.TestRunnerSettings.Clone();
-            adaptedSettings.Timeout = -1;
+            adaptedSettings.RunnerTimeout = -1;
 
             // Group by test runner
             IEnumerable<IGrouping<IBoostTestRunner, VSTestCase>> sourceGroups =
-                tests.GroupBy((source) => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
-                        Where((group) => (group.Key != NullTestRunner.Instance));
+                tests.GroupBy(source => GetTestRunner(source, settings), new BoostTestRunnerComparer()).
+                        Where(group => group.Key != NullTestRunner.Instance);
 
             foreach (IGrouping<IBoostTestRunner, VSTestCase> sourceGroup in sourceGroups)
             {
@@ -355,8 +334,8 @@ namespace BoostTestAdapter
                 BoostTestRunnerCommandLineArgs args = argsBuilder(runner.Source, settings);
                 args.Tests.Add(test.FullyQualifiedName);
 
-                return new TestRun(runner, new VSTestCase[] { test }, args, settings.TestRunnerSettings);
-            }).Where((testRun) => (testRun != null));
+                return new TestRun(runner, new[] { test }, args, settings.TestRunnerSettings);
+            }).Where(testRun => testRun != null);
         }
 
         /// <summary>
@@ -368,15 +347,15 @@ namespace BoostTestAdapter
 
             public bool Equals(IBoostTestRunner x, IBoostTestRunner y)
             {
-                Utility.Code.Require(x, "x");
-                Utility.Code.Require(y, "y");
+                Code.Require(x, "x");
+                Code.Require(y, "y");
 
                 return x.Source == y.Source;
             }
 
             public int GetHashCode(IBoostTestRunner obj)
             {
-                Utility.Code.Require(obj, "obj");
+                Code.Require(obj, "obj");
 
                 return obj.Source.GetHashCode();
             }
@@ -419,11 +398,11 @@ namespace BoostTestAdapter
                         foreach (VSTestResult result in GenerateTestResults(batch, start, settings))
                         {
                             // Identify test result to Visual Studio Test framework
-                            frameworkHandle.RecordResult(result);   
+                            frameworkHandle.RecordResult(result);
                         }
                     }
                 }
-                catch (BoostTestAdapter.Boost.Runner.TimeoutException ex)
+                catch (Boost.Runner.TimeoutException ex)
                 {
                     foreach (VSTestCase testCase in batch.Tests)
                     {
@@ -544,7 +523,7 @@ namespace BoostTestAdapter
 
             return args;
         }
-        
+
         /// <summary>
         /// Sanitizes a file name suitable for Boost Test command line argument values
         /// </summary>
@@ -602,7 +581,7 @@ namespace BoostTestAdapter
                 Select(test =>
                 {
                     // Locate the test result associated to the current test
-                    BoostTestAdapter.Boost.Results.TestResult result = results[test.FullyQualifiedName];
+                    Boost.Results.TestResult result = results[test.FullyQualifiedName];
 
                     if (result != null)
                     {
@@ -625,7 +604,7 @@ namespace BoostTestAdapter
         /// <param name="test">The test which failed due to a timeout.</param>
         /// <param name="ex">The exception related to this timeout.</param>
         /// <returns>A timed-out, failed TestResult related to the provided test.</returns>
-        private static VSTestResult GenerateTimeoutResult(VSTestCase test, BoostTestAdapter.Boost.Runner.TimeoutException ex)
+        private static VSTestResult GenerateTimeoutResult(VSTestCase test, Boost.Runner.TimeoutException ex)
         {
             VSTestResult result = new VSTestResult(test);
 

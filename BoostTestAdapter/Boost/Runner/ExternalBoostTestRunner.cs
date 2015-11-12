@@ -124,9 +124,9 @@ namespace BoostTestAdapter.Boost.Runner
         {
             CommandEvaluator evaluator = BuildEvaluator(source);
 
-            if (settings.Timeout > -1)
+            if (settings.RunnerTimeout > -1)
             {
-                evaluator.SetVariable(TimeoutPlaceholder, settings.Timeout.ToString(CultureInfo.InvariantCulture));
+                evaluator.SetVariable(TimeoutPlaceholder, settings.RunnerTimeout.ToString(CultureInfo.InvariantCulture));
             }
 
             evaluator.SetVariable(BoostArgsPlaceholder, args.ToString());
