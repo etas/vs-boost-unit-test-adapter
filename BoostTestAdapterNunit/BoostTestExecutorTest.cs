@@ -270,7 +270,9 @@ namespace BoostTestAdapterNunit
             {
                 this.Source = source;
                 this.DebugExecution = false;
-                this.RunCount = 0;
+
+                this.Args = new List<BoostTestRunnerCommandLineArgs>();
+                this.Settings = new List<BoostTestRunnerSettings>();
             }
 
             #endregion Constructors
@@ -278,9 +280,13 @@ namespace BoostTestAdapterNunit
             #region Properties
 
             public bool DebugExecution { get; private set; }
-            public BoostTestRunnerCommandLineArgs Args { get; private set; }
-            public BoostTestRunnerSettings Settings { get; private set; }
-            public uint RunCount { get; private set; }
+            public IList<BoostTestRunnerCommandLineArgs> Args { get; private set; }
+            public IList<BoostTestRunnerSettings> Settings { get; private set; }
+
+            public int RunCount
+            {
+                get { return this.Args.Count; }
+            }
 
             #endregion Properties
 
@@ -304,10 +310,8 @@ namespace BoostTestAdapterNunit
 
             private void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
             {
-                ++this.RunCount;
-
-                this.Args = args;
-                this.Settings = settings;
+                this.Args.Add(args);
+                this.Settings.Add(settings);
 
                 Assert.That(args.ReportFile, Is.Not.Null);
                 Assert.That(args.ReportFormat, Is.EqualTo(OutputFormat.XML));
@@ -586,7 +590,8 @@ namespace BoostTestAdapterNunit
 
             Assert.That(runner, Is.Not.Null);
 
-            Assert.That(runner.Settings.RunnerTimeout, Is.EqualTo(600000));
+            Assert.That(runner.RunCount, Is.EqualTo(1));
+            Assert.That(runner.Settings.First().RunnerTimeout, Is.EqualTo(600000));
         }
 
         /// <summary>
@@ -669,7 +674,7 @@ namespace BoostTestAdapterNunit
             Assert.That(testRunner, Is.Not.Null);
 
             // All tests are executed
-            Assert.That(testRunner.Args.Tests, Is.Empty);
+            Assert.That(testRunner.Args.First().Tests, Is.Empty);
         }
 
         /// <summary>
@@ -698,7 +703,144 @@ namespace BoostTestAdapterNunit
             Assert.That(testRunner, Is.Not.Null);
 
             // All selected tests are executed
-            Assert.That(testRunner.Args.Tests.Count(), Is.EqualTo(2));
+            Assert.That(testRunner.Args.First().Tests.Count, Is.EqualTo(2));
+        }
+
+        /// <summary>
+        /// Given a .runsettings which has 'BatchTestRuns' as false (or left unspecified), tests should individually, one process invocation per test case.
+        /// 
+        /// Test aims:
+        ///     - Ensure that test modules are executed individually if 'BatchTestRuns' is set to false
+        /// </summary>
+        [Test]
+        public void TestIndividualTestExecutionRuns()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><BatchTestRuns>false</BatchTestRuns></BoostTest></RunSettings>");
+
+            VSTestCase[] testCases = new VSTestCase[]
+            {
+                CreateTestCase("A/1", DefaultSource), CreateTestCase("A/2", DefaultSource),
+                CreateTestCase("B/1", DefaultSource)
+            };
+
+            this.Executor.RunTests(
+                testCases,
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+            List<string> testIdentifiers = testCases.Select(test => test.FullyQualifiedName).ToList();
+
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                // TestRunners may be provisioned but left unused. We are only interested in the ones used to execute tests.
+                if (testRunner.RunCount == 0)
+                {
+                    continue;
+                }
+                
+                Assert.That(runner.Source, Is.EqualTo(DefaultSource));
+
+                foreach (BoostTestRunnerCommandLineArgs args in testRunner.Args)
+                {
+                    // One test at a time should be invoked
+                    Assert.That(args.Tests.Count, Is.EqualTo(1));
+                    Assert.That(testIdentifiers.Remove(args.Tests[0]), Is.True);
+                }
+            }
+
+            // All tests should be have been invoked
+            Assert.That(testIdentifiers, Is.Empty);
+        }
+
+        /// <summary>
+        /// Given a .runsettings which specifies 'BatchTestRuns', tests should execute as usual but in the least amount of processed runs.
+        /// 
+        /// Test aims:
+        ///     - Ensure that test modules are executed once if 'BatchTestRuns' is true and 'Run All...' is triggered
+        /// </summary>
+        [Test]
+        public void TestModuleBatchedRuns()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><TestBatchStrategy>Source</TestBatchStrategy></BoostTest></RunSettings>");
+
+            List<string> sources = new List<string> { DefaultSource };
+
+            this.Executor.RunTests(
+                sources,
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+            // One runner per source be provisioned for the available source
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                if (testRunner.RunCount == 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    // 1 Module/Source -> 1 Execution for all contained tests within
+                    Assert.That(testRunner.RunCount, Is.EqualTo(1));
+                }
+
+                Assert.That(sources.Remove(runner.Source), Is.True);
+
+                // No tests should be specified on the command line implying all tests are to be executed
+                Assert.That(testRunner.Args.First().Tests.Count, Is.EqualTo(0));
+            }
+
+            Assert.That(sources, Is.Empty);
+        }
+
+        /// <summary>
+        /// Given a .runsettings which specifies 'BatchTestRuns', test suites should execute in one go rather than having each individual test executed on its own.
+        /// 
+        /// Test aims:
+        ///     - Ensure that test suites are executed in groups if 'BatchTestRuns' is true
+        /// </summary>
+        [Test]
+        public void TestTestSuiteBatchedRuns()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><TestBatchStrategy>TestSuite</TestBatchStrategy></BoostTest></RunSettings>");
+
+            this.Executor.RunTests(
+                new VSTestCase[] { CreateTestCase("A/Test1", DefaultSource), CreateTestCase("A/Test2", DefaultSource), CreateTestCase("B/Test1", DefaultSource), CreateTestCase("A/Test1", "OtherSource") },
+                this.RunContext,
+                this.FrameworkHandle
+            );
+            
+            List<KeyValuePair<string, IList<string>>> expectedBatches = new List<KeyValuePair<string, IList<string>>>
+            {
+                new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"A/Test1", "A/Test2"}),
+                new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"B/Test1"}),
+                new KeyValuePair<string, IList<string>>("OtherSource", new List<string> {"A/Test1"})
+            };
+
+            // A runner per test suite per module should be provisioned
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                for (int i = 0; i < testRunner.RunCount; ++i)
+                {
+                    KeyValuePair<string, IList<string>> run = new KeyValuePair<string, IList<string>>(testRunner.Source, testRunner.Args[i].Tests);
+                    Assert.That(expectedBatches.RemoveAll(batch => (batch.Key == testRunner.Source) && (!batch.Value.Except(testRunner.Args[i].Tests).Any())), Is.EqualTo(1));
+                }
+            }
+
+            Assert.That(expectedBatches, Is.Empty);
         }
 
         #endregion Tests

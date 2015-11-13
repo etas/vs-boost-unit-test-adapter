@@ -44,6 +44,8 @@ namespace BoostTestAdapter.Settings
             this.CatchSystemErrors = true;
 
             this.DetectFloatingPointExceptions = false;
+
+            this.TestBatchStrategy = TestBatch.Strategy.TestCase;
         }
 
         #region Properties
@@ -116,6 +118,9 @@ namespace BoostTestAdapter.Settings
         }
 
         public ExternalBoostTestRunnerSettings ExternalTestRunner { get; set; }
+
+        [DefaultValue(TestBatch.Strategy.TestSuite)]
+        public TestBatch.Strategy TestBatchStrategy { get; set; }
 
         #endregion Serialisable Fields
 

@@ -15,6 +15,7 @@
             <DiscoveryCommandLine>C:\ExternalTestRunner.exe --test "{source}" --list-debug "{out}"</DiscoveryCommandLine>
             <ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
         </ExternalTestRunner>
+        <TestBatchStrategy>TestCase</TestBatchStrategy>
 	</BoostTest>
 
 </RunSettings>

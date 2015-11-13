@@ -9,6 +9,7 @@ using System.Xml;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.Utility;
+using BoostTestAdapter.TestBatch;
 using BoostTestAdapterNunit.Fakes;
 using BoostTestAdapterNunit.Utility;
 using BoostTestAdapterNunit.Utility.Xml;
@@ -51,6 +52,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.ExternalTestRunner, Is.Null);
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
             Assert.That(settings.CatchSystemErrors, Is.True);
+            Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
         }
 
         /// <summary>
@@ -154,6 +156,7 @@ namespace BoostTestAdapterNunit
 
             Assert.That(settings.CatchSystemErrors, Is.False);
             Assert.That(settings.DetectFloatingPointExceptions, Is.True);
+            Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestSuite));
         }
 
         /// <summary>

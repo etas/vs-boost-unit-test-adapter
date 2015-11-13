@@ -37,11 +37,15 @@
 
 	<!-- BoostTest adapter -->
 	<BoostTest>
-    <ExecutionTimeoutMilliseconds>100</ExecutionTimeoutMilliseconds>
-    <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds>
+        <ExecutionTimeoutMilliseconds>100</ExecutionTimeoutMilliseconds>
+        <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds>
 
         <CatchSystemErrors>false</CatchSystemErrors>
 
+        
+        <!-- Test independent order from source code specification -->
+        <TestBatchStrategy>TestSuite</TestBatchStrategy>
+        
         <!-- Test case-sensitivity -->
         <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
 	</BoostTest>

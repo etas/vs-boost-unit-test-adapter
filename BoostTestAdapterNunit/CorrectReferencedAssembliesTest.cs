@@ -6,6 +6,7 @@
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using System.IO;
 
 namespace BoostTestAdapterNunit
 {
@@ -26,11 +27,11 @@ namespace BoostTestAdapterNunit
         [TestCase("VisualStudio2015Adapter.dll", "Microsoft.VisualStudio.VCProjectEngine", 14, TestName = "CorrectlyReferencedVisualStudio2015Adapter", Description = "Microsoft.VisualStudio.VCProjectEngine in VisualStudio2015Adapter must point to the VS2015 version")]
         public void CorrectReferences(string dll, string assemblyReferenceName, int versionMajor)
         {
-            var assembly = Assembly.LoadFrom(TestContext.CurrentContext.TestDirectory + "/" + dll);
-            var referencedAssemblies = assembly.GetReferencedAssemblies().Where(ass => ass.Name == assemblyReferenceName).ToList();
-            Assert.IsTrue(referencedAssemblies != null && referencedAssemblies.Count() == 1, "No reference to " + assemblyReferenceName + " found");
-            Assert.IsTrue(referencedAssemblies[0].Version.Major == versionMajor,
-                assemblyReferenceName + " in " + dll + " is referenced to an incorrect version");
+            var assembly = Assembly.LoadFrom(Path.Combine(TestContext.CurrentContext.TestDirectory, dll));
+            var referencedAssembly = assembly.GetReferencedAssemblies().FirstOrDefault(reference => (reference.Name == assemblyReferenceName));
+
+            Assert.That(referencedAssembly, Is.Not.Null, ("No reference to " + assemblyReferenceName + " found"));
+            Assert.That(referencedAssembly.Version.Major, Is.EqualTo(versionMajor), (assemblyReferenceName + " in " + dll + " is referenced to an incorrect version"));
         }
     }
 }
