@@ -1,4 +1,4 @@
-| [![Build status](https://ci.appveyor.com/api/projects/status/abld4mbvrr49fx40/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/branch/master) | [Test Results](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/branch/master/job/xd675vycwujjr86j/tests) | [Download](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter-eikqa/branch/master/job/xd675vycwujjr86j/artifacts) |
+| [![Build status](https://ci.appveyor.com/api/projects/status/p5mmwdluc4koni13/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master) | [Test Results](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master/tests) | [Download](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master/artifacts) |
 | --- | --- | --- |
 
 # Boost Unit Test Adapter for Microsoft Visual Studio
