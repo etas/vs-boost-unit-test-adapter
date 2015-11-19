@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoostTestAdapter", "BoostTestAdapter\BoostTestAdapter.csproj", "{BC4B3BED-9241-4DD6-8070-A9B66DFC08C1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{EB0051E3-1DDA-418C-ABAF-C1DA5339114C} = {EB0051E3-1DDA-418C-ABAF-C1DA5339114C}
