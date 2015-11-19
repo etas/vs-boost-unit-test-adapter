@@ -51,8 +51,7 @@ namespace BoostTestAdapter
             {
                 Help = true
             };
-
-
+            
             string output;
             using (var p = new Process())
             using (Timer timeoutTimer = new Timer(TimeoutTimerCallback, p, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite))
@@ -66,20 +65,22 @@ namespace BoostTestAdapter
                 p.WaitForExit(Timeout);
             }
 
-            args.Help = false;
-            args.ListContent = true;
-            if (!output.Contains(args.ToString()))
+            if (!output.Contains(BoostTestRunnerCommandLineArgs.ListContentArg))
             {
                 return false;
             }
-
+            
             // check for the presence of PDB file
             var exeDir = Path.GetDirectoryName(exeName);
             var exeNameNoExt = Path.GetFileNameWithoutExtension(exeName);
+
             var pdbName = exeNameNoExt + ".PDB";
             var pdbPath = Path.Combine(exeDir, pdbName);
+
             if (!File.Exists(pdbPath))
+            {
                 return false;
+            }
 
             return true;
 
