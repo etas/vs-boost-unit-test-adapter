@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using BoostTestAdapter.Boost.Test;
@@ -175,11 +176,17 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>The deserialized TestFramework</returns>
         private static TestFramework ParseTestFramework(string path)
         {
-            using (FileStream stream = File.OpenRead(path))
+            try
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
-                return deserializer.Deserialize(stream) as TestFramework;
+                using (FileStream stream = File.OpenRead(path))
+                {
+                    XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
+                    return deserializer.Deserialize(stream) as TestFramework;
+                }
             }
+            catch(InvalidOperationException)
+            { }
+            return null;
         }
 
         /// <summary>
