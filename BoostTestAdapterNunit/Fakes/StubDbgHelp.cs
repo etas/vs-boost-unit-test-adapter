@@ -35,20 +35,25 @@ namespace BoostTestAdapterNunit.Fakes
             _symbolCache.AddRange(CreateFakeSuiteSymbols("Foo", "Foo"));
             _symbolCache.AddRange(CreateFakeTestSymbols("Foo", "Foo"));
         }
-
+        
         public void Dispose()
         {
             _symbolCache.Clear();
         }
 
-        public bool LookupSymbol(string name, out IEnumerable<SymbolInfo> symbols)
-        {
-            symbols = _symbolCache.Where(s => s.Name.Contains(name));
-            if (symbols.Any())
-                return true;
+        #region IDebugHelper
 
-            return false;
+        public IEnumerable<SymbolInfo> LookupSymbols(string name)
+        {
+            return _symbolCache.Where(s => s.Name.Contains(name));
         }
+
+        public bool ContainsSymbol(string name)
+        {
+            return LookupSymbols(name).Any();
+        }
+
+        #endregion IDebugHelper
 
         /// <summary>
         /// Creates a list of fake typical (found in a regular PDB) symbols for a test Suite.

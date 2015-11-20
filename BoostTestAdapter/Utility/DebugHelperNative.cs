@@ -22,6 +22,11 @@ namespace BoostTestAdapter.Utility
         public int LineNumber { get; set; }
         public string Name { get; set; }
         public ulong Address { get; set; }
+
+        public override string ToString()
+        {
+            return Name + " - " + FileName + ':' + LineNumber + '[' + Address + ']';
+        }
     }
 
     /// <summary>
@@ -171,6 +176,10 @@ namespace BoostTestAdapter.Utility
             [DllImport("DbgHelp", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public extern static bool SymEnumSymbols(IntPtr hProcess, ulong baseOfDll, string mask, SymEnumSymbolsProc callback, IntPtr contextZero);
+
+            [DllImport("DbgHelp", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public extern static bool SymFromName(IntPtr hProcess, string name, ref SYMBOL_INFO symInfo);
 
             #endregion
 
@@ -396,46 +405,36 @@ namespace BoostTestAdapter.Utility
             return true;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        public bool LookupSymbol(string name, out IEnumerable<SymbolInfo> symbols)
+        #region IDebugHelper
+        
+        public IEnumerable<SymbolInfo> LookupSymbols(string name)
         {
             LastErrorMessage = string.Empty;
-
-            symbols = null;
+            
             if ((_symbolCache == null) || (_symbolCache.Count == 0))
             {
                 if (!EnumerateAllSymbols())
-                    return false;
+                {
+                    return Enumerable.Empty<SymbolInfo>();
+                }
             }
-
-            symbols = _symbolCache.Where(s => s.Name.Contains(name));
-            if (symbols.Any())
-                return true;
-
-            return false;
+            
+            return _symbolCache.Where(s => (s.Name.Contains(name)));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        public bool LookupSymbol(string name, out SymbolInfo symbolInfo)
+        public bool ContainsSymbol(string name)
         {
             LastErrorMessage = string.Empty;
 
-            symbolInfo = new SymbolInfo();
-
-            if ((_symbolCache == null) || (_symbolCache.Count == 0))
-            {
-                if (!EnumerateAllSymbols())
-                    return false;
-            }
-
-            var symbols = _symbolCache.Where(s => s.Name.Contains(name));
-            if (!symbols.Any())
-            {
-                return false;
-            }
-            symbolInfo = symbols.OrderBy(s => s.Address).First();
-            return true;
+            NativeMethods.SYMBOL_INFO symInfo = new NativeMethods.SYMBOL_INFO();
+            return NativeMethods.SymFromName(_libHandle, name, ref symInfo);
         }
 
+        #endregion IDebugHelper
+
+        public SymbolInfo LookupSymbol(string name)
+        {
+            return LookupSymbols(name).OrderBy(s => s.Address).FirstOrDefault();
+        }
     }
 }

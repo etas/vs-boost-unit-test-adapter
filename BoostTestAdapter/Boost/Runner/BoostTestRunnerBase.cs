@@ -66,7 +66,7 @@ namespace BoostTestAdapter.Boost.Runner
 
         public virtual string Source
         {
-            get { return this.TestRunnerExecutable;  }
+            get { return this.TestRunnerExecutable; }
         }
 
         #endregion IBoostTestRunner
