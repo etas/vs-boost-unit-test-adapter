@@ -97,7 +97,7 @@ namespace BoostTestAdapter
                     if (settings.ExternalTestRunner != null)
                     {
                         Regex matcher = new Regex(settings.ExternalTestRunner.ExtensionType);
-+                       if (matcher.IsMatch(source))
+                        if (matcher.IsMatch(source))
                         {
                             externalDiscovererSources.Add(source);
                             continue;
