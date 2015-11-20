@@ -52,7 +52,7 @@ namespace BoostTestAdapter
         /// <returns>An IBoostTestDiscoverer instance or null if one cannot be provided.</returns>
         public IBoostTestDiscoverer GetDiscoverer(string source, Settings.BoostTestAdapterSettings settings)
         {
-            var list = new List<string> { source };
+            var list = new[] { source };
             var results = GetDiscoverers(list, settings);
             if (results != null)
             {
