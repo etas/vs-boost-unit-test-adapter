@@ -108,7 +108,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             CommandEvaluator evaluator = new CommandEvaluator();
 
-            evaluator.SetVariable(SourcePlaceholder, source);
+            evaluator.SetVariable(SourcePlaceholder, "\"" + source + "\"");
 
             return evaluator;
         }
