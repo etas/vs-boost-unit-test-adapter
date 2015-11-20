@@ -102,8 +102,8 @@ namespace BoostTestAdapter.Discoverers
 
             CommandEvaluator evaluator = new CommandEvaluator();
 
-            evaluator.SetVariable("source", source);
-            evaluator.SetVariable("out", path);
+            evaluator.SetVariable("source", "\"" + source + "\"");
+            evaluator.SetVariable("out", "\"" + path + "\"");
 
             // Evaluate the discovery command
             CommandLine commandLine = new CommandLine

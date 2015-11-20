@@ -111,8 +111,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
             Assert.That(settings.ExternalTestRunner.ExtensionType, Is.EqualTo(".dll"));
             Assert.That(settings.ExternalTestRunner.DiscoveryMethodType, Is.EqualTo(DiscoveryMethodType.DiscoveryCommandLine));
-            Assert.That(settings.ExternalTestRunner.DiscoveryCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\" --list-debug \"{out}\""));
-            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\""));
+            Assert.That(settings.ExternalTestRunner.DiscoveryCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} --list-debug {out} "));
+            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace BoostTestAdapterNunit
             };
 
             Assert.That(settings.ExternalTestRunner.DiscoveryFileMap, Is.EqualTo(fileMap));
-            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\""));
+            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
         }
 
         /// <summary>
