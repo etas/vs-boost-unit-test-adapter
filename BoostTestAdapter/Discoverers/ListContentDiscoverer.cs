@@ -79,7 +79,7 @@ namespace BoostTestAdapter.Discoverers
                             unitName = unitName.Substring(0, unitName.Length - 1);
 
                         var currentLineIndentation = l.TrimEnd().LastIndexOf(' ') + 1;
-                        
+
                         // pop levels from the name builder to reach the current one
                         while (currentLineIndentation <= previousLineIndentation)
                         {
@@ -89,10 +89,12 @@ namespace BoostTestAdapter.Discoverers
 
                         // Retrieve all the symbols that contains <unitname> in their name.
                         // If no symbols can be retrieved, we skip the current unitName because 
-                        // we cannot assume what kind of unit (test or suit) it is.
-                        IEnumerable<SymbolInfo> syms;
-                        if (!dbgHelp.LookupSymbol(unitName, out syms))
+                        // we cannot assume what kind of unit (test or suite) it is.
+                        IEnumerable<SymbolInfo> syms = dbgHelp.LookupSymbols(unitName);
+                        if (!syms.Any())
+                        {
                             continue;
+                        }
 
                         // Check if the unit is a Test or a Suite.
                         var testSymbol = GetTestSymbol(suiteNameBuilder, unitName, syms);
@@ -129,30 +131,35 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>A SymbolInfo if <paramref name="unitName"/> is a test method.</returns>
         private static SymbolInfo GetTestSymbol(QualifiedNameBuilder suiteNameBuilder, string unitName, IEnumerable<SymbolInfo> syms)
         {
-            try
-            {
-                var fullyQualifiedName = unitName;
-                
-                if (!string.IsNullOrEmpty(suiteNameBuilder.ToString()))
-                    fullyQualifiedName = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "{0}::{1}",
-                        suiteNameBuilder.ToString().Replace("/", "::"),
-                        unitName
-                    );
+            string symbolName = BuildTestCaseSymbolName(suiteNameBuilder, unitName);
+            return syms.FirstOrDefault(s => s.Name == symbolName);
+        }
 
-                var symbolName = string.Format(
+        /// <summary>
+        /// Based on the parent test unit hierarchy and the provided test unit, generates a fully-qualified test case symbol name for the provided test unit.
+        /// </summary>
+        /// <param name="suiteNameBuilder">The parent test unit hierarchy.</param>
+        /// <param name="unitName">The test unit.</param>
+        /// <returns>The fully-qualified <b>test case</b> symbol name for the provided test unit.</returns>
+        private static string BuildTestCaseSymbolName(QualifiedNameBuilder suiteNameBuilder, string unitName)
+        {
+            var fullyQualifiedName = unitName;
+
+            if (!string.IsNullOrEmpty(suiteNameBuilder.ToString()))
+                fullyQualifiedName = string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}::test_method",
-                    fullyQualifiedName
+                    "{0}::{1}",
+                    suiteNameBuilder.ToString().Replace("/", "::"),
+                    unitName
                 );
 
-                return syms.FirstOrDefault(s => s.Name == symbolName);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var symbolName = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}::test_method",
+                fullyQualifiedName
+            );
+
+            return symbolName;
         }
 
         #endregion
