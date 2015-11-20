@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BoostTestAdapter.Discoverers;
+using System.Text.RegularExpressions;
 
 namespace BoostTestAdapter
 {
@@ -95,7 +96,8 @@ namespace BoostTestAdapter
 
                     if (settings.ExternalTestRunner != null)
                     {
-                        if (settings.ExternalTestRunner.ExtensionType == Path.GetExtension(source))
+                        Regex matcher = new Regex(settings.ExternalTestRunner.ExtensionType);
++                       if (matcher.IsMatch(source))
                         {
                             externalDiscovererSources.Add(source);
                             continue;
