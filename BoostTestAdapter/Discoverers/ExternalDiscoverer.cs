@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using TestCase = BoostTestAdapter.Boost.Test.TestCase;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
-using System;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -176,17 +175,11 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>The deserialized TestFramework</returns>
         private static TestFramework ParseTestFramework(string path)
         {
-            try
+            using (FileStream stream = File.OpenRead(path))
             {
-                using (FileStream stream = File.OpenRead(path))
-                {
-                    XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
-                    return deserializer.Deserialize(stream) as TestFramework;
-                }
+                XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
+                return deserializer.Deserialize(stream) as TestFramework;
             }
-            catch(InvalidOperationException)
-            { }
-            return null;
         }
 
         /// <summary>
