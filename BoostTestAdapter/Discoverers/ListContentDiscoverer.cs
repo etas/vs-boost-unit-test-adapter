@@ -63,59 +63,67 @@ namespace BoostTestAdapter.Discoverers
 
             foreach (var source in sources)
             {
-                var output = _listContentHelper.GetListContentOutput(source);
-
-                using (var dbgHelp = _listContentHelper.CreateDebugHelper(source))
+                try
                 {
-                    QualifiedNameBuilder suiteNameBuilder = new QualifiedNameBuilder();
-                    suiteNameBuilder.Push(QualifiedNameBuilder.DefaultMasterTestSuiteName);
+                    var output = _listContentHelper.GetListContentOutput(source);
 
-                    var previousLineIndentation = -1;
-                    var lines = output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var l in lines)
+                    using (var dbgHelp = _listContentHelper.CreateDebugHelper(source))
                     {
-                        var unitName = l.Trim();
-                        if (unitName.EndsWith("*", StringComparison.Ordinal))
-                            unitName = unitName.Substring(0, unitName.Length - 1);
+                        QualifiedNameBuilder suiteNameBuilder = new QualifiedNameBuilder();
+                        suiteNameBuilder.Push(QualifiedNameBuilder.DefaultMasterTestSuiteName);
 
-                        var currentLineIndentation = l.TrimEnd().LastIndexOf(' ') + 1;
-                        
-                        // pop levels from the name builder to reach the current one
-                        while (currentLineIndentation <= previousLineIndentation)
+                        var previousLineIndentation = -1;
+                        var lines = output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var l in lines)
                         {
-                            suiteNameBuilder.Pop();
-                            previousLineIndentation -= 4;
-                        }
+                            var unitName = l.Trim();
+                            if (unitName.EndsWith("*", StringComparison.Ordinal))
+                                unitName = unitName.Substring(0, unitName.Length - 1);
 
-                        // Retrieve all the symbols that contains <unitname> in their name.
-                        // If no symbols can be retrieved, we skip the current unitName because 
-                        // we cannot assume what kind of unit (test or suit) it is.
-                        IEnumerable<SymbolInfo> syms;
-                        if (!dbgHelp.LookupSymbol(unitName, out syms))
-                            continue;
+                            var currentLineIndentation = l.TrimEnd().LastIndexOf(' ') + 1;
 
-                        // Check if the unit is a Test or a Suite.
-                        var testSymbol = GetTestSymbol(suiteNameBuilder, unitName, syms);
-                        if (testSymbol == null)
-                        {
-                            // Suite
-                            suiteNameBuilder.Push(unitName);
+                            // pop levels from the name builder to reach the current one
+                            while (currentLineIndentation <= previousLineIndentation)
+                            {
+                                suiteNameBuilder.Pop();
+                                previousLineIndentation -= 4;
+                            }
 
-                            previousLineIndentation = currentLineIndentation;
-                        }
-                        else
-                        {
-                            // Test
-                            var isEnabled = l.Contains("*");
-                            var testCase = TestCaseUtils.CreateTestCase(
-                                source,
-                                new SourceFileInfo(testSymbol.FileName, testSymbol.LineNumber),
-                                suiteNameBuilder,
-                                unitName,
-                                isEnabled);
-                            TestCaseUtils.AddTestCase(testCase, discoverySink);
+                            // Retrieve all the symbols that contains <unitname> in their name.
+                            // If no symbols can be retrieved, we skip the current unitName because 
+                            // we cannot assume what kind of unit (test or suit) it is.
+                            IEnumerable<SymbolInfo> syms;
+                            if (!dbgHelp.LookupSymbol(unitName, out syms))
+                                continue;
+
+                            // Check if the unit is a Test or a Suite.
+                            var testSymbol = GetTestSymbol(suiteNameBuilder, unitName, syms);
+                            if (testSymbol == null)
+                            {
+                                // Suite
+                                suiteNameBuilder.Push(unitName);
+
+                                previousLineIndentation = currentLineIndentation;
+                            }
+                            else
+                            {
+                                // Test
+                                var isEnabled = l.Contains("*");
+                                var testCase = TestCaseUtils.CreateTestCase(
+                                    source,
+                                    new SourceFileInfo(testSymbol.FileName, testSymbol.LineNumber),
+                                    suiteNameBuilder,
+                                    unitName,
+                                    isEnabled);
+                                TestCaseUtils.AddTestCase(testCase, discoverySink);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Exception caught while discovering tests for {0} ({1} - {2})", source, ex.Message, ex.HResult);
+                    Logger.Error(ex.StackTrace);
                 }
             }
         }
