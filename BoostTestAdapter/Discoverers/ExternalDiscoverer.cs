@@ -184,8 +184,11 @@ namespace BoostTestAdapter.Discoverers
                     return deserializer.Deserialize(stream) as TestFramework;
                 }
             }
-            catch(InvalidOperationException)
-            { }
+            catch(Exception ex)
+            {
+                Logger.Error("Exception caught while reading xml file {0} ({1} -  {2})", path, ex.Message, ex.HResult);
+                Logger.Error(ex.StackTrace);
+            }
             return null;
         }
 
