@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿// (C) Copyright ETAS 2015.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+using System.Collections.Generic;
 using System.Linq;
 using BoostTestAdapter;
 using BoostTestAdapter.Settings;
@@ -10,11 +15,12 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using NUnit.Framework;
 using VisualStudioAdapter;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Discoverers;
 
 namespace BoostTestAdapterNunit
 {
     [TestFixture]
-    internal class BoostTestExeDiscovererTest
+    internal class BoostTestSourceDiscovererTest
     {
         #region Test Data
 
@@ -73,7 +79,7 @@ namespace BoostTestAdapterNunit
             ConsoleMessageLogger logger = new ConsoleMessageLogger();
             DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
 
-            IBoostTestDiscoverer discoverer = new BoostTestExeDiscoverer(provider);
+            IBoostTestDiscoverer discoverer = new SourceCodeDiscoverer(provider);
             discoverer.DiscoverTests(sources, context, logger, sink);
 
             return sink.Tests;
