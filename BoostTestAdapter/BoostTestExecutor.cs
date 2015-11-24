@@ -462,7 +462,7 @@ namespace BoostTestAdapter
             {
                 string text = File.ReadAllText(testRun.Arguments.ReportFile);
 
-                if (text.Trim().StartsWith(TestNotFound))
+                if (text.Trim().StartsWith(TestNotFound, StringComparison.Ordinal))
                 {
                     return testRun.Tests.Select(GenerateNotFoundResult);
                 }
