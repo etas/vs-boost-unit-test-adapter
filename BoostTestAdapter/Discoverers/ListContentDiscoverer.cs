@@ -53,6 +53,7 @@ namespace BoostTestAdapter.Discoverers
 
         #region IBoostTestDiscoverer
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
             Code.Require(sources, "sources");

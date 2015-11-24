@@ -174,6 +174,7 @@ namespace BoostTestAdapter.Discoverers
         /// </summary>
         /// <param name="path">A valid path to a TestFramework Xml file.</param>
         /// <returns>The deserialized TestFramework</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static TestFramework ParseTestFramework(string path)
         {
             try
