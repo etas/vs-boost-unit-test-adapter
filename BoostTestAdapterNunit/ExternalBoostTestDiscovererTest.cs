@@ -15,6 +15,7 @@ using BoostTestAdapterNunit.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NUnit.Framework;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Discoverers;
 
 namespace BoostTestAdapterNunit
 {
@@ -84,7 +85,7 @@ namespace BoostTestAdapterNunit
 
                 settings.DiscoveryFileMap["test_1.dll"] = listing;
 
-                ExternalBoostTestDiscoverer discoverer = new ExternalBoostTestDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
 
                 DefaultTestContext context = new DefaultTestContext();
                 ConsoleMessageLogger logger = new ConsoleMessageLogger();
@@ -128,7 +129,7 @@ namespace BoostTestAdapterNunit
         ///     - Ensure that a malformed xml file doesn't prevent the dectection of the following test sources.
         /// </summary>
         [Test]
-        public void DiscoveryFileMapDiscovery()
+        public void DiscoveryFileMapWithInvalidDiscovery()
         {
             string listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml", Path.GetTempPath());
             string invalid_listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "invalid.test.list.xml", Path.GetTempPath());
@@ -144,7 +145,7 @@ namespace BoostTestAdapterNunit
                 settings.DiscoveryFileMap["test_2.dll"] = invalid_listing;
                 settings.DiscoveryFileMap["test_1.dll"] = listing;
 
-                ExternalBoostTestDiscoverer discoverer = new ExternalBoostTestDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
 
                 DefaultTestContext context = new DefaultTestContext();
                 ConsoleMessageLogger logger = new ConsoleMessageLogger();

@@ -14,6 +14,7 @@ using BoostTestAdapterNunit.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NUnit.Framework;
 using QualifiedNameBuilder = BoostTestAdapter.Utility.QualifiedNameBuilder;
+using BoostTestAdapter.Discoverers;
 
 namespace BoostTestAdapterNunit
 {
@@ -41,7 +42,7 @@ namespace BoostTestAdapterNunit
         private const string DefaultSource = "TestCaseCheck.exe";
 
         #endregion Test Data
-
+        
         #region Helper Methods
 
         /// <summary>
@@ -50,21 +51,15 @@ namespace BoostTestAdapterNunit
         /// <param name="solution">The dummy solution on which to apply test discovery</param>
         /// <returns>The list of tests which were discovered from the dummy solution</returns>
         private IList<TestCase> DiscoverTests(DummySolution solution)
-        {
+        {            
+            SourceCodeDiscoverer discoverer = new SourceCodeDiscoverer(solution.Provider);
+
+            DefaultTestContext context = new DefaultTestContext();
             DefaultTestCaseDiscoverySink discoverySink = new DefaultTestCaseDiscoverySink();
-            
-            ISourceFilter[] filters = new ISourceFilter[]
-            {
-                new QuotedStringsFilter(),
-                new MultilineCommentFilter(),
-                new SingleLineCommentFilter(),
-                new ConditionalInclusionsFilter(new ExpressionEvaluation())
-            };
+            ConsoleMessageLogger logger = new ConsoleMessageLogger();
 
-            BoostTestDiscovererInternal discoverer = new BoostTestDiscovererInternal(solution.Provider, filters);
-            IDictionary<string, ProjectInfo> solutionInfo = discoverer.PrepareTestCaseData(new string[] { solution.Source });
-            discoverer.GetBoostTests(solutionInfo, discoverySink);
-
+            discoverer.DiscoverTests(new[] { solution.Source }, context, logger, discoverySink);
+                
             return discoverySink.Tests.ToList();
         }
 

@@ -15,19 +15,28 @@ namespace BoostTestAdapterNunit.Fakes
     /// </summary>
     class StubListContentHelper : IListContentHelper
     {
+        public StubListContentHelper() :
+            this("ListContentSupport.exe")
+        {
+        }
+
+        public StubListContentHelper(string source)
+        {
+            this.Source = source;
+        }
+        
+        public string Source { get; private set; }
+
         public int Timeout { get; set; }
 
         public bool IsListContentSupported(string exeName)
         {
-            if (exeName == "ListContentSupport.exe")
-                return true;
-
-            return false;
+            return (exeName == this.Source);
         }
 
         public string GetListContentOutput(string exeName)
         {
-            if (exeName == "ListContentSupport.exe")
+            if (exeName == this.Source)
             {
                 var output = TestHelper.ReadEmbeddedResource(
                         "BoostTestAdapterNunit.Resources.ListContentSupport.SampleListContentOutput.txt");
