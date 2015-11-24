@@ -163,6 +163,7 @@
     <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_FilteredSourceCode.cpp" />
     <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_UnFilteredSourceCode.cpp" />
     <EmbeddedResource Include="Resources\TestLists\empty.test.list.xml" />
+    <EmbeddedResource Include="Resources\TestLists\invalid.test.list.xml" />
     <EmbeddedResource Include="Resources\TestLists\sample.test.list.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -177,7 +178,7 @@
     <EmbeddedResource Include="Resources\ListContentSupport\SampleListContentOutput.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
