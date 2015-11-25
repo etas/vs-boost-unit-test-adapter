@@ -110,7 +110,10 @@ namespace BoostTestAdapter
                 foreach (var discoverer in results)
                 {
                     if (discoverer.Sources.Count > 0)
+                    {
+                        Logger.Info("Discovering ({0}):   -> [{1}]", discoverer.Discoverer.GetType().Name, string.Join(", ", discoverer.Sources));
                         discoverer.Discoverer.DiscoverTests(discoverer.Sources, discoveryContext, Logger.Instance, discoverySink);
+                    }
                 }
             }
             catch (Exception ex)

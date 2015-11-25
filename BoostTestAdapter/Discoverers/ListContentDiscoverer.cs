@@ -21,6 +21,8 @@ namespace BoostTestAdapter.Discoverers
     /// </summary>
     internal class ListContentDiscoverer : IBoostTestDiscoverer
     {
+        private const int _indentation = 4;
+
         #region Constructors
 
         /// <summary>
@@ -77,28 +79,32 @@ namespace BoostTestAdapter.Discoverers
                         var lines = output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                         foreach (var l in lines)
                         {
+                            var isEnabled = false;
+
+                            // Sanitize test unit name
                             var unitName = l.Trim();
                             if (unitName.EndsWith("*", StringComparison.Ordinal))
-                                unitName = unitName.Substring(0, unitName.Length - 1);
+                            {
+                                unitName = unitName.Substring(0, unitName.Length - 1).TrimEnd();
+                                isEnabled = true;
+                            }
 
-                            var currentLineIndentation = l.TrimEnd().LastIndexOf(' ') + 1;
+                            // Identify indentation level
+                            var currentLineIndentation = 0;
+                            while (char.IsWhiteSpace(l[currentLineIndentation]))
+                            {
+                                ++currentLineIndentation;
+                            }
 
-                            // pop levels from the name builder to reach the current one
+                            // Pop levels from the name builder to reach the current one
                             while (currentLineIndentation <= previousLineIndentation)
                             {
                                 suiteNameBuilder.Pop();
-                                previousLineIndentation -= 4;
+                                previousLineIndentation -= _indentation;
                             }
-
-                            // Retrieve all the symbols that contains <unitname> in their name.
-                            // If no symbols can be retrieved, we skip the current unitName because 
-                            // we cannot assume what kind of unit (test or suit) it is.
-                            IEnumerable<SymbolInfo> syms;
-                            if (!dbgHelp.LookupSymbol(unitName, out syms))
-                                continue;
-
-                            // Check if the unit is a Test or a Suite.
-                            var testSymbol = GetTestSymbol(suiteNameBuilder, unitName, syms);
+                            
+                            // Try to locate a test case symbol for the test unit. If one is not found, assume it is a test suite.
+                            var testSymbol = dbgHelp.LookupSymbol(BuildTestCaseSymbolName(suiteNameBuilder, unitName));
                             if (testSymbol == null)
                             {
                                 // Suite
@@ -109,7 +115,6 @@ namespace BoostTestAdapter.Discoverers
                             else
                             {
                                 // Test
-                                var isEnabled = l.Contains("*");
                                 var testCase = TestCaseUtils.CreateTestCase(
                                     source,
                                     new SourceFileInfo(testSymbol.FileName, testSymbol.LineNumber),
@@ -128,40 +133,37 @@ namespace BoostTestAdapter.Discoverers
                 }
             }
         }
-
+        
         /// <summary>
-        /// Searches in a list of SymbolInfo the one that identifies a Test.
+        /// Based on the parent test unit hierarchy and the provided test unit, generates a fully-qualified test case symbol name for the provided test unit.
         /// </summary>
-        /// <param name="suiteNameBuilder">Qualified name builder.</param>
-        /// <param name="unitName">The name of the unit to be searched.</param>
-        /// <param name="syms">The list of the symbols.</param>
-        /// <returns>A SymbolInfo if <paramref name="unitName"/> is a test method.</returns>
-        private static SymbolInfo GetTestSymbol(QualifiedNameBuilder suiteNameBuilder, string unitName, IEnumerable<SymbolInfo> syms)
+        /// <param name="suiteNameBuilder">The parent test unit hierarchy.</param>
+        /// <param name="unitName">The test unit.</param>
+        /// <returns>The fully-qualified <b>test case</b> symbol name for the provided test unit.</returns>
+        private static string BuildTestCaseSymbolName(QualifiedNameBuilder suiteNameBuilder, string unitName)
         {
-            try
-            {
-                var fullyQualifiedName = unitName;
-                
-                if (!string.IsNullOrEmpty(suiteNameBuilder.ToString()))
-                    fullyQualifiedName = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "{0}::{1}",
-                        suiteNameBuilder.ToString().Replace("/", "::"),
-                        unitName
-                    );
+            var fullyQualifiedName = unitName;
 
-                var symbolName = string.Format(
+            string testUnitLocator = suiteNameBuilder.ToString();
+
+            // If the test is located within a test suite, qualify accordingly
+            if (!string.IsNullOrEmpty(testUnitLocator))
+            { 
+                fullyQualifiedName = string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}::test_method",
-                    fullyQualifiedName
+                    "{0}::{1}",
+                    testUnitLocator.Replace("/", "::"),
+                    unitName
                 );
+            }
 
-                return syms.FirstOrDefault(s => s.Name == symbolName);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var symbolName = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}::test_method",
+                fullyQualifiedName
+            );
+            
+            return symbolName;
         }
 
         #endregion
