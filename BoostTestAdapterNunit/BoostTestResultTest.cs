@@ -141,8 +141,11 @@ namespace BoostTestAdapterNunit
                     testResult.LogEntries.FirstOrDefault(
                         e =>
                         {
-                            var entryDetail = Regex.Replace(entry.Detail, @"\r|\n", string.Empty);
-                            var eDetail = Regex.Replace(e.Detail, @"\r|\n", string.Empty);
+                            // serge: In BoostXmlLog.Parse(TestResultCollection collection) method
+                            // Xml document is recreated. There are insignificant whitespaces
+                            // are appearing during transformation. So let's truncate them.
+                            var entryDetail = Regex.Replace(entry.Detail, @"\r|\n\s+", string.Empty);
+                            var eDetail = Regex.Replace(e.Detail, @"\r|\n\s+", string.Empty);
                             return (e.ToString() == entry.ToString()) && (eDetail == entryDetail);
                         });
                 Assert.That(found, Is.Not.Null);

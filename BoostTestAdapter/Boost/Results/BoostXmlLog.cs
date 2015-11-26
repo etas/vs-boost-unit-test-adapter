@@ -67,12 +67,21 @@ namespace BoostTestAdapter.Boost.Results
 
         public override void Parse(TestResultCollection collection)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(this.InputStream);
-
-            if (doc.DocumentElement.Name == Xml.TestLog)
+            // serge: now log output for dependent test cases supported, the have additional XML
+            // element, that corrupts XML document structure
+            using (XmlTextReader xtr = new XmlTextReader(this.InputStream, XmlNodeType.Element, null))
             {
-                ParseTestUnitsLog(doc.DocumentElement.ChildNodes, new QualifiedNameBuilder(), collection);
+                while (xtr.Read())
+                {
+                    if (xtr.NodeType == XmlNodeType.Element && xtr.Name == Xml.TestLog)
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        XmlElement elemTestLog = doc.CreateElement(Xml.TestLog);
+                        elemTestLog.InnerXml = xtr.ReadInnerXml();
+                        ParseTestUnitsLog(elemTestLog.ChildNodes, new QualifiedNameBuilder(), collection);
+                        break;
+                    }
+                }
             }
         }
 

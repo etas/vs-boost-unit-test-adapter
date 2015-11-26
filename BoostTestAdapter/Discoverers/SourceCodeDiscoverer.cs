@@ -194,6 +194,26 @@ namespace BoostTestAdapter.Discoverers
             return source.Contains("BOOST_");
         }
 
+        private static int ScrollLines(int lineNumber, ref string line, ref string[] code)
+        {
+            for (;;)
+            {
+                int OpenBracketCount = line.Split('(').Length - 1;
+                int CloseBracketCount = line.Split(')').Length - 1;
+                if (OpenBracketCount < CloseBracketCount)
+                    throw new FormatException("Wrong test format");
+
+                if (OpenBracketCount == CloseBracketCount && OpenBracketCount > 0) break;
+
+                if (++lineNumber > code.Count())
+                    throw new FormatException("Unexpected end of file");
+
+                line += code[lineNumber - 1];
+            }
+
+            return lineNumber;
+        }
+
         /// <summary>
         /// Discovers Boost Test from the provided C++ source file. Notifies test discovery via the provided discoverySink.
         /// </summary>
@@ -212,13 +232,14 @@ namespace BoostTestAdapter.Discoverers
 
             var templateLists = new Dictionary<string, List<string>>();
 
-            foreach (string line in code)
+            for (sourceInfo.LineNumber = 1; sourceInfo.LineNumber <= code.Count(); ++sourceInfo.LineNumber)
             {
-                ++sourceInfo.LineNumber;
+                string line = code[sourceInfo.LineNumber - 1];
 
                 string[] splitMacro = line.Split('<', '>', '(', ',', ')', ';');
                 string desiredMacro = splitMacro[0].Trim();
 
+                // serge: BOOST multiline test macros are supported now
                 /*
                  * Currently the below is not able to handle BOOST UTF signatures spread over multiple lines.
                  */
@@ -242,6 +263,14 @@ namespace BoostTestAdapter.Discoverers
 
                     case Constants.TestCaseTemplateIdentifier:
                         {
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            if (sourceInfo.LineNumber != newLineNumber)
+                            {
+                                // recalc splitMacro
+                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                sourceInfo.LineNumber = newLineNumber;
+                            }
+
                             string listName = splitMacro[3].Trim();
                             //third parameter is the corresponding boost::mpl::list name
 
@@ -264,6 +293,14 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestSuiteIdentifier:
                     case Constants.AutoTestSuiteIdentifier:
                         {
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            if (sourceInfo.LineNumber != newLineNumber)
+                            {
+                                // recalc splitMacro
+                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                sourceInfo.LineNumber = newLineNumber;
+                            }
+
                             suite.Push(splitMacro[1].Trim());
                             break;
                         }
@@ -271,6 +308,14 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestCaseIdentifier:
                     case Constants.AutoTestCaseIdentifier:
                         {
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            if (sourceInfo.LineNumber != newLineNumber)
+                            {
+                                // recalc splitMacro
+                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                sourceInfo.LineNumber = newLineNumber;
+                            }
+
                             string testCaseName = splitMacro[1].Trim();
 
                             var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseName);
