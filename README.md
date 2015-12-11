@@ -1,5 +1,4 @@
-| [![Build status](https://ci.appveyor.com/api/projects/status/p5mmwdluc4koni13/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master) | [Test Results](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master/tests) | [Download](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master/artifacts) |
-| --- | --- | --- |
+[![Build status](https://ci.appveyor.com/api/projects/status/28lw0jb0k19ekmtq/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master)
 
 # Boost Unit Test Adapter for Microsoft Visual Studio
 
