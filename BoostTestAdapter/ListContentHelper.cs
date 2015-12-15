@@ -64,7 +64,7 @@ namespace BoostTestAdapter
                     return dbgHelp.ContainsSymbol(_listContentDebugSymbolName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
                 Logger.Warn("Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", exeName);
             }
