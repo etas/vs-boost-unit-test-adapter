@@ -53,6 +53,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
             Assert.That(settings.CatchSystemErrors, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
+            Assert.That(settings.UseListContent, Is.False);
         }
 
         /// <summary>
@@ -157,6 +158,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.CatchSystemErrors, Is.False);
             Assert.That(settings.DetectFloatingPointExceptions, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestSuite));
+
+            Assert.That(settings.UseListContent, Is.True);
         }
 
         /// <summary>

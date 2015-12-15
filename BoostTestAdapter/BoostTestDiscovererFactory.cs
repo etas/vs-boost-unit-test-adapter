@@ -79,6 +79,9 @@ namespace BoostTestAdapter
             if ((sources == null) || (!sources.Any()))
                 return discoverers;
 
+            // Use default settings in case they are not provided by client code
+            settings = settings ?? new Settings.BoostTestAdapterSettings();
+
             // sources that can be run on the external runner
             var externalDiscovererSources = new List<string>();
 
@@ -88,27 +91,25 @@ namespace BoostTestAdapter
             // sources that do NOT support the list-content parameter
             var sourceCodeDiscovererSources = new List<string>();
 
+            _listContentHelper.Timeout = settings.DiscoveryTimeoutMilliseconds;
+
             foreach (var source in sources)
             {
-                if (settings != null)
+                if (settings.ExternalTestRunner != null)
                 {
-                    _listContentHelper.Timeout = settings.DiscoveryTimeoutMilliseconds;
-
-                    if (settings.ExternalTestRunner != null)
+                    Regex matcher = new Regex(settings.ExternalTestRunner.ExtensionType);
+                    if (matcher.IsMatch(source))
                     {
-                        Regex matcher = new Regex(settings.ExternalTestRunner.ExtensionType);
-                        if (matcher.IsMatch(source))
-                        {
-                            externalDiscovererSources.Add(source);
-                            continue;
-                        }
+                        externalDiscovererSources.Add(source);
+                        continue;
                     }
                 }
 
+                // Skip modules which are not .exe
                 if (Path.GetExtension(source) != BoostTestDiscoverer.ExeExtension)
                     continue;
 
-                if (_listContentHelper.IsListContentSupported(source))
+                if (settings.UseListContent && _listContentHelper.IsListContentSupported(source))
                 {
                     listContentDiscovererSources.Add(source);
                 }

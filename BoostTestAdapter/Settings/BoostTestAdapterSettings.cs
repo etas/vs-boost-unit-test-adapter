@@ -46,6 +46,8 @@ namespace BoostTestAdapter.Settings
             this.DetectFloatingPointExceptions = false;
 
             this.TestBatchStrategy = TestBatch.Strategy.TestCase;
+
+            this.UseListContent = false;
         }
 
         #region Properties
@@ -122,6 +124,9 @@ namespace BoostTestAdapter.Settings
         [DefaultValue(TestBatch.Strategy.TestSuite)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
 
+        [DefaultValue(false)]
+        public bool UseListContent { get; set; }
+
         #endregion Serialisable Fields
 
         [XmlIgnore]
@@ -129,7 +134,7 @@ namespace BoostTestAdapter.Settings
 
         [XmlIgnore]
         public BoostTestRunnerCommandLineArgs CommandLineArgs { get; private set; }
-
+        
         #endregion Properties
 
         #region TestRunSettings
