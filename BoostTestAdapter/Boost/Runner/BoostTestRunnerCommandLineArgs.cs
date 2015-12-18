@@ -82,31 +82,31 @@ namespace BoostTestAdapter.Boost.Runner
     {
         #region Constants
 
-        private const string RunTestArg = "--run_test";
+        internal const string RunTestArg = "--run_test";
 
-        private const string LogFormatArg = "--log_format";
-        private const string LogLevelArg = "--log_level";
-        private const string LogSinkArg = "--log_sink";
+        internal const string LogFormatArg = "--log_format";
+        internal const string LogLevelArg = "--log_level";
+        internal const string LogSinkArg = "--log_sink";
 
-        private const string ReportFormatArg = "--report_format";
-        private const string ReportLevelArg = "--report_level";
-        private const string ReportSinkArg = "--report_sink";
+        internal const string ReportFormatArg = "--report_format";
+        internal const string ReportLevelArg = "--report_level";
+        internal const string ReportSinkArg = "--report_sink";
 
-        private const string DetectMemoryLeakArg = "--detect_memory_leak";
+        internal const string DetectMemoryLeakArg = "--detect_memory_leak";
 
-        private const string ShowProgressArg = "--show_progress";
-        private const string BuildInfoArg = "--build_info";
-        private const string AutoStartDebugArg = "--auto_start_dbg";
-        private const string CatchSystemErrorsArg = "--catch_system_errors";
-        private const string BreakExecPathArg = "--break_exec_path";
-        private const string ColorOutputArg = "--color_output";
-        private const string ResultCodeArg = "--result_code";
-        private const string RandomArg = "--random";
-        private const string UseAltStackArg = "--use_alt_stack";
-        private const string DetectFPExceptionsArg = "--detect_fp_exceptions";
-        private const string SavePatternArg = "--save_pattern";
-        private const string ListContentArg = "--list_content";
-        private const string HelpArg = "--help";
+        internal const string ShowProgressArg = "--show_progress";
+        internal const string BuildInfoArg = "--build_info";
+        internal const string AutoStartDebugArg = "--auto_start_dbg";
+        internal const string CatchSystemErrorsArg = "--catch_system_errors";
+        internal const string BreakExecPathArg = "--break_exec_path";
+        internal const string ColorOutputArg = "--color_output";
+        internal const string ResultCodeArg = "--result_code";
+        internal const string RandomArg = "--random";
+        internal const string UseAltStackArg = "--use_alt_stack";
+        internal const string DetectFPExceptionsArg = "--detect_fp_exceptions";
+        internal const string SavePatternArg = "--save_pattern";
+        internal const string ListContentArg = "--list_content";
+        internal const string HelpArg = "--help";
 
         private const string TestSeparator = ",";
 

@@ -169,7 +169,7 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
-        /// Tests the correct discovery (and correct generation of the fully qaulifed name)
+        /// Tests the correct discovery (and correct generation of the fully qualified name)
         /// of tests for when Boost UTF macro BOOST_FIXTURE_TEST_SUITE is utilized
         /// </summary>
         [Test]
@@ -211,7 +211,7 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
-        /// Tests the correct discovery (and correct generation of the fully qaulifed name)
+        /// Tests the correct discovery (and correct generation of the fully qualified name)
         /// of tests for when Boost UTF macro BOOST_FIXTURE_TEST_CASE is utilized
         /// </summary>
         [Test]
@@ -242,6 +242,24 @@ namespace BoostTestAdapterNunit
                 AssertTestDetails(testList[3], QualifiedNameBuilder.FromString("Fixturetest_case3"));
 
                 #endregion verify
+            }
+        }
+
+        /// <summary>
+        /// Tests the correct discovery (and correct generation of the fully qualified name)
+        /// of tests when the Boost UTF macro is spread over multiple lines
+        /// </summary>
+        [Test]
+        public void MultilineBoostMacroDefinitions()
+        {
+            using (DummySolution solution = new DummySolution(DefaultSource, "BoostMultiLineDefinitions.cpp"))
+            {
+                IList<TestCase> testList = DiscoverTests(solution);
+                
+                AssertTestDetails(testList[0], QualifiedNameBuilder.FromString("AutoSuite/TestA"));
+                AssertTestDetails(testList[1], QualifiedNameBuilder.FromString("AutoSuite/TestB"));
+                AssertTestDetails(testList[2], QualifiedNameBuilder.FromString("AutoSuite/TestC"));
+                AssertTestDetails(testList[3], QualifiedNameBuilder.FromString("AutoSuite/FixtureSuite/TestD"));
             }
         }
 

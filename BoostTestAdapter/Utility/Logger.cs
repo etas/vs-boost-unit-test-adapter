@@ -122,6 +122,19 @@ namespace BoostTestAdapter.Utility
         }
 
         /// <summary>
+        /// Logs the provided message at the 'Trace' severity level. Uses a format, args pair to construct the log message.
+        /// </summary>
+        /// <param name="format">Format string</param>
+        /// <param name="args">Arguments for the format string</param>
+        public static void Trace(string format, params object[] args)
+        {
+#if TRACE
+            // Represent a trace log as a regular info log for proper output
+            Info(format, args);
+#endif
+        }
+
+        /// <summary>
         /// Disposes the underlying log module.
         /// </summary>
         public static void Shutdown()

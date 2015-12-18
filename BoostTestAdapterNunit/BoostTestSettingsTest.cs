@@ -53,6 +53,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
             Assert.That(settings.CatchSystemErrors, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
+            Assert.That(settings.UseListContent, Is.False);
         }
 
         /// <summary>
@@ -111,8 +112,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
             Assert.That(settings.ExternalTestRunner.ExtensionType, Is.EqualTo(".dll"));
             Assert.That(settings.ExternalTestRunner.DiscoveryMethodType, Is.EqualTo(DiscoveryMethodType.DiscoveryCommandLine));
-            Assert.That(settings.ExternalTestRunner.DiscoveryCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\" --list-debug \"{out}\""));
-            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\""));
+            Assert.That(settings.ExternalTestRunner.DiscoveryCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} --list-debug {out} "));
+            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
         }
 
         /// <summary>
@@ -157,6 +158,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.CatchSystemErrors, Is.False);
             Assert.That(settings.DetectFloatingPointExceptions, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestSuite));
+
+            Assert.That(settings.UseListContent, Is.True);
         }
 
         /// <summary>
@@ -214,7 +217,7 @@ namespace BoostTestAdapterNunit
             };
 
             Assert.That(settings.ExternalTestRunner.DiscoveryFileMap, Is.EqualTo(fileMap));
-            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test \"{source}\""));
+            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
         }
 
         /// <summary>

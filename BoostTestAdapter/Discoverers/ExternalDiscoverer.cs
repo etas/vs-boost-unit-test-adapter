@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using BoostTestAdapter.Boost.Test;
@@ -102,8 +103,8 @@ namespace BoostTestAdapter.Discoverers
 
             CommandEvaluator evaluator = new CommandEvaluator();
 
-            evaluator.SetVariable("source", source);
-            evaluator.SetVariable("out", path);
+            evaluator.SetVariable("source", "\"" + source + "\"");
+            evaluator.SetVariable("out", "\"" + path + "\"");
 
             // Evaluate the discovery command
             CommandLine commandLine = new CommandLine
@@ -173,13 +174,23 @@ namespace BoostTestAdapter.Discoverers
         /// </summary>
         /// <param name="path">A valid path to a TestFramework Xml file.</param>
         /// <returns>The deserialized TestFramework</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static TestFramework ParseTestFramework(string path)
         {
-            using (FileStream stream = File.OpenRead(path))
+            try
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
-                return deserializer.Deserialize(stream) as TestFramework;
+                using (FileStream stream = File.OpenRead(path))
+                {
+                    XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
+                    return deserializer.Deserialize(stream) as TestFramework;
+                }
             }
+            catch(Exception ex)
+            {
+                Logger.Error("Exception caught while reading xml file {0} ({1} -  {2})", path, ex.Message, ex.HResult);
+                Logger.Error(ex.StackTrace);
+            }
+            return null;
         }
 
         /// <summary>

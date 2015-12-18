@@ -194,27 +194,53 @@ namespace BoostTestAdapter.Discoverers
             return source.Contains("BOOST_");
         }
 
-        private static int ScrollLines(int lineNumber, ref string line, string[] code)
+        /// <summary>
+        /// Identifies a function-like expression over a series of lines
+        /// </summary>
+        /// 
+        /// <param name="lineNumber">The initial line number of the source line in question</param>
+        /// <param name="code">The source code listing seperated by line</param>
+        /// <param name="line">The current line to scan. Line will be appended with all subsequent lines which form the function expression</param>
+        /// 
+        /// <returns>The new line number at which the function-like expression ends</returns>
+        /// 
+        /// <exception cref="FormatException">Thrown in case function expression is invalid</exception>
+        private static int ScrollLines(int lineNumber, string[] code, ref string line)
         {
-            int openBracketCount;
-            int closeBracketCount;
-            string currentLine;
-            for 
-            (
-                openBracketCount = closeBracketCount = 0, currentLine = line; 
-                lineNumber <= code.Length;
-                currentLine = code[lineNumber++], line += currentLine
-            )
+            // Retain a record of previous bracket counts to avoid re-iterating on computed substrings
+            int openBracketCount = 0;
+            int closeBracketCount = 0;
+
+            // Offset from source code line from which to start scanning for brackets
+            int lineOffset = 0;
+
+            for (;;)
             {
-                openBracketCount += currentLine.Count(c => c == '(');
-                closeBracketCount += currentLine.Count(c => c == ')');
+                // Scan for bracket tokens
+                for (; lineOffset < line.Length; ++lineOffset)
+                {
+                    if (line[lineOffset] == '(')
+                    {
+                        ++openBracketCount;
+                    }
+                    else if (line[lineOffset] == ')')
+                    {
+                        ++closeBracketCount;
+                    }
+                }
+
                 if (openBracketCount < closeBracketCount)
                     throw new FormatException("Wrong test format");
 
-                if (openBracketCount == closeBracketCount && openBracketCount > 0) return lineNumber;
+                if ((openBracketCount > 0) && (openBracketCount == closeBracketCount)) break;
+
+                if ((++lineNumber) > code.Length)
+                    throw new FormatException("Unexpected end of file");
+
+                line += code[lineNumber - 1];
             }
 
-            throw new FormatException("Unexpected end of file");
+            return lineNumber;
         }
 
         /// <summary>
@@ -239,7 +265,7 @@ namespace BoostTestAdapter.Discoverers
             {
                 string line = code[sourceInfo.LineNumber - 1];
 
-                string[] splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                string[] splitMacro = SplitMacro(line);
                 string desiredMacro = splitMacro[0].Trim();
 
                 // serge: BOOST multiline test macros are supported now
@@ -266,11 +292,11 @@ namespace BoostTestAdapter.Discoverers
 
                     case Constants.TestCaseTemplateIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro
-                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                splitMacro = SplitMacro(line);
                                 sourceInfo.LineNumber = newLineNumber;
                             }
 
@@ -296,11 +322,11 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestSuiteIdentifier:
                     case Constants.AutoTestSuiteIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro
-                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                splitMacro = SplitMacro(line);
                                 sourceInfo.LineNumber = newLineNumber;
                             }
 
@@ -311,11 +337,11 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestCaseIdentifier:
                     case Constants.AutoTestCaseIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro
-                                splitMacro = line.Split('<', '>', '(', ',', ')', ';');
+                                splitMacro = SplitMacro(line);
                                 sourceInfo.LineNumber = newLineNumber;
                             }
 
@@ -336,6 +362,16 @@ namespace BoostTestAdapter.Discoverers
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Splits a BOOST macro definition into components of interest
+        /// </summary>
+        /// <param name="line">The source code line which contains the BOOST macro definition</param>
+        /// <returns>An array of string components which are of interest for further evaluation</returns>
+        private static string[] SplitMacro(string line)
+        {
+            return line.Split('<', '>', '(', ',', ')', ';');
         }
 
         /// <summary>

@@ -8,7 +8,7 @@
 In case of any issues please file an issue at https://github.com/etas/vs-boost-unit-test-adapter/issues</Description>
         <MoreInfo>https://github.com/etas/vs-boost-unit-test-adapter</MoreInfo>
         <License>LICENSE_1_0.txt</License>
-        <GettingStartedGuide>https://github.com/etas/vs-boost-unit-test-adapter#usage</GettingStartedGuide>
+        <GettingStartedGuide>https://github.com/etas/vs-boost-unit-test-adapter/wiki/User-Manual#usage</GettingStartedGuide>
         <ReleaseNotes>Release Notes.txt</ReleaseNotes>
         <Icon>boost_test_logoSquare.ico</Icon>
         <PreviewImage>Boost_preview.png</PreviewImage>

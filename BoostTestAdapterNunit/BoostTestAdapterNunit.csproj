@@ -67,6 +67,7 @@
     <Compile Include="BoostTestDiscovererFactoryTest.cs" />
     <Compile Include="BoostTestDiscovererTest.cs" />
     <Compile Include="BoostTestExecutorTest.cs" />
+    <Compile Include="BoostTestSourceDiscovererTest.cs" />
     <Compile Include="BoostTestResultTest.cs" />
     <Compile Include="BoostTestRunnerCommandLineArgsTest.cs" />
     <Compile Include="BoostTestSettingsTest.cs" />
@@ -74,6 +75,9 @@
     <Compile Include="CommandEvaluatorTest.cs" />
     <Compile Include="ConditionalInclusionsFilterTest.cs" />
     <Compile Include="CorrectReferencedAssembliesTest.cs" />
+    <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />
+    <Compile Include="DefaultTestDiscovererFactoryTest.cs" />
+    <Compile Include="ExternalBoostTestDiscovererTest.cs" />
     <Compile Include="ExternalDiscovererTest.cs" />
     <Compile Include="Fakes\ConsoleMessageLogger.cs" />
     <Compile Include="Fakes\StubDbgHelp.cs" />
@@ -87,6 +91,7 @@
     <Compile Include="SourceCodeDiscovererNunit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ExpressionEvaluationTest.cs" />
+    <Compile Include="TestDiscovererNunit.cs" />
     <Compile Include="Utility\DummySolution.cs" />
     <Compile Include="Utility\DummySourceFile.cs" />
     <Compile Include="Utility\DummyVSProvider.cs" />
@@ -163,6 +168,7 @@
     <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_FilteredSourceCode.cpp" />
     <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_UnFilteredSourceCode.cpp" />
     <EmbeddedResource Include="Resources\TestLists\empty.test.list.xml" />
+    <EmbeddedResource Include="Resources\TestLists\invalid.test.list.xml" />
     <EmbeddedResource Include="Resources\TestLists\sample.test.list.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -179,8 +185,11 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CppSources\BoostMultiLineDefinitions.cpp" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

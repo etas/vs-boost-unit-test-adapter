@@ -1,4 +1,9 @@
-﻿using System.Linq;
+﻿// (C) Copyright ETAS 2015.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+using System.Linq;
 using BoostTestAdapter;
 using BoostTestAdapter.Discoverers;
 using BoostTestAdapter.Settings;
@@ -10,6 +15,15 @@ namespace BoostTestAdapterNunit
     [TestFixture]
     class BoostTestDiscovererFactoryTest
     {
+        /// <summary>
+        /// Default factory function for adapter settings
+        /// </summary>
+        /// <returns>The default settings for use within this test fixture</returns>
+        private static BoostTestAdapterSettings CreateAdapterSettings()
+        {
+            // Prefer the use of ListContent where possible
+            return new BoostTestAdapterSettings() { UseListContent = true };
+        }
 
         #region Tests
 
@@ -33,7 +47,7 @@ namespace BoostTestAdapterNunit
             var stubListContentHelper = new StubListContentHelper();
             var boostTestDiscovererFactory = new BoostTestDiscovererFactory(stubListContentHelper);
 
-            var results = boostTestDiscovererFactory.GetDiscoverers(sources, new BoostTestAdapterSettings());
+            var results = boostTestDiscovererFactory.GetDiscoverers(sources, CreateAdapterSettings());
 
             Assert.That(results.Count(), Is.EqualTo(2));
             Assert.That(results.FirstOrDefault(x => x.Discoverer is ListContentDiscoverer), Is.Not.Null);
@@ -69,7 +83,8 @@ namespace BoostTestAdapterNunit
 
             var stubListContentHelper = new StubListContentHelper();
             var boostTestDiscovererFactory = new BoostTestDiscovererFactory(stubListContentHelper);
-            BoostTestAdapterSettings settings = new BoostTestAdapterSettings();
+
+            BoostTestAdapterSettings settings = CreateAdapterSettings();
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings
             {
                 ExtensionType = BoostTestDiscoverer.DllExtension
@@ -114,7 +129,8 @@ namespace BoostTestAdapterNunit
 
             var stubListContentHelper = new StubListContentHelper();
             var boostTestDiscovererFactory = new BoostTestDiscovererFactory(stubListContentHelper);
-            BoostTestAdapterSettings settings = new BoostTestAdapterSettings();
+
+            BoostTestAdapterSettings settings = CreateAdapterSettings();
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings
             {
                 ExtensionType = BoostTestDiscoverer.ExeExtension
@@ -145,7 +161,7 @@ namespace BoostTestAdapterNunit
         {
             var stubListContentHelper = new StubListContentHelper();
             var boostTestDiscovererFactory = new BoostTestDiscovererFactory(stubListContentHelper);
-            BoostTestAdapterSettings settings = new BoostTestAdapterSettings();
+            BoostTestAdapterSettings settings = CreateAdapterSettings();
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings
             {
                 ExtensionType = BoostTestDiscoverer.ExeExtension
@@ -185,7 +201,7 @@ namespace BoostTestAdapterNunit
         {
             var stubListContentHelper = new StubListContentHelper();
             var boostTestDiscovererFactory = new BoostTestDiscovererFactory(stubListContentHelper);
-            BoostTestAdapterSettings settings = new BoostTestAdapterSettings();
+            BoostTestAdapterSettings settings = CreateAdapterSettings();
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings
             {
                 ExtensionType = BoostTestDiscoverer.DllExtension

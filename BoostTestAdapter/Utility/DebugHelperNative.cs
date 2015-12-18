@@ -22,6 +22,11 @@ namespace BoostTestAdapter.Utility
         public int LineNumber { get; set; }
         public string Name { get; set; }
         public ulong Address { get; set; }
+
+        public override string ToString()
+        {
+            return Name + " - " + FileName + ':' + LineNumber + '[' + Address + ']';
+        }
     }
 
     /// <summary>
@@ -172,6 +177,10 @@ namespace BoostTestAdapter.Utility
             [return: MarshalAs(UnmanagedType.Bool)]
             public extern static bool SymEnumSymbols(IntPtr hProcess, ulong baseOfDll, string mask, SymEnumSymbolsProc callback, IntPtr contextZero);
 
+            [DllImport("DbgHelp", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public extern static bool SymFromName(IntPtr hProcess, string name, ref SYMBOL_INFO symInfo);
+
             #endregion
 
             public enum DebugAction : uint
@@ -279,9 +288,12 @@ namespace BoostTestAdapter.Utility
             }
         }
 
+        private const string _fileNameNoSource = null;
+        private const int _noLineNumber = -1;
+
         private IntPtr _libHandle;
         private ulong _dllBase;
-        private List<SymbolInfo> _symbolCache;
+        private Dictionary<string, SymbolInfo> _symbolCache;
 
         public string LastErrorMessage { get; private set; }
 
@@ -311,6 +323,7 @@ namespace BoostTestAdapter.Utility
             {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
             }
+
             _libHandle = handle;
         }
 
@@ -326,7 +339,7 @@ namespace BoostTestAdapter.Utility
             if (_disposed)
                 return;
 
-            if (_libHandle.ToInt64() == 0)
+            if (_libHandle == IntPtr.Zero)
                 return;
 
             NativeMethods.SymUnloadModule64(_libHandle, _dllBase);
@@ -342,11 +355,16 @@ namespace BoostTestAdapter.Utility
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
+        
+        /// <summary>
+        /// Enumerates and locally caches all debug symbols using native dbgHelp in an attempt
+        /// to minimize 'expensive' managed-native context switches
+        /// </summary>
+        /// <returns>true if symbols were enumerated successfully; false otherwise</returns>
         private bool EnumerateAllSymbols()
         {
             if (_symbolCache == null)
-                _symbolCache = new List<SymbolInfo>();
+                _symbolCache = new Dictionary<string, SymbolInfo>();
             var ret = NativeMethods.SymEnumSymbols(_libHandle, _dllBase, "*", EnumSymbolsCallback, IntPtr.Zero);
             if (!ret)
             {
@@ -361,81 +379,95 @@ namespace BoostTestAdapter.Utility
             var si = new SymbolInfo()
             {
                 Address = symInfo.Address,
-                FileName = "",
-                LineNumber = 0,
+                FileName = _fileNameNoSource,
+                LineNumber = _noLineNumber,
                 Name = symInfo.Name
             };
 
+            _symbolCache[si.Name] = si;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether or not the symbol cache has been populated
+        /// </summary>
+        private bool IsSymbolCacheLoaded
+        {
+            get { return (_symbolCache != null) && (_symbolCache.Count > 0); }
+        }
+
+        /// <summary>
+        /// Determines whether or not ths symbol has source information.
+        /// </summary>
+        /// <param name="symbol">The symbol to test for source/line information.</param>
+        /// <returns>true if the provided symbol has source/line information; false otherwise.</returns>
+        private static bool HasSourceInformation(SymbolInfo symbol)
+        {
+            return (symbol.LineNumber != _noLineNumber);
+        }
+
+        /// <summary>
+        /// Update the provided symbol with source/line information.
+        /// </summary>
+        /// <param name="symbol">The symbol to update.</param>
+        private void UpdateLineInformation(SymbolInfo symbol)
+        {
             // get the line
             NativeMethods.IMAGEHLP_LINE64 line = new NativeMethods.IMAGEHLP_LINE64();
             line.SizeOfStruct = (uint)Marshal.SizeOf(line);
 
-            ulong addr = si.Address;
             uint disp32;
-            if (NativeMethods.SymGetLineFromAddr64(_libHandle, addr, out disp32, ref line))
+            if (NativeMethods.SymGetLineFromAddr64(_libHandle, symbol.Address, out disp32, ref line))
             {
-                StringBuilder fn = new StringBuilder(128);
-                for (int i = 0; ; ++i)
+                symbol.FileName = Marshal.PtrToStringAnsi(line.FileName);
+                symbol.LineNumber = (int)line.LineNumber;
+            }
+        }
+
+        #region IDebugHelper
+
+        public SymbolInfo LookupSymbol(string name)
+        {
+            Code.Require(name, "name");
+
+            LastErrorMessage = string.Empty;
+
+            if (!IsSymbolCacheLoaded)
+            {
+                if (!EnumerateAllSymbols())
                 {
-                    byte b = Marshal.ReadByte(IntPtr.Add(line.FileName, i));
-                    if (0 == b)
-                        break;
-                    fn.Append((char)b);
+                    return null;
                 }
-
-                si.FileName = fn.ToString();
-                si.LineNumber = (int)line.LineNumber;
-
-                _symbolCache.Add(si);
             }
-            else
+
+            // Get source/line information only if requested by the client,
+            // in an attempt to minimize calling native functions.
+            SymbolInfo symbol = null;
+            if (_symbolCache.TryGetValue(name, out symbol) && !HasSourceInformation(symbol))
             {
-                si.FileName = "(no source)";
+                UpdateLineInformation(symbol);
             }
 
-            return true;
+            return symbol;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        public bool LookupSymbol(string name, out IEnumerable<SymbolInfo> symbols)
+        public bool ContainsSymbol(string name)
         {
+            Code.Require(name, "name");
+
             LastErrorMessage = string.Empty;
 
-            symbols = null;
-            if ((_symbolCache == null) || (_symbolCache.Count == 0))
+            if (IsSymbolCacheLoaded)
             {
-                if (!EnumerateAllSymbols())
-                    return false;
+                return _symbolCache.ContainsKey(name);
             }
 
-            symbols = _symbolCache.Where(s => s.Name.Contains(name));
-            if (symbols.Any())
-                return true;
-
-            return false;
+            NativeMethods.SYMBOL_INFO symbol = new NativeMethods.SYMBOL_INFO();
+            return NativeMethods.SymFromName(_libHandle, name, ref symbol);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
-        public bool LookupSymbol(string name, out SymbolInfo symbolInfo)
-        {
-            LastErrorMessage = string.Empty;
-
-            symbolInfo = new SymbolInfo();
-
-            if ((_symbolCache == null) || (_symbolCache.Count == 0))
-            {
-                if (!EnumerateAllSymbols())
-                    return false;
-            }
-
-            var symbols = _symbolCache.Where(s => s.Name.Contains(name));
-            if (!symbols.Any())
-            {
-                return false;
-            }
-            symbolInfo = symbols.OrderBy(s => s.Address).First();
-            return true;
-        }
+        #endregion IDebugHelper
 
     }
 }

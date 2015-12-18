@@ -7,6 +7,8 @@ using System;
 using BoostTestAdapter;
 using BoostTestAdapter.Settings;
 using NUnit.Framework;
+using BoostTestAdapter.Discoverers;
+using BoostTestAdapterNunit.Fakes;
 
 namespace BoostTestAdapterNunit
 {
@@ -18,14 +20,15 @@ namespace BoostTestAdapterNunit
         [SetUp]
         public void SetUp()
         {
-            this.Factory = new DefaultBoostTestDiscovererFactory();
+            IListContentHelper helper = new StubListContentHelper("test.exe");
+            this.Factory = new BoostTestDiscovererFactory(helper);
         }
 
         #endregion Test Setup/Teardown
 
         #region Test Data
 
-        private DefaultBoostTestDiscovererFactory Factory { get; set; }
+        private BoostTestDiscovererFactory Factory { get; set; }
 
         #endregion Test Data
 
@@ -37,33 +40,43 @@ namespace BoostTestAdapterNunit
         /// Test aims:
         ///     - Ensure that the proper ITestDiscoverer type is provided for the requested source.
         /// </summary>
-        // Exe types
-        [TestCase("test.exe", null, Result = typeof(BoostTestExeDiscoverer))]
-        [TestCase("test.exe", ".dll", Result = typeof(BoostTestExeDiscoverer))]
-        [TestCase("test.exe", ".exe", Result = typeof(ExternalBoostTestDiscoverer))]
+        // Exe types (SourceCodeDiscovery)
+        [TestCase("test.exe", false, null, Result = typeof(SourceCodeDiscoverer))]
+        [TestCase("test.exe", true, null, Result = typeof(ListContentDiscoverer))]
+        [TestCase("test.exe", false, ".dll", Result = typeof(SourceCodeDiscoverer))]
+        [TestCase("test.exe", true, ".dll", Result = typeof(ListContentDiscoverer))]
+        [TestCase("test.exe", false, ".exe", Result = typeof(ExternalDiscoverer))]
+        [TestCase("test.exe", true, ".exe", Result = typeof(ExternalDiscoverer))]
         // Dll types
-        [TestCase("test.dll", null, Result = null)]
-        [TestCase("test.dll", ".dll", Result = typeof(ExternalBoostTestDiscoverer))]
-        [TestCase("test.dll", ".exe", Result = null)]
+        [TestCase("test.dll", false, null, Result = null)]
+        [TestCase("test.dll", true, null, Result = null)]
+        [TestCase("test.dll", false, ".dll", Result = typeof(ExternalDiscoverer))]
+        [TestCase("test.dll", true, ".dll", Result = typeof(ExternalDiscoverer))]
+        [TestCase("test.dll", false, ".exe", Result = null)]
+        [TestCase("test.dll", true, ".exe", Result = null)]
         // Invalid extension types
-        [TestCase("test.txt", null, Result = null)]
-        [TestCase("test.txt", ".dll", Result = null)]
-        [TestCase("test.txt", ".exe", Result = null)]
-        public Type TestDiscovererProvisioning(string source, string externalExtension)
+        [TestCase("test.txt", false, null, Result = null)]
+        [TestCase("test.txt", true, null, Result = null)]
+        [TestCase("test.txt", false, ".dll", Result = null)]
+        [TestCase("test.txt", true, ".dll", Result = null)]
+        [TestCase("test.txt", false, ".exe", Result = null)]
+        [TestCase("test.txt", true, ".exe", Result = null)]
+        public Type TestDiscovererProvisioning(string source, bool useListContent, string externalExtension)
         {
-            ExternalBoostTestRunnerSettings settings = null;
-
+            ExternalBoostTestRunnerSettings externalSettings = null;
+            
             if (!string.IsNullOrEmpty(externalExtension))
             {
-                settings = new ExternalBoostTestRunnerSettings { ExtensionType = externalExtension };
+                externalSettings = new ExternalBoostTestRunnerSettings { ExtensionType = externalExtension };
             }
 
-            BoostTestDiscovererFactoryOptions options = new BoostTestDiscovererFactoryOptions
+            BoostTestAdapterSettings settings = new BoostTestAdapterSettings()
             {
-                ExternalTestRunnerSettings = settings
+                ExternalTestRunner = externalSettings,
+                UseListContent = useListContent
             };
 
-            IBoostTestDiscoverer discoverer = this.Factory.GetTestDiscoverer(source, options);
+            IBoostTestDiscoverer discoverer = this.Factory.GetDiscoverer(source, settings);
 
             return (discoverer == null) ? null : discoverer.GetType();
         }

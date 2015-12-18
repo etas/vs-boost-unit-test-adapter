@@ -41,12 +41,13 @@
         <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds>
 
         <CatchSystemErrors>false</CatchSystemErrors>
-
         
         <!-- Test independent order from source code specification -->
         <TestBatchStrategy>TestSuite</TestBatchStrategy>
         
         <!-- Test case-sensitivity -->
         <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
+
+        <UseListContent>true</UseListContent>
 	</BoostTest>
 </RunSettings>

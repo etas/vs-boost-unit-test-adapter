@@ -814,8 +814,10 @@ namespace BoostTestAdapterNunit
             this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
             this.RunContext.LoadSettings("<RunSettings><BoostTest><TestBatchStrategy>TestSuite</TestBatchStrategy></BoostTest></RunSettings>");
 
+            string otherSource = Path.Combine(TempDir, "OtherSource");
+
             this.Executor.RunTests(
-                new VSTestCase[] { CreateTestCase("A/Test1", DefaultSource), CreateTestCase("A/Test2", DefaultSource), CreateTestCase("B/Test1", DefaultSource), CreateTestCase("A/Test1", "OtherSource") },
+                new VSTestCase[] { CreateTestCase("A/Test1", DefaultSource), CreateTestCase("A/Test2", DefaultSource), CreateTestCase("B/Test1", DefaultSource), CreateTestCase("A/Test1", otherSource) },
                 this.RunContext,
                 this.FrameworkHandle
             );
@@ -824,7 +826,7 @@ namespace BoostTestAdapterNunit
             {
                 new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"A/Test1", "A/Test2"}),
                 new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"B/Test1"}),
-                new KeyValuePair<string, IList<string>>("OtherSource", new List<string> {"A/Test1"})
+                new KeyValuePair<string, IList<string>>(otherSource, new List<string> {"A/Test1"})
             };
 
             // A runner per test suite per module should be provisioned

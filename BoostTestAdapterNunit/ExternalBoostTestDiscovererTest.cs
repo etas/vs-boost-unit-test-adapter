@@ -15,6 +15,7 @@ using BoostTestAdapterNunit.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NUnit.Framework;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Discoverers;
 
 namespace BoostTestAdapterNunit
 {
@@ -84,7 +85,7 @@ namespace BoostTestAdapterNunit
 
                 settings.DiscoveryFileMap["test_1.dll"] = listing;
 
-                ExternalBoostTestDiscoverer discoverer = new ExternalBoostTestDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
 
                 DefaultTestContext context = new DefaultTestContext();
                 ConsoleMessageLogger logger = new ConsoleMessageLogger();
@@ -121,6 +122,65 @@ namespace BoostTestAdapterNunit
             }
         }
 
+        /// <summary>
+        /// External test discovery based on static test listings and an initial test listing containing invalid XML
+        /// 
+        /// Test aims:
+        ///     - Ensure that a malformed xml file doesn't prevent the dectection of the following test sources.
+        /// </summary>
+        [Test]
+        public void DiscoveryFileMapWithInvalidDiscovery()
+        {
+            string listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml", Path.GetTempPath());
+            string invalid_listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "invalid.test.list.xml", Path.GetTempPath());
+
+            try
+            {
+                ExternalBoostTestRunnerSettings settings = new ExternalBoostTestRunnerSettings
+                {
+                    ExtensionType = ".dll",
+                    DiscoveryMethodType = DiscoveryMethodType.DiscoveryFileMap
+                };
+
+                settings.DiscoveryFileMap["test_2.dll"] = invalid_listing;
+                settings.DiscoveryFileMap["test_1.dll"] = listing;
+
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
+
+                DefaultTestContext context = new DefaultTestContext();
+                ConsoleMessageLogger logger = new ConsoleMessageLogger();
+                DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
+
+                const string mappedSource = "C:\\test_1.dll";
+                const string invalidSource = "C:\\test_2.dll";
+
+                discoverer.DiscoverTests(new string[] { mappedSource, invalidSource }, context, logger, sink);
+
+                // A total of 7 tests should be discovered as described in the Xml descriptor
+                Assert.That(sink.Tests.Count(), Is.EqualTo(7));
+
+                // All of the discovered tests should originate from C:\test_1.dll.
+                // No mapping to C:\test_2.dll exist so no tests should be discovered from that source.
+                Assert.That(sink.Tests.Count((test) => test.Source == mappedSource), Is.EqualTo(7));
+
+                const string masterTestSuite = "Test runner test";
+
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "test1"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 26));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "test2"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 35));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "SampleSuite/SampleNestedSuite/test3"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 48));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<char>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<int>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<float>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
+                AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<double>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
+            }
+            finally
+            {
+                if (File.Exists(listing))
+                {
+                    File.Delete(listing);
+                }
+            }
+        }
         #endregion Tests
     }
 }

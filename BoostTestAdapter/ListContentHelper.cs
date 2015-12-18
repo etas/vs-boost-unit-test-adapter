@@ -3,10 +3,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System;
+using System.Threading;
 using System.Diagnostics;
 using BoostTestAdapter.Utility;
-using System.IO;
-using System.Threading;
 using BoostTestAdapter.Boost.Runner;
 
 namespace BoostTestAdapter
@@ -16,6 +16,9 @@ namespace BoostTestAdapter
     /// </summary>
     class ListContentHelper : IListContentHelper
     {
+        //private const string _masterTestSuiteDebugSymbolName = "boost::unit_test::framework::master_test_suite";
+        private const string _listContentDebugSymbolName = "boost::unit_test::runtime_config::list_content";
+
         private readonly ProcessStartInfo _processStartInfo;
 
         public ListContentHelper()
@@ -31,11 +34,12 @@ namespace BoostTestAdapter
 
             Timeout = 5000;
         }
-
-
+        
+        /// <summary>
+        /// Process timeout for reading --list_content output
+        /// </summary>
         public int Timeout { get; set; }
-
-
+        
         private void TimeoutTimerCallback(object state)
         {
             var process = (Process)state;
@@ -43,46 +47,29 @@ namespace BoostTestAdapter
                 process.Kill();
         }
 
+        #region IListContentHelper
+        
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public bool IsListContentSupported(string exeName)
         {
             Code.Require(exeName, "exeName");
 
-            var args = new BoostTestRunnerCommandLineArgs
+            // Try to locate the list_content function debug symbol. If this is not available, this implies that:
+            // - Debug symbols are not available for the requested source
+            // - Debug symbols are available but the source is not a Boost Unit Test version >= 3 module
+            try
             {
-                Help = true
-            };
-
-
-            string output;
-            using (var p = new Process())
-            using (Timer timeoutTimer = new Timer(TimeoutTimerCallback, p, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite))
+                using (IDebugHelper dbgHelp = CreateDebugHelper(exeName))
+                {
+                    return dbgHelp.ContainsSymbol(_listContentDebugSymbolName);
+                }
+            }
+            catch (Exception /*ex*/)
             {
-                _processStartInfo.FileName = exeName;
-                _processStartInfo.Arguments = args.ToString();
-                p.StartInfo = _processStartInfo;
-                p.Start();
-                timeoutTimer.Change(Timeout, Timeout);
-                output = p.StandardOutput.ReadToEnd();
-                p.WaitForExit(Timeout);
+                Logger.Warn("Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", exeName);
             }
 
-            args.Help = false;
-            args.ListContent = true;
-            if (!output.Contains(args.ToString()))
-            {
-                return false;
-            }
-
-            // check for the presence of PDB file
-            var exeDir = Path.GetDirectoryName(exeName);
-            var exeNameNoExt = Path.GetFileNameWithoutExtension(exeName);
-            var pdbName = exeNameNoExt + ".PDB";
-            var pdbPath = Path.Combine(exeDir, pdbName);
-            if (!File.Exists(pdbPath))
-                return false;
-
-            return true;
-
+            return false;
         }
 
         public string GetListContentOutput(string exeName)
@@ -105,6 +92,7 @@ namespace BoostTestAdapter
                 output = p.StandardError.ReadToEnd(); // for some reason the list content output is in the standard error
                 p.WaitForExit(Timeout);
             }
+
             return output;
         }
 
@@ -114,5 +102,6 @@ namespace BoostTestAdapter
             return new DebugHelper(exeName);
         }
 
+        #endregion IListContentHelper
     }
 }
