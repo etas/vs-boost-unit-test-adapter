@@ -194,24 +194,27 @@ namespace BoostTestAdapter.Discoverers
             return source.Contains("BOOST_");
         }
 
-        private static int ScrollLines(int lineNumber, ref string line, ref string[] code)
+        private static int ScrollLines(int lineNumber, ref string line, string[] code)
         {
-            for (;;)
+            int openBracketCount;
+            int closeBracketCount;
+            string currentLine;
+            for 
+            (
+                openBracketCount = closeBracketCount = 0, currentLine = line; 
+                lineNumber <= code.Length;
+                currentLine = code[lineNumber++], line += currentLine
+            )
             {
-                int OpenBracketCount = line.Split('(').Length - 1;
-                int CloseBracketCount = line.Split(')').Length - 1;
-                if (OpenBracketCount < CloseBracketCount)
+                openBracketCount += currentLine.Count(c => c == '(');
+                closeBracketCount += currentLine.Count(c => c == ')');
+                if (openBracketCount < closeBracketCount)
                     throw new FormatException("Wrong test format");
 
-                if (OpenBracketCount == CloseBracketCount && OpenBracketCount > 0) break;
-
-                if (++lineNumber > code.Count())
-                    throw new FormatException("Unexpected end of file");
-
-                line += code[lineNumber - 1];
+                if (openBracketCount == closeBracketCount && openBracketCount > 0) return lineNumber;
             }
 
-            return lineNumber;
+            throw new FormatException("Unexpected end of file");
         }
 
         /// <summary>
@@ -232,7 +235,7 @@ namespace BoostTestAdapter.Discoverers
 
             var templateLists = new Dictionary<string, List<string>>();
 
-            for (sourceInfo.LineNumber = 1; sourceInfo.LineNumber <= code.Count(); ++sourceInfo.LineNumber)
+            for (sourceInfo.LineNumber = 1; sourceInfo.LineNumber <= code.Length; ++sourceInfo.LineNumber)
             {
                 string line = code[sourceInfo.LineNumber - 1];
 
@@ -263,7 +266,7 @@ namespace BoostTestAdapter.Discoverers
 
                     case Constants.TestCaseTemplateIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro
@@ -293,7 +296,7 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestSuiteIdentifier:
                     case Constants.AutoTestSuiteIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro
@@ -308,7 +311,7 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestCaseIdentifier:
                     case Constants.AutoTestCaseIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, ref code);
+                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, ref line, code);
                             if (sourceInfo.LineNumber != newLineNumber)
                             {
                                 // recalc splitMacro

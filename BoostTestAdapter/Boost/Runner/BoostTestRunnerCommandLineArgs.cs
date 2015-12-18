@@ -517,7 +517,8 @@ namespace BoostTestAdapter.Boost.Runner
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
         private static string OutputFormatToString(OutputFormat value)
         {
-            return value.ToString().ToLowerInvariant();
+            // serge: BOOST version 1.60.0 requires uppercase command line argument
+            return value.ToString();//.ToLowerInvariant();
         }
 
         /// <summary>
