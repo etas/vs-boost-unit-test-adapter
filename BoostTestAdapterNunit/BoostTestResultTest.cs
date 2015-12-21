@@ -750,5 +750,43 @@ namespace BoostTestAdapterNunit
                 });
             }
         }
+
+        /// <summary>
+        /// Boost Test Xml log of a test fixture using 'depends_on' which generates invalid Xml.
+        /// 
+        /// See also:
+        /// - https://github.com/etas/vs-boost-unit-test-adapter/pull/72
+        /// - https://github.com/etas/vs-boost-unit-test-adapter/pull/77
+        /// 
+        /// Test aims:
+        ///     - Boost Test results can handle invalid Xml logs and extract and interpret the <TestLog> portion if available.
+        /// </summary>
+        [Test]
+        public void ParseInvalidXmlLog()
+        {
+            using (Stream report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.InvalidXmlLog.test_hlp.exe.test.report.xml"))
+            using (Stream log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.InvalidXmlLog.test_hlp.exe.test.log.xml"))
+            {
+                Parse(report, log, null, null);
+
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
+
+                AssertReportDetails(masterSuiteResult, null, "test_hlp", TestResultType.Failed, 0, 3, 0, 1, 1, 0, 0);
+
+                BoostTestResult testSuiteResult = this.TestResultCollection["bpts"];
+                Assert.That(testSuiteResult, Is.Not.Null);
+
+                AssertReportDetails(testSuiteResult, masterSuiteResult, "bpts", TestResultType.Failed, 0, 3, 0, 1, 1, 0, 0);
+
+                BoostTestResult testCaseResult = this.TestResultCollection["bpts/plugin_fxs"];
+                Assert.That(testCaseResult, Is.Not.Null);
+                AssertReportDetails(testCaseResult, testSuiteResult, "plugin_fxs", TestResultType.Passed, 0, 0, 0);
+
+                testCaseResult = this.TestResultCollection["bpts/thread_hwbpt"];
+                Assert.That(testCaseResult, Is.Not.Null);
+                AssertReportDetails(testCaseResult, testSuiteResult, "thread_hwbpt", TestResultType.Failed, 0, 3, 0);
+            }
+        }
     }
 }
