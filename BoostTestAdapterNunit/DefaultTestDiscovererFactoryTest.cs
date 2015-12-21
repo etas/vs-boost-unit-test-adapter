@@ -40,7 +40,7 @@ namespace BoostTestAdapterNunit
         /// Test aims:
         ///     - Ensure that the proper ITestDiscoverer type is provided for the requested source.
         /// </summary>
-        // Exe types (SourceCodeDiscovery)
+        // Exe types
         [TestCase("test.exe", false, null, Result = typeof(SourceCodeDiscoverer))]
         [TestCase("test.exe", true, null, Result = typeof(ListContentDiscoverer))]
         [TestCase("test.exe", false, ".dll", Result = typeof(SourceCodeDiscoverer))]
