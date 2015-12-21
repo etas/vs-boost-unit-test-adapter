@@ -70,8 +70,8 @@ namespace BoostTestAdapterNunit
         public void SampleCommandLineArgs()
         {
             BoostTestRunnerCommandLineArgs args = GenerateCommandLineArgs();
-
-            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=xml\" \"--log_level=test_suite\" \"--log_sink=log.xml\" \"--report_format=xml\" \"--report_level=detailed\" \"--report_sink=report.xml\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"stdout.log\" 2> \"stderr.log\""));
+            // serge: boost 1.60 requires uppercase input
+            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink=log.xml\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink=report.xml\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"stdout.log\" 2> \"stderr.log\""));
         }
 
         /// <summary>
