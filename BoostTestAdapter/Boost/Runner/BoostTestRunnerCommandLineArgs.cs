@@ -417,7 +417,8 @@ namespace BoostTestAdapter.Boost.Runner
             // --log_sink=log.xml
             if (!string.IsNullOrEmpty(this._logFile))
             {
-                AddArgument(LogSinkArg, this._logFile, args);
+                var absoluteLogFilePath = Path.Combine(new string[] { this.WorkingDirectory, this._logFile });
+                AddArgument(LogSinkArg, absoluteLogFilePath, args);
             }
 
             // --report_format=xml
@@ -435,7 +436,8 @@ namespace BoostTestAdapter.Boost.Runner
             // --report_sink=report.xml
             if (!string.IsNullOrEmpty(this._reportFile))
             {
-                AddArgument(ReportSinkArg, this._reportFile, args);
+                var absoluteReportFilePath = Path.Combine(new string[] { this.WorkingDirectory, this._reportFile });
+                AddArgument(ReportSinkArg, absoluteReportFilePath, args);
             }
 
             // --result_code=no
