@@ -140,6 +140,49 @@ namespace BoostTestAdapter.Boost.Test
 
         #endregion ITestVisitable
 
+        #region Utility
+
+        /// <summary>
+        /// Given a fully qualified name of a <b>test case</b>, generates the respective test unit hierarchy.
+        /// </summary>
+        /// <param name="fullyQualifiedName">The fully qualified name of the <b>test case</b></param>
+        /// <returns>The test case hierarcy represented by the provided fully qualified name</returns>
+        public static TestCase FromFullyQualifiedName(string fullyQualifiedName)
+        {
+            return FromFullyQualifiedName(QualifiedNameBuilder.FromString(fullyQualifiedName));
+        }
+        
+        /// <summary>
+        /// Given a fully qualified name of a <b>test case</b>, generates the respective test unit hierarchy.
+        /// </summary>
+        /// <param name="fullyQualifiedName">The fully qualified name of the <b>test case</b></param>
+        /// <returns>The test case hierarcy represented by the provided fully qualified name</returns>
+        /// <remarks>The parameter 'fullyQualifiedName' will be modified and emptied in due process</remarks>
+        private static TestCase FromFullyQualifiedName(QualifiedNameBuilder fullyQualifiedName)
+        {
+            // Reverse the fully qualified name stack i.e. Master Test Suite should be first element and Test Case should be last element
+            Stack<string> hierarchy = new Stack<string>();
+            while (fullyQualifiedName.Peek() != null)
+            {
+                hierarchy.Push(fullyQualifiedName.Peek());
+                fullyQualifiedName.Pop();
+            }
+
+            TestSuite parent = null;
+
+            // Treat each entry (except for the last) as a test suite
+            while (hierarchy.Count > 1)
+            {
+                parent = new TestSuite(hierarchy.Peek(), parent);
+                hierarchy.Pop();
+            }
+
+            // Treat the last entry as a test case
+            return (hierarchy.Count == 1) ? new TestCase(hierarchy.Peek(), parent) : null;
+        }
+
+        #endregion Utility
+
         #region object overrides
 
         public override string ToString()
