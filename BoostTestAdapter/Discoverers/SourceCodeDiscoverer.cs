@@ -259,7 +259,7 @@ namespace BoostTestAdapter.Discoverers
             // Push the equivalent of the Master Test Suite
             suite.Push(QualifiedNameBuilder.DefaultMasterTestSuiteName);
 
-            var templateLists = new Dictionary<string, List<string>>();
+            var templateLists = new Dictionary<string, IEnumerable<string>>();
 
             for (sourceInfo.LineNumber = 1; sourceInfo.LineNumber <= code.Length; ++sourceInfo.LineNumber)
             {
@@ -267,54 +267,27 @@ namespace BoostTestAdapter.Discoverers
 
                 string[] splitMacro = SplitMacro(line);
                 string desiredMacro = splitMacro[0].Trim();
-
-                // serge: BOOST multiline test macros are supported now
-                /*
-                 * Currently the below is not able to handle BOOST UTF signatures spread over multiple lines.
-                 */
+                
                 switch (desiredMacro)
                 {
                     case Constants.TypedefListIdentifier:
                     case Constants.TypedefMplListIdentifier:
                     case Constants.TypedefBoostMplListIdentifier:
                         {
-                            var dataTypes = new List<string>();
-                            int i;
-
-                            for (i = 1; i < splitMacro.Length - 2; ++i)
-                            {
-                                dataTypes.Add(splitMacro[i].Trim());
-                            }
-
-                            templateLists.Add(splitMacro[i].Trim(), dataTypes);
+                            var templateList = ParseTemplateList(splitMacro);
+                            templateLists.Add(templateList.Key, templateList.Value);
                             break;
                         }
 
                     case Constants.TestCaseTemplateIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
-                            if (sourceInfo.LineNumber != newLineNumber)
+                            var templateTest = ParseTemplateTestCase(splitMacro, templateLists, sourceInfo, code, ref line);
+
+                            foreach (string testCaseDataType in templateTest.Value)
                             {
-                                // recalc splitMacro
-                                splitMacro = SplitMacro(line);
-                                sourceInfo.LineNumber = newLineNumber;
-                            }
-
-                            string listName = splitMacro[3].Trim();
-                            //third parameter is the corresponding boost::mpl::list name
-
-                            if (templateLists.ContainsKey(listName))
-                            {
-                                foreach (var dataType in templateLists[listName])
-                                {
-                                    string testCaseName = splitMacro[1].Trim();
-                                    //first parameter is the test case name
-                                    string testCaseNameWithDataType = testCaseName + "<" + dataType + ">";
-
-                                    var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseNameWithDataType);
-
-                                    TestCaseUtils.AddTestCase(testCase, discoverySink);
-                                }
+                                string testCaseNameWithDataType = templateTest.Key + '<' + testCaseDataType + '>';
+                                var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseNameWithDataType);
+                                TestCaseUtils.AddTestCase(testCase, discoverySink);
                             }
                             break;
                         }
@@ -322,33 +295,16 @@ namespace BoostTestAdapter.Discoverers
                     case Constants.FixtureTestSuiteIdentifier:
                     case Constants.AutoTestSuiteIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
-                            if (sourceInfo.LineNumber != newLineNumber)
-                            {
-                                // recalc splitMacro
-                                splitMacro = SplitMacro(line);
-                                sourceInfo.LineNumber = newLineNumber;
-                            }
-
-                            suite.Push(splitMacro[1].Trim());
+                            string suiteName = ParseBeginTestSuite(splitMacro, sourceInfo, code, ref line);
+                            suite.Push(suiteName);
                             break;
                         }
 
                     case Constants.FixtureTestCaseIdentifier:
                     case Constants.AutoTestCaseIdentifier:
                         {
-                            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
-                            if (sourceInfo.LineNumber != newLineNumber)
-                            {
-                                // recalc splitMacro
-                                splitMacro = SplitMacro(line);
-                                sourceInfo.LineNumber = newLineNumber;
-                            }
-
-                            string testCaseName = splitMacro[1].Trim();
-
+                            string testCaseName = ParseTestCase(splitMacro, sourceInfo, code, ref line);
                             var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseName);
-
                             TestCaseUtils.AddTestCase(testCase, discoverySink);
                             break;
                         }
@@ -362,6 +318,99 @@ namespace BoostTestAdapter.Discoverers
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Parses the declaration of a templated test case
+        /// </summary>
+        /// <param name="splitMacro">The current source line split into tokens</param>
+        /// <param name="definedTemplates">A collection of templated lists defined prior to this test case declaration/definition</param>
+        /// <param name="sourceInfo">Source file and line information/param>
+        /// <param name="code">The entire code split by line</param>
+        /// <param name="line">The current source code line which is being evaluated</param>
+        /// <returns>A tuple consisting of the test case name and the list of defined templated types</returns>
+        private static KeyValuePair<string, IEnumerable<string>> ParseTemplateTestCase(string[] splitMacro, Dictionary<string, IEnumerable<string>> definedTemplates, SourceFileInfo sourceInfo, string[] code, ref string line)
+        {
+            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
+            if (sourceInfo.LineNumber != newLineNumber)
+            {
+                // recalc splitMacro
+                splitMacro = SplitMacro(line);
+                sourceInfo.LineNumber = newLineNumber;
+            }
+
+            //third parameter is the corresponding boost::mpl::list name
+            string listName = splitMacro[3].Trim();
+
+            string testCaseName = splitMacro[1].Trim();
+
+            IEnumerable<string> templatedDataTypes = Enumerable.Empty<string>();
+            if (definedTemplates.ContainsKey(listName))
+            {
+                templatedDataTypes = definedTemplates[listName];
+            }
+
+            return new KeyValuePair<string, IEnumerable<string>>(testCaseName, templatedDataTypes);
+        }
+
+        /// <summary>
+        /// Parses the beginning declaration of a fixture or auto test case
+        /// </summary>
+        /// <param name="splitMacro">The current source line split into tokens</param>
+        /// <param name="sourceInfo">Source file and line information/param>
+        /// <param name="code">The entire code split by line</param>
+        /// <param name="line">The current source code line which is being evaluated</param>
+        /// <returns>The name of the test case</returns>
+        private static string ParseTestCase(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
+        {
+            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
+            if (sourceInfo.LineNumber != newLineNumber)
+            {
+                // recalc splitMacro
+                splitMacro = SplitMacro(line);
+                sourceInfo.LineNumber = newLineNumber;
+            }
+
+            return splitMacro[1].Trim();
+        }
+
+        /// <summary>
+        /// Parses the beginning declaration of a fixture or auto test sute
+        /// </summary>
+        /// <param name="splitMacro">The current source line split into tokens</param>
+        /// <param name="sourceInfo">Source file and line information/param>
+        /// <param name="code">The entire code split by line</param>
+        /// <param name="line">The current source code line which is being evaluated</param>
+        /// <returns>The name of the test sute</returns>
+        private static string ParseBeginTestSuite(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
+        {
+            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
+            if (sourceInfo.LineNumber != newLineNumber)
+            {
+                // recalc splitMacro
+                splitMacro = SplitMacro(line);
+                sourceInfo.LineNumber = newLineNumber;
+            }
+
+            return splitMacro[1].Trim();
+        }
+        
+        /// <summary>
+        /// Parses a template type list used for templated Boost Tests
+        /// </summary>
+        /// <param name="splitMacro">The split source line</param>
+        /// <returns>A tuple consisting of the template list identifier and the list of defined templated types</returns>
+        private static KeyValuePair<string, IEnumerable<string>> ParseTemplateList(string[] splitMacro)
+        {
+            var dataTypes = new List<string>();
+            int i = 1;
+
+            for (; i < splitMacro.Length - 2; ++i)
+            {
+                dataTypes.Add(splitMacro[i].Trim());
+            }
+
+            return new KeyValuePair<string, IEnumerable<string>>(splitMacro[i].Trim(), dataTypes);
         }
 
         /// <summary>

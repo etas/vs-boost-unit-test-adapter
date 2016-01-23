@@ -84,9 +84,9 @@ namespace BoostTestAdapter
 
         #endregion Member variables
 
-        
+
         /// <summary>
-        
+
         /// <summary>
         /// Initialization routine for running tests
         /// </summary>
@@ -468,8 +468,25 @@ namespace BoostTestAdapter
                 }
                 else
                 {
-                    // Re-throw the exception
-                    throw;
+                    // Represent result parsing exception as a test fatal error
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = "Boost Test result file is empty.";
+                    }
+                    
+                    return testRun.Tests.Select(test => {
+                        Boost.Results.TestResult exception = new Boost.Results.TestResult(results);
+                        
+                        exception.Unit = Boost.Test.TestUnit.FromFullyQualifiedName(test.FullyQualifiedName);
+
+                        // NOTE Divide by 10 to compensate for duration calculation described in VSTestResult.AsVSTestResult(this Boost.Results.TestResult, VSTestCase)
+                        exception.Duration = ((ulong)(end - start).Ticks) / 10;
+
+                        exception.Result = TestResultType.Failed;
+                        exception.LogEntries.Add(new Boost.Results.LogEntryTypes.LogEntryFatalError(text));
+
+                        return GenerateResult(test, exception, start, end);
+                    });
                 }
             }
 
@@ -478,20 +495,22 @@ namespace BoostTestAdapter
                 {
                     // Locate the test result associated to the current test
                     Boost.Results.TestResult result = results[test.FullyQualifiedName];
-
-                    if (result != null)
-                    {
-                        // Convert the Boost.Test.Result data structure into an equivalent Visual Studio model
-                        VSTestResult vsResult = result.AsVSTestResult(test);
-                        vsResult.StartTime = start;
-                        vsResult.EndTime = end;
-
-                        return vsResult;
-                    }
-
-                    return null;
+                    return (result == null) ? null : GenerateResult(test, result, start, end);
                 }).
                 Where(result => (result != null));
+        }
+
+        private static VSTestResult GenerateResult(VSTestCase test, Boost.Results.TestResult result, DateTimeOffset start, DateTimeOffset end)
+        {
+            Code.Require(test, "test");
+            Code.Require(result, "result");
+
+            // Convert the Boost.Test.Result data structure into an equivalent Visual Studio model
+            VSTestResult vsResult = result.AsVSTestResult(test);
+            vsResult.StartTime = start;
+            vsResult.EndTime = end;
+
+            return vsResult;
         }
 
         /// <summary>

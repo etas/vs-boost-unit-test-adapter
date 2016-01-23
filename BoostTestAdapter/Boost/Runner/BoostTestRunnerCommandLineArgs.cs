@@ -360,7 +360,7 @@ namespace BoostTestAdapter.Boost.Runner
                 return AppendRedirection(args).ToString();
             }
 
-            // --run_tests=a,b,c
+            // --run_test=a,b,c
             if (this.Tests.Count > 0)
             {
                 AddArgument(RunTestArg, string.Join(TestSeparator, this.Tests), args);

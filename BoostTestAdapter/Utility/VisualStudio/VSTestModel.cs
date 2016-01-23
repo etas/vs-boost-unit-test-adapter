@@ -167,6 +167,9 @@ namespace BoostTestAdapter.Utility.VisualStudio
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
         private static string GetTestResultMessageText(TestUnit unit, LogEntry entry)
         {
+            Code.Require(unit, "unit");
+            Code.Require(entry, "entry");
+
             if ((entry is LogEntryStandardOutputMessage) || (entry is LogEntryStandardErrorMessage))
             {
                 return entry.Detail.TrimEnd() + Environment.NewLine;
