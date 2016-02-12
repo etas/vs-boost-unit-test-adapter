@@ -39,7 +39,22 @@ namespace BoostTestAdapterNunit
 
             this.Executor = new BoostTestExecutor(
                 this.RunnerFactory,
-                new StubBoostTestDiscovererFactory(this)
+                new StubBoostTestDiscovererFactory(this),
+                new DummyVSProvider
+                (
+                    new FakeVisualStudioInstanceBuilder()
+                        .Solution
+                        (
+                            new FakeSolutionBuilder()        
+                                .Project
+                                (
+                                    new FakeProjectBuilder()
+                                        .PrimaryOutput(DefaultSource)
+                                        .WorkingDirectory(TempDir)                                        
+                                )
+                        )
+                    .Build()
+                )
             );
 
             this.FrameworkHandle = new StubFrameworkHandle();
@@ -56,6 +71,8 @@ namespace BoostTestAdapterNunit
         #endregion Test Setup/Teardown
 
         #region Test Data
+
+        
 
         /// <summary>
         /// Test case fully qualified name which should generate a timeout exception.

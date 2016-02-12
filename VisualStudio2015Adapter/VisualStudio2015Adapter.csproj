@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>true</RunCodeAnalysis>
@@ -60,6 +60,9 @@
     </Compile>
     <Compile Include="..\VisualStudioAdapterShared\VisualStudio.cs">
       <Link>VisualStudio.cs</Link>
+    </Compile>
+    <Compile Include="..\VisualStudioAdapterShared\VSDebugConfiguration.cs">
+      <Link>VSDebugConfiguration.cs</Link>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="VisualStudio2015.cs" />

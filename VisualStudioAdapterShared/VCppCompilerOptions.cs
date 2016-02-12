@@ -14,12 +14,12 @@ namespace VisualStudioAdapter.Shared
     /// <summary>
     /// Adapter class for Visual Studio C++ compiler options
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp")]
     public class VCppCompilerOptions : IVCppCompilerOptions
     {
         private static readonly Regex RegexPreProcesserDefines = new Regex(@"\A(.+?)(?:=|#)(.*)\z");
 
-        private VCConfiguration _configuration = null;
+        private VSDebugConfiguration _configuration = null;
         private VCCLCompilerTool _compiler = null;
 
         private Defines _defines = null;
@@ -29,7 +29,7 @@ namespace VisualStudioAdapter.Shared
         /// </summary>
         /// <param name="configuration">The Visual Studio Configuration parent of the compiler options</param>
         /// <param name="compiler">The Visual Studio compiler tool which is to be adapted</param>
-        public VCppCompilerOptions(VCConfiguration configuration, VCCLCompilerTool compiler)
+        public VCppCompilerOptions(VSDebugConfiguration configuration, VCCLCompilerTool compiler)
         {
             this._configuration = configuration;
             this._compiler = compiler;
@@ -92,7 +92,7 @@ namespace VisualStudioAdapter.Shared
         {
             get
             {
-                IVCCollection sheets = this._configuration.PropertySheets as IVCCollection;
+                IVCCollection sheets = (this._configuration.VCConfiguration as VCConfiguration).PropertySheets as IVCCollection;
                 if (sheets != null)
                 {
                     /*
