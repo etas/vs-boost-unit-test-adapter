@@ -417,7 +417,7 @@ namespace BoostTestAdapter.Boost.Runner
             // --log_sink=log.xml
             if (!string.IsNullOrEmpty(this._logFile))
             {
-                AddArgument(LogSinkArg, this._logFile, args);
+                AddArgument(LogSinkArg, this.LogFile, args);
             }
 
             // --report_format=xml
@@ -435,7 +435,7 @@ namespace BoostTestAdapter.Boost.Runner
             // --report_sink=report.xml
             if (!string.IsNullOrEmpty(this._reportFile))
             {
-                AddArgument(ReportSinkArg, this._reportFile, args);
+                AddArgument(ReportSinkArg, this.ReportFile, args);
             }
 
             // --result_code=no
@@ -482,17 +482,18 @@ namespace BoostTestAdapter.Boost.Runner
             // > std.out
             if (!string.IsNullOrEmpty(this._stdOutFile))
             {
-                args.Append(RedirectionOperator).Append(ArgSeparator).Append(Quote(this._stdOutFile)).Append(ArgSeparator);
+                args.Append(RedirectionOperator).Append(ArgSeparator).Append(Quote(this.StandardOutFile)).Append(ArgSeparator);
             }
 
             // 2> std.err
             if (!string.IsNullOrEmpty(this._stdErrFile))
             {
-                args.Append(ErrRedirectionOperator).Append(ArgSeparator).Append(Quote(this._stdErrFile));
+                args.Append(ErrRedirectionOperator).Append(ArgSeparator).Append(Quote(this.StandardErrorFile));
             }
 
             return args;
         }
+
 
         /// <summary>
         /// Returns a rooted path for the provided one.
@@ -508,6 +509,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             return path;
         }
+        
 
         /// <summary>
         /// Provides a (valid) string representation of the provided OutputFormat.
