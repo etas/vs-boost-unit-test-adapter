@@ -39,7 +39,22 @@ namespace BoostTestAdapterNunit
 
             this.Executor = new BoostTestExecutor(
                 this.RunnerFactory,
-                new StubBoostTestDiscovererFactory(this)
+                new StubBoostTestDiscovererFactory(this),
+                new DummyVSProvider
+                (
+                    new FakeVisualStudioInstanceBuilder()
+                        .Solution
+                        (
+                            new FakeSolutionBuilder()        
+                                .Project
+                                (
+                                    new FakeProjectBuilder()
+                                        .PrimaryOutput(DefaultSource)
+                                        .WorkingDirectory(TempDir)                                        
+                                )
+                        )
+                    .Build()
+                )
             );
 
             this.FrameworkHandle = new StubFrameworkHandle();

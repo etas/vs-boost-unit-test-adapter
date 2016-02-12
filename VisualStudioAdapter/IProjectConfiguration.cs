@@ -20,5 +20,10 @@ namespace VisualStudioAdapter
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp")]
         IVCppCompilerOptions CppCompilerOptions { get; }
+
+        /// <summary>
+        /// Visual Studio Configuration.
+        /// </summary>        
+        IVSDebugConfiguration VSDebugConfiguration { get; }
     }
 }

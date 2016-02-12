@@ -17,8 +17,10 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using BoostTestAdapter.Utility;
 using BoostTestAdapter.Utility.VisualStudio;
+using System.Runtime.InteropServices;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+
 
 namespace BoostTestAdapter
 {
@@ -56,7 +58,8 @@ namespace BoostTestAdapter
         /// </summary>
         public BoostTestExecutor()
             : this(new DefaultBoostTestRunnerFactory(),
-            new BoostTestDiscovererFactory(new ListContentHelper()))
+            new BoostTestDiscovererFactory(new ListContentHelper()),
+            new DefaultVisualStudioInstanceProvider())
         {
         }
 
@@ -65,10 +68,14 @@ namespace BoostTestAdapter
         /// </summary>
         /// <param name="testRunnerFactory">The IBoostTestRunnerFactory which is to be used</param>
         /// <param name="boostTestDiscovererFactory">The IBoostTestDiscovererFactory which is to be used</param>
-        public BoostTestExecutor(IBoostTestRunnerFactory testRunnerFactory, IBoostTestDiscovererFactory boostTestDiscovererFactory)
+        /// <param name="provider">The Visual Studio instance provider</param>
+        public BoostTestExecutor(IBoostTestRunnerFactory testRunnerFactory, 
+            IBoostTestDiscovererFactory boostTestDiscovererFactory,
+            IVisualStudioInstanceProvider provider)
         {
             _testRunnerFactory = testRunnerFactory;
             _boostTestDiscovererFactory = boostTestDiscovererFactory;
+            _vsProvider = provider;
 
             _cancelled = false;
         }
@@ -81,6 +88,12 @@ namespace BoostTestAdapter
         private volatile bool _cancelled;
         private readonly IBoostTestDiscovererFactory _boostTestDiscovererFactory;
         private readonly IBoostTestRunnerFactory _testRunnerFactory;
+
+        /// <summary>
+        /// The Visual Studio instance provider
+        /// </summary>
+        private readonly IVisualStudioInstanceProvider _vsProvider;
+
 
         #endregion Member variables
 
@@ -372,6 +385,58 @@ namespace BoostTestAdapter
         }
 
         /// <summary>
+        /// Returns default working directory by resolving configurations from different possible resources
+        /// </summary>
+        /// <param name="source">The TestCases source</param>
+        /// <param name="settings">The Boost Test adapter settings currently in use</param>
+        /// <returns>A string for the default working directory</returns>
+        private string GetDefaultWorkingDirectory(string source, BoostTestAdapterSettings settings)
+        {
+            string workingDirectory = null;
+
+            bool applyVSWorkingDirectory = false;
+
+            // Get the currently loaded VisualStudio instance
+            if ( null != _vsProvider )
+            {
+                var vs = _vsProvider.Instance;
+                                
+                try
+                {
+                    foreach (var project in vs.Solution.Projects)
+                    {
+                        var configuration = project.ActiveConfiguration;
+
+                        if ( string.Equals(source, configuration.PrimaryOutput, StringComparison.Ordinal) )
+                        {
+                            workingDirectory = configuration.VSDebugConfiguration.WorkingDirectory;
+                            applyVSWorkingDirectory = true;
+                            break;
+                        }
+                    }                    
+                }
+                catch (COMException ex)
+                {
+                    Logger.Error("Could not retrieve WorkingDirectory from Visual Studio Configuration-{0}", ex.Message);
+                }                
+            }
+
+            if ( !applyVSWorkingDirectory )
+            {
+                if ( string.IsNullOrEmpty(settings.WorkingDirectory) || !Directory.Exists(settings.WorkingDirectory) )
+                {
+                    workingDirectory = Path.GetDirectoryName(source);
+                }
+                else
+                {
+                    workingDirectory = settings.WorkingDirectory;
+                }
+            }
+
+            return workingDirectory;
+        }
+
+        /// <summary>
         /// Factory function which returns an appropriate BoostTestRunnerCommandLineArgs structure
         /// </summary>
         /// <param name="source">The TestCases source</param>
@@ -380,9 +445,9 @@ namespace BoostTestAdapter
         private BoostTestRunnerCommandLineArgs GetDefaultArguments(string source, BoostTestAdapterSettings settings)
         {
             BoostTestRunnerCommandLineArgs args = settings.CommandLineArgs.Clone();
-            
-            args.WorkingDirectory = Path.GetDirectoryName(source);
 
+            args.WorkingDirectory = GetDefaultWorkingDirectory(source, settings);
+            
             string filename = Path.GetFileName(source);
 
             // Specify log and report file information
