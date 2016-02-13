@@ -380,7 +380,7 @@ namespace BoostTestAdapter
         private BoostTestRunnerCommandLineArgs GetDefaultArguments(string source, BoostTestAdapterSettings settings)
         {
             BoostTestRunnerCommandLineArgs args = settings.CommandLineArgs.Clone();
-
+            
             args.WorkingDirectory = Path.GetDirectoryName(source);
 
             string filename = Path.GetFileName(source);
@@ -388,14 +388,14 @@ namespace BoostTestAdapter
             // Specify log and report file information
             args.LogFormat = OutputFormat.XML;
             args.LogLevel = settings.LogLevel;
-            args.LogFile = SanitizeFileName(filename + FileExtensions.LogFile);
+            args.LogFile = Path.Combine(Path.GetTempPath(), SanitizeFileName( filename+FileExtensions.LogFile));
 
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
-            args.ReportFile = SanitizeFileName(filename + FileExtensions.ReportFile);
+            args.ReportFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.ReportFile));
 
-            args.StandardOutFile = SanitizeFileName(filename + FileExtensions.StdOutFile);
-            args.StandardErrorFile = SanitizeFileName(filename + FileExtensions.StdErrFile);
+            args.StandardOutFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.StdOutFile));
+            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.StdErrFile));
 
             return args;
         }

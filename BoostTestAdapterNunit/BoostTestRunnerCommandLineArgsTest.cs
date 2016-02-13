@@ -5,6 +5,7 @@
 
 using BoostTestAdapter.Boost.Runner;
 using NUnit.Framework;
+using System.IO;
 
 namespace BoostTestAdapterNunit
 {
@@ -26,19 +27,19 @@ namespace BoostTestAdapterNunit
 
             args.LogFormat = OutputFormat.XML;
             args.LogLevel = LogLevel.TestSuite;
-            args.LogFile = "log.xml";
+            args.LogFile = Path.Combine(Path.GetTempPath(), "log.xml");
 
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
-            args.ReportFile = "report.xml";
+            args.ReportFile = Path.Combine(Path.GetTempPath(), "report.xml");
 
             args.DetectMemoryLeaks = 0;
 
             args.CatchSystemErrors = false;
             args.DetectFPExceptions = true;
 
-            args.StandardOutFile = "stdout.log";
-            args.StandardErrorFile = "stderr.log";
+            args.StandardOutFile = Path.Combine(Path.GetTempPath(), "stdout.log");
+            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), "stderr.log");
 
             return args;
         }
@@ -71,7 +72,11 @@ namespace BoostTestAdapterNunit
         {
             BoostTestRunnerCommandLineArgs args = GenerateCommandLineArgs();
             // serge: boost 1.60 requires uppercase input
-            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink=log.xml\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink=report.xml\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"stdout.log\" 2> \"stderr.log\""));
+            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink="
+                + Path.Combine(Path.GetTempPath(), "log.xml") + "\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink="
+                + Path.Combine(Path.GetTempPath(), "report.xml") + "\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"" 
+                + Path.Combine(Path.GetTempPath(), "stdout.log") + "\" 2> \""
+                + Path.Combine(Path.GetTempPath(), "stderr.log") + "\""));
         }
 
         /// <summary>
