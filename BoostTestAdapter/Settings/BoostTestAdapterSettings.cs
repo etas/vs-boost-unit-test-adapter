@@ -30,9 +30,7 @@ namespace BoostTestAdapter.Settings
             this.TestRunnerSettings = new BoostTestRunnerSettings();
 
             this.CommandLineArgs = new BoostTestRunnerCommandLineArgs();
-
-            // Set default configuration values
-
+            
             this.FailTestOnMemoryLeak = false;
 
             this.ConditionalInclusionsFilteringEnabled = true;
@@ -48,6 +46,8 @@ namespace BoostTestAdapter.Settings
             this.TestBatchStrategy = TestBatch.Strategy.TestCase;
 
             this.UseListContent = false;
+
+            this.WorkingDirectory = null;
         }
 
         #region Properties
@@ -126,6 +126,10 @@ namespace BoostTestAdapter.Settings
 
         [DefaultValue(false)]
         public bool UseListContent { get; set; }
+
+        [DefaultValue(null)]
+        public string WorkingDirectory { get; set; }
+
 
         #endregion Serialisable Fields
 

@@ -45,7 +45,7 @@ namespace VisualStudioAdapter.Shared
                     VCConfiguration configuration = this.Configuration;
 
                     // Cache the adapted configuration in case it is requested multiple times
-                    this._configuration = (configuration == null) ? null : new ProjectConfiguration(configuration);
+                    this._configuration = (configuration == null) ? null : new ProjectConfiguration(new VSDebugConfiguration(configuration));
                 }
 
                 return this._configuration;

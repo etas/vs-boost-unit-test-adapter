@@ -116,6 +116,7 @@ namespace BoostTestAdapterNunit.Utility
         private string _primaryOutput = string.Empty;
         private IList<string> _sourcesFullFilePath = new List<string>(); 
         private Defines _definitions = new Defines();
+        private string _workingDirectory = string.Empty;
 
         /// <summary>
         /// Identifies the name of the project
@@ -136,6 +137,17 @@ namespace BoostTestAdapterNunit.Utility
         public FakeProjectBuilder PrimaryOutput(string output)
         {
             this._primaryOutput = output;
+            return this;
+        }
+
+        /// <summary>
+        /// Identifies the project's working directory
+        /// </summary>
+        /// <param name="output"></param>
+        /// <returns></returns>
+        public FakeProjectBuilder WorkingDirectory(string output)
+        {
+            this._workingDirectory = output;
             return this;
         }
 
@@ -181,6 +193,11 @@ namespace BoostTestAdapterNunit.Utility
 
             A.CallTo(() => fake.ActiveConfiguration).Returns(fakeConfiguration);
             A.CallTo(() => fake.SourceFiles).Returns(this._sourcesFullFilePath);
+
+            IVSDebugConfiguration fakeVSConfiguration = A.Fake<IVSDebugConfiguration>();
+            A.CallTo(() => fakeVSConfiguration.WorkingDirectory).Returns(this._workingDirectory);
+
+            A.CallTo(() => fakeConfiguration.VSDebugConfiguration).Returns(fakeVSConfiguration);
 
             return fake;
         }
