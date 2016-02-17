@@ -34,6 +34,8 @@ namespace BoostTestAdapterNunit
         private const string DefaultOutput = "test.boostd.exe";
         private const string DefaultWorkingDirectory = "$(ProjectDir)";
         private readonly static string DefaultEvaluatedWorkingDirectory = Path.GetTempPath();
+        private const string DefaultEnvironment = "$(EnvDir)";
+        private readonly static string DefaultEvaluatedEnvironment = Path.GetTempPath();
 
         #endregion Test Data
 
@@ -73,13 +75,22 @@ namespace BoostTestAdapterNunit
 
                 A.CallTo(() => this.VCDebugSettings.WorkingDirectory).Returns(DefaultWorkingDirectory);
 
+                A.CallTo(() => this.VCDebugSettings.Environment).Returns(DefaultEnvironment);
+
                 A.CallTo(() => this.VCConfiguration.Evaluate(A<string>._)).ReturnsLazily((string input) =>
                 {
+                    // fake the evaluation process by converting the MACRO to something else
                     if (input.Equals(DefaultWorkingDirectory))
                     {
                         return DefaultEvaluatedWorkingDirectory;
                     }
-                    return DefaultWorkingDirectory;
+                    else if (input.Equals(DefaultEnvironment))
+                    {
+                        return DefaultEvaluatedEnvironment;
+                    }
+                    else {}
+
+                    return input;
                 });
             }
 
@@ -108,6 +119,7 @@ namespace BoostTestAdapterNunit
             Assert.That(this.Project.Name, Is.EqualTo(DefaultProjectName));
             Assert.That(this.Project.ActiveConfiguration.PrimaryOutput, Is.EqualTo(DefaultOutput));
             Assert.That(this.Project.ActiveConfiguration.VSDebugConfiguration.WorkingDirectory, Is.EqualTo(DefaultEvaluatedWorkingDirectory));
+            Assert.That(this.Project.ActiveConfiguration.VSDebugConfiguration.Environment, Is.EqualTo(DefaultEvaluatedEnvironment));
         }
 
         #endregion Tests

@@ -153,6 +153,14 @@ namespace BoostTestAdapter.Boost.Runner
                 RedirectStandardInput = false
             };
 
+            if ( !string.IsNullOrEmpty(args.Environment) )
+            {
+                // Sets Path variable accordingly to the environment
+                string currentEnvironment = startInfo.EnvironmentVariables["Path"];
+
+                startInfo.EnvironmentVariables["Path"] = string.IsNullOrEmpty(currentEnvironment) ? args.Environment : (currentEnvironment + ";" + args.Environment);
+            }
+
             return startInfo;
         }
 

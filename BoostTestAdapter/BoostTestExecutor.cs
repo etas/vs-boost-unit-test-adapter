@@ -385,24 +385,25 @@ namespace BoostTestAdapter
         }
 
         /// <summary>
-        /// Returns default working directory by resolving configurations from different possible resources
+        /// Retrieves and assignes parameters by resolving configurations from different possible resources
         /// </summary>
         /// <param name="source">The TestCases source</param>
         /// <param name="settings">The Boost Test adapter settings currently in use</param>
         /// <returns>A string for the default working directory</returns>
-        private string GetDefaultWorkingDirectory(string source, BoostTestAdapterSettings settings)
+        private void GetDebugConfigurationProperties(string source, BoostTestAdapterSettings settings, BoostTestRunnerCommandLineArgs args)
         {
             string workingDirectory = null;
+            string environment = null;
 
             bool applyVSWorkingDirectory = false;
 
             // Get the currently loaded VisualStudio instance
             if ( null != _vsProvider )
-            {
-                var vs = _vsProvider.Instance;
-                                
+            {                                               
                 try
                 {
+                    var vs = _vsProvider.Instance;
+
                     foreach (var project in vs.Solution.Projects)
                     {
                         var configuration = project.ActiveConfiguration;
@@ -410,6 +411,7 @@ namespace BoostTestAdapter
                         if ( string.Equals(source, configuration.PrimaryOutput, StringComparison.Ordinal) )
                         {
                             workingDirectory = configuration.VSDebugConfiguration.WorkingDirectory;
+                            environment = configuration.VSDebugConfiguration.Environment;
                             applyVSWorkingDirectory = true;
                             break;
                         }
@@ -433,7 +435,8 @@ namespace BoostTestAdapter
                 }
             }
 
-            return workingDirectory;
+            args.WorkingDirectory = workingDirectory;
+            args.Environment = environment;
         }
 
         /// <summary>
@@ -446,7 +449,7 @@ namespace BoostTestAdapter
         {
             BoostTestRunnerCommandLineArgs args = settings.CommandLineArgs.Clone();
 
-            args.WorkingDirectory = GetDefaultWorkingDirectory(source, settings);
+            GetDebugConfigurationProperties(source, settings, args);
             
             string filename = Path.GetFileName(source);
 

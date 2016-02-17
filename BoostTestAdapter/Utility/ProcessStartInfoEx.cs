@@ -44,9 +44,13 @@ namespace BoostTestAdapter.Utility
             {
                 string variable = entry.Key.ToString();
 
-                if (!clone.EnvironmentVariables.ContainsKey(variable))
+                if ( clone.EnvironmentVariables.ContainsKey(variable) )
                 {
-                    clone.EnvironmentVariables.Add(variable, entry.Value.ToString());
+                    clone.EnvironmentVariables[variable] = info.EnvironmentVariables[variable];
+                }
+                else
+                {
+                    clone.EnvironmentVariables.Add(variable, entry.Value.ToString());                    
                 }
             }
 
