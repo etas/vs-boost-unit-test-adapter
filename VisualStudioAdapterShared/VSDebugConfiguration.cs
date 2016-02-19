@@ -51,7 +51,18 @@ namespace VisualStudioAdapter.Shared
                 return this._configuration.Evaluate(setting.WorkingDirectory);
             }
         }
-        
+
+        /// <summary>
+        /// Evaluates 'Environment' from Visual Studio Configuration Properties
+        /// </summary>
+        public string Environment
+        {
+            get
+            {
+                VCDebugSettings setting = this._configuration.DebugSettings as VCDebugSettings;
+                return this._configuration.Evaluate(setting.Environment);
+            }
+        }
 
         #endregion IVSConfiguration
     }

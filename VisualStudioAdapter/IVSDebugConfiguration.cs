@@ -13,7 +13,11 @@ namespace VisualStudioAdapter
         /// <summary>
         /// Retrieves Working Directory
         /// </summary>
-        string WorkingDirectory { get; }       
-         
+        string WorkingDirectory { get; }
+
+        /// <summary>
+        /// Retrieves Environment
+        /// </summary>
+        string Environment { get; }
     }    
 }

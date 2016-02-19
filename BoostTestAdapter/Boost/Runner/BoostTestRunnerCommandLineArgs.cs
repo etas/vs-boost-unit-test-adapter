@@ -171,6 +171,11 @@ namespace BoostTestAdapter.Boost.Runner
         public string WorkingDirectory { get; set; }
 
         /// <summary>
+        /// Specifies the process's environment
+        /// </summary>
+        public string Environment { get; set; }
+
+        /// <summary>
         /// List of fully qualified name tests which are to be executed.
         /// </summary>
         public IList<string> Tests { get; private set; }
@@ -632,6 +637,8 @@ namespace BoostTestAdapter.Boost.Runner
             BoostTestRunnerCommandLineArgs clone = new BoostTestRunnerCommandLineArgs();
 
             clone.WorkingDirectory = this.WorkingDirectory;
+
+            clone.Environment = this.Environment;
 
             // Deep copy
             clone.Tests = new List<string>(this.Tests);
