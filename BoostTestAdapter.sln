@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudio2015Adapter", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoostTestAdapterNunit", "BoostTestAdapterNunit\BoostTestAdapterNunit.csproj", "{FE58A67C-D313-46FD-B8F3-F80383EE5FD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioAdapterNunit", "VisualStudioAdapterNunit\VisualStudioAdapterNunit.csproj", "{AEF4B552-D8E3-4626-80AE-6713B0B6F4AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +56,10 @@ Global
 		{FE58A67C-D313-46FD-B8F3-F80383EE5FD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE58A67C-D313-46FD-B8F3-F80383EE5FD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE58A67C-D313-46FD-B8F3-F80383EE5FD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEF4B552-D8E3-4626-80AE-6713B0B6F4AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEF4B552-D8E3-4626-80AE-6713B0B6F4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEF4B552-D8E3-4626-80AE-6713B0B6F4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEF4B552-D8E3-4626-80AE-6713B0B6F4AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
