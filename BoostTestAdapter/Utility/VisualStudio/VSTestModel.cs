@@ -156,9 +156,9 @@ namespace BoostTestAdapter.Utility.VisualStudio
                 yield return new TestResultMessage(category, GetTestResultMessageText(result.Unit, entry));
             }
         }
-
+        
         /// <summary>
-        /// Given a log entry and its respective test unit, retuns a string
+        /// Given a log entry and its respective test unit, returns a string
         /// formatted similar to the compiler_log_formatter.ipp in the Boost Test framework.
         /// </summary>
         /// <param name="unit">The test unit related to this log entry</param>
@@ -196,50 +196,108 @@ namespace BoostTestAdapter.Utility.VisualStudio
             LogEntryException exception = entry as LogEntryException;
             if (exception != null)
             {
-                if (exception.LastCheckpoint != null)
-                {
-                    sb.Append(Environment.NewLine);
-                    AppendSourceInfo(exception.LastCheckpoint, sb);
-                    sb.Append("last checkpoint: ").Append(exception.CheckpointDetail);
-                }
+                FormatException(exception, sb);
+            }
+
+            LogEntryError error = entry as LogEntryError;
+            if (error != null)
+            {
+                FormatError(error, sb);
             }
 
             if (memoryLeak != null)
             {
-                if ((memoryLeak.LeakSourceFilePath != null) && (memoryLeak.LeakSourceFileName != null))
-                {
-                    sb.Append("source file path leak detected at :").
-                        Append(memoryLeak.LeakSourceFilePath).
-                        Append(memoryLeak.LeakSourceFileName);
-                }
-
-                if (memoryLeak.LeakLineNumber != null)
-                {
-                    sb.Append(", ").
-                        Append("Line number: ").
-                        Append(memoryLeak.LeakLineNumber);
-                }
-
-                sb.Append(", ").
-                    Append("Memory allocation number: ").
-                    Append(memoryLeak.LeakMemoryAllocationNumber);
-
-                sb.Append(", ").
-                    Append("Leak size: ").
-                    Append(memoryLeak.LeakSizeInBytes).
-                    Append(" byte");
-                
-                if (memoryLeak.LeakSizeInBytes > 0)
-                {
-                     sb.Append('s');
-                }
-
-                sb.Append(Environment.NewLine).
-                    Append(memoryLeak.LeakLeakedDataContents);
+                FormatMemoryLeak(memoryLeak, sb);
             }
 
             // Append NewLine so that log entries are listed one per line
             return sb.Append(Environment.NewLine).ToString();
+        }
+
+        /// <summary>
+        /// Formats a LogEntryException to append to test result string
+        /// </summary>
+        /// <param name="exception">The exception to format</param>
+        /// <param name="sb">The StringBuilder which will host the output</param>
+        /// <returns>sb</returns>
+        private static StringBuilder FormatException(LogEntryException exception, StringBuilder sb)
+        {
+            if (exception.LastCheckpoint != null)
+            {
+                sb.Append(Environment.NewLine);
+                AppendSourceInfo(exception.LastCheckpoint, sb);
+                sb.Append("last checkpoint: ").Append(exception.CheckpointDetail);
+            }
+
+            return sb;
+        }
+
+        /// <summary>
+        /// Formats a LogEntryException to append to test result string
+        /// </summary>
+        /// <param name="error">The error to format</param>
+        /// <param name="sb">The StringBuilder which will host the output</param>
+        /// <returns>sb</returns>
+        private static StringBuilder FormatError(LogEntryError error, StringBuilder sb)
+        {
+            if (error.ContextFrames != null)
+            {
+                sb.Append(Environment.NewLine).
+                    Append("Failure occurred in a following context:").
+                    Append(Environment.NewLine);
+
+                foreach (string frame in error.ContextFrames)
+                {
+                    sb.Append("    ").Append(frame).Append(Environment.NewLine);
+                }
+
+                // Remove redundant NewLine at the end
+                sb.Remove((sb.Length - Environment.NewLine.Length), Environment.NewLine.Length);
+            }
+
+            return sb;
+        }
+
+        /// <summary>
+        /// Formats a LogEntryMemoryLeak to append to test result string
+        /// </summary>
+        /// <param name="memoryLeak">The memory leak to format</param>
+        /// <param name="sb">The StringBuilder which will host the output</param>
+        /// <returns>sb</returns>
+        private static StringBuilder FormatMemoryLeak(LogEntryMemoryLeak memoryLeak, StringBuilder sb)
+        {
+            if ((memoryLeak.LeakSourceFilePath != null) && (memoryLeak.LeakSourceFileName != null))
+            {
+                sb.Append("source file path leak detected at :").
+                    Append(memoryLeak.LeakSourceFilePath).
+                    Append(memoryLeak.LeakSourceFileName);
+            }
+
+            if (memoryLeak.LeakLineNumber != null)
+            {
+                sb.Append(", ").
+                    Append("Line number: ").
+                    Append(memoryLeak.LeakLineNumber);
+            }
+
+            sb.Append(", ").
+                Append("Memory allocation number: ").
+                Append(memoryLeak.LeakMemoryAllocationNumber);
+
+            sb.Append(", ").
+                Append("Leak size: ").
+                Append(memoryLeak.LeakSizeInBytes).
+                Append(" byte");
+
+            if (memoryLeak.LeakSizeInBytes > 0)
+            {
+                sb.Append('s');
+            }
+
+            sb.Append(Environment.NewLine).
+                Append(memoryLeak.LeakLeakedDataContents);
+
+            return sb;
         }
 
         /// <summary>

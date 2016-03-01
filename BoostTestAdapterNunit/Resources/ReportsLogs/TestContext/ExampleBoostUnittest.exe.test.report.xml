@@ -1,0 +1,5 @@
+<TestResult>
+    <TestSuite name="mytest" result="failed" assertions_passed="5" assertions_failed="4" warnings_failed="0" expected_failures="0" test_cases_passed="0" test_cases_passed_with_warnings="0" test_cases_failed="1" test_cases_skipped="0" test_cases_aborted="0">
+        <TestCase name="test1" result="failed" assertions_passed="5" assertions_failed="4" warnings_failed="0" expected_failures="0"/>
+    </TestSuite>
+</TestResult>
