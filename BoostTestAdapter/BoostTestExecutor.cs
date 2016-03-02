@@ -528,7 +528,7 @@ namespace BoostTestAdapter
             }
             catch (XmlException)
             {
-                string text = File.ReadAllText(testRun.Arguments.ReportFile);
+                string text = ((File.Exists(testRun.Arguments.ReportFile)) ? File.ReadAllText(testRun.Arguments.ReportFile) : string.Empty);
 
                 if (text.Trim().StartsWith(TestNotFound, StringComparison.Ordinal))
                 {
@@ -539,7 +539,7 @@ namespace BoostTestAdapter
                     // Represent result parsing exception as a test fatal error
                     if (string.IsNullOrEmpty(text))
                     {
-                        text = "Boost Test result file is empty.";
+                        text = "Boost Test result file was not found or is empty.";
                     }
                     
                     return testRun.Tests.Select(test => {
