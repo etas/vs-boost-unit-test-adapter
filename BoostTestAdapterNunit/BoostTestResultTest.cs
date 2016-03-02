@@ -3,9 +3,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Xml;
 using BoostTestAdapter.Boost.Results;
@@ -137,29 +138,105 @@ namespace BoostTestAdapterNunit
 
             foreach (LogEntry entry in entries)
             {
-                LogEntry found =
-                    testResult.LogEntries.FirstOrDefault(
-                        e =>
-                        {
-                            // serge: In BoostXmlLog.Parse(TestResultCollection collection) method
-                            // Xml document is recreated. There are insignificant whitespaces
-                            // are appearing during transformation. So let's truncate them.
-                            var entryDetail = Regex.Replace(entry.Detail, @"\r|\n\s+", string.Empty);
-                            var eDetail = Regex.Replace(e.Detail, @"\r|\n\s+", string.Empty);
-                            return (e.ToString() == entry.ToString()) && (eDetail == entryDetail);
-                        });
+                LogEntry found = Locate(entry, testResult);
                 Assert.That(found, Is.Not.Null);
 
                 AssertSourceInfoDetails(found.Source, entry.Source);
             }
 
-            var entriesMemLeaks = entries.Where((e) => e is LogEntryMemoryLeak).GetEnumerator();
-            var testResultMemleaks = testResult.LogEntries.Where((e) => e is LogEntryMemoryLeak).GetEnumerator();
+            AssertErrorDetails(testResult, entries);
+            AssertMemoryLeakDetails(testResult, entries);
+        }
 
-            while (testResultMemleaks.MoveNext() && entriesMemLeaks.MoveNext())
+        /// <summary>
+        /// Locates a similar log entry within the provided test result collection
+        /// </summary>
+        /// <param name="entry">The entry to locate within testResult</param>
+        /// <param name="testResult">The collection from which to look into</param>
+        /// <returns>A LogEntry instance matching the provided entry or null if one cannot be found</returns>
+        private LogEntry Locate(LogEntry entry, BoostTestResult testResult)
+        {
+            return testResult.LogEntries.FirstOrDefault(
+                e =>
+                {
+                    // serge: In BoostXmlLog.Parse(TestResultCollection collection) method
+                    // Xml document is recreated. There are insignificant whitespace
+                    // are appearing during transformation. So let's truncate them.
+                    var entryDetail = Regex.Replace(entry.Detail, @"\r|\n\s+", string.Empty);
+                    var eDetail = Regex.Replace(e.Detail, @"\r|\n\s+", string.Empty);
+                    return (e.ToString() == entry.ToString()) && (eDetail == entryDetail);
+                });
+        }
+
+        /// <summary>
+        /// Iterates over both collections in parallel
+        /// </summary>
+        /// <typeparam name="T">The type to filter out</typeparam>
+        /// <param name="testResult">The lhs collection</param>
+        /// <param name="entries">The rhs collection</param>
+        /// <returns>An enumeration of a parallel iteration over both collections</returns>
+        static private IEnumerable<Tuple<T, T>> DualIterate<T>(IEnumerable<T> lhs, IEnumerable<T> rhs)
+        {
+            var a = lhs.OfType<T>().GetEnumerator();
+            var b = rhs.OfType<T>().GetEnumerator();
+
+            while (a.MoveNext() && b.MoveNext())
             {
-                AssertMemoryLeakDetails((LogEntryMemoryLeak)testResultMemleaks.Current,
-                    (LogEntryMemoryLeak)entriesMemLeaks.Current);
+                yield return Tuple.Create(a.Current, b.Current);
+            }
+
+            while (a.MoveNext())
+            {
+                yield return Tuple.Create<T, T>(a.Current, default(T));
+            }
+
+            while (b.MoveNext())
+            {
+                yield return Tuple.Create<T, T>(default(T), b.Current);
+            }
+        }
+
+        /// <summary>
+        /// Helper wrapper over DualIterate specific for our test scenarios
+        /// </summary>
+        /// <typeparam name="T">Type to filter out</typeparam>
+        /// <param name="testResult">The test result collection</param>
+        /// <param name="entries">The entries collection</param>
+        /// <returns>An enumeration of a parallel iteration over both collections</returns>
+        private IEnumerable<Tuple<T, T>> DualIterate<T>(BoostTestResult testResult, IEnumerable<LogEntry> entries)
+        {
+            return DualIterate<T>(testResult.LogEntries.OfType<T>(), entries.OfType<T>());
+        }
+
+        /// <summary>
+        /// Compares the error entries contained within the test result collection and the provided log entries
+        /// </summary>
+        /// <param name="testResult">The test result collection</param>
+        /// <param name="entries">The log entries to compare against</param>
+        private void AssertErrorDetails(BoostTestResult testResult, IEnumerable<LogEntry> entries)
+        {
+            foreach (var entry in DualIterate<LogEntryError>(testResult, entries))
+            {
+                Assert.That(entry.Item1, Is.Not.Null);
+                Assert.That(entry.Item2, Is.Not.Null);
+
+                Assert.That(entry.Item1.ContextFrames, Is.EquivalentTo(entry.Item2.ContextFrames));
+            }
+        }
+
+        /// <summary>
+        /// Compares the memory leak entries contained within the test result collection and the provided log entries
+        /// </summary>
+        /// <param name="testResult">The test result collection</param>
+        /// <param name="entries">The log entries to compare against</param>
+        private void AssertMemoryLeakDetails(BoostTestResult testResult, IEnumerable<LogEntry> entries)
+        {
+            foreach (var entry in DualIterate<LogEntryMemoryLeak>(testResult, entries))
+            {
+                Assert.That(entry.Item1, Is.Not.Null);
+                Assert.That(entry.Item2, Is.Not.Null);
+
+                AssertMemoryLeakDetails(entry.Item1, entry.Item2);
             }
         }
 
@@ -786,6 +863,56 @@ namespace BoostTestAdapterNunit
                 testCaseResult = this.TestResultCollection["bpts/thread_hwbpt"];
                 Assert.That(testCaseResult, Is.Not.Null);
                 AssertReportDetails(testCaseResult, testSuiteResult, "thread_hwbpt", TestResultType.Failed, 0, 3, 0);
+            }
+        }
+
+        /// <summary>
+        /// Boost Test Xml log of a test using contexts (i.e. BOOST_TEST_CONTEXT and BOOST_TEST_INFO)
+        /// 
+        /// Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/test_output/contexts.html
+        ///
+        /// Test aims:
+        ///     - Boost Test results can properly parse and represent context information
+        /// </summary>
+        [Test]
+        public void ParseTestContext()
+        {
+            using (Stream report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.TestContext.ExampleBoostUnittest.exe.test.report.xml"))
+            using (Stream log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.TestContext.ExampleBoostUnittest.exe.test.log.xml"))
+            {
+                Parse(report, log, null, null);
+
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
+
+                AssertReportDetails(masterSuiteResult, null, "mytest", TestResultType.Failed, 5, 4, 0, 0, 1, 0, 0);
+                
+                BoostTestResult testCaseResult = this.TestResultCollection["test1"];
+                Assert.That(testCaseResult, Is.Not.Null);
+
+                AssertReportDetails(testCaseResult, masterSuiteResult, "test1", TestResultType.Failed, 5, 4, 0);
+                AssertLogDetails(testCaseResult, 4000, new LogEntry[] {
+                    new LogEntryError(
+                        "check processor.op2(i, j) has failed",
+                        new SourceFileInfo("c:/exampleboostunittest/source.cpp", 19),
+                        new string[] { "With optimization level 1", "With parameter i = 1", "With parameter j = 0" }
+                    ),
+                    new LogEntryError(
+                        "check processor.op1(i) has failed",
+                        new SourceFileInfo("c:/exampleboostunittest/source.cpp", 16),
+                        new string[] { "With optimization level 2", "With parameter i = 0" }
+                    ),
+                    new LogEntryError(
+                        "check processor.op1(i) has failed",
+                        new SourceFileInfo("c:/exampleboostunittest/source.cpp", 16),
+                        new string[] { "With optimization level 2", "With parameter i = 1" }
+                    ),
+                    new LogEntryError(
+                        "check processor.op2(i, j) has failed",
+                        new SourceFileInfo("c:/exampleboostunittest/source.cpp", 19),
+                        new string[] { "With optimization level 2", "With parameter i = 1", "With parameter j = 0" }
+                    ),
+                });
             }
         }
     }

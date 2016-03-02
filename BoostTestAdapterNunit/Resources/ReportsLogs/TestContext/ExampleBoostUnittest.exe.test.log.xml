@@ -1,0 +1,57 @@
+<TestLog>
+    <TestSuite name="mytest">
+        <TestCase name="test1" file="c:\exampleboostunittest\source.cpp" line="25">
+            <Error file="c:/exampleboostunittest/source.cpp" line="19">
+                <![CDATA[check processor.op2(i, j) has failed]]>
+                <Context>
+                    <Frame>
+                        <![CDATA[With optimization level 1]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter i = 1]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter j = 0]]>
+                    </Frame>
+                </Context>
+            </Error>
+            <Error file="c:/exampleboostunittest/source.cpp" line="16">
+                <![CDATA[check processor.op1(i) has failed]]>
+                <Context>
+                    <Frame>
+                        <![CDATA[With optimization level 2]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter i = 0]]>
+                    </Frame>
+                </Context>
+            </Error>
+            <Error file="c:/exampleboostunittest/source.cpp" line="16">
+                <![CDATA[check processor.op1(i) has failed]]>
+                <Context>
+                    <Frame>
+                        <![CDATA[With optimization level 2]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter i = 1]]>
+                    </Frame>
+                </Context>
+            </Error>
+            <Error file="c:/exampleboostunittest/source.cpp" line="19">
+                <![CDATA[check processor.op2(i, j) has failed]]>
+                <Context>
+                    <Frame>
+                        <![CDATA[With optimization level 2]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter i = 1]]>
+                    </Frame>
+                    <Frame>
+                        <![CDATA[With parameter j = 0]]>
+                    </Frame>
+                </Context>
+            </Error>
+            <TestingTime>4000</TestingTime>
+        </TestCase>
+    </TestSuite>
+</TestLog>

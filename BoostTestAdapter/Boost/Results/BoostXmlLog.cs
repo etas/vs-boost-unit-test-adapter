@@ -6,6 +6,8 @@
 using System.Globalization;
 using System.IO;
 using System.Xml;
+using System.Linq;
+using System.Collections.Generic;
 using BoostTestAdapter.Boost.Results.LogEntryTypes;
 using BoostTestAdapter.Utility;
 
@@ -35,6 +37,8 @@ namespace BoostTestAdapter.Boost.Results
             public const string FatalError = "FatalError";
             public const string Exception = "Exception";
             public const string LastCheckpoint = "LastCheckpoint";
+            public const string Context = "Context";
+            public const string Frame = "Frame";
             public const string File = "file";
             public const string Line = "line";
         }
@@ -177,7 +181,7 @@ namespace BoostTestAdapter.Boost.Results
                         case Xml.Info: entry = new LogEntryInfo(child.InnerText); break;
                         case Xml.Message: entry = new LogEntryMessage(child.InnerText); break;
                         case Xml.Warning: entry = new LogEntryWarning(child.InnerText); break;
-                        case Xml.Error: entry = new LogEntryError(child.InnerText); break;
+                        case Xml.Error: entry = ParseTestCaseLogError(child); break;
                         case Xml.FatalError: entry = new LogEntryFatalError(child.InnerText); break;
                         case Xml.Exception: entry = ParseTestCaseLogException(child); break;
                     }
@@ -219,7 +223,7 @@ namespace BoostTestAdapter.Boost.Results
         }
 
         /// <summary>
-        /// Parse a LogException from the provided node.
+        /// Parse a LogEntryException from the provided node.
         /// </summary>
         /// <param name="node">The Xml node which contains exception information.</param>
         /// <returns>A LogEntryException populated from the provided Xml node.</returns>
@@ -241,6 +245,30 @@ namespace BoostTestAdapter.Boost.Results
             }
 
             return exception;
+        }
+
+        /// <summary>
+        /// Parse a LogEntryError from the provided node.
+        /// </summary>
+        /// <param name="node">The Xml node which contains error information.</param>
+        /// <returns>A LogEntryError populated from the provided Xml node.</returns>
+        private static LogEntryError ParseTestCaseLogError(XmlNode node)
+        {
+            LogEntryError error = new LogEntryError();
+
+            foreach (XmlNode child in node.ChildNodes)
+            {
+                if (child.NodeType == XmlNodeType.CDATA)
+                {
+                    error.Detail = child.InnerText;
+                }
+                else if ((child.NodeType == XmlNodeType.Element) && (child.Name == Xml.Context))
+                {
+                    error.ContextFrames = child.SelectNodes(Xml.Frame).Cast<XmlNode>().Select(frame => frame.InnerText.Trim()).ToList();
+                }
+            }
+
+            return error;
         }
     }
 }
