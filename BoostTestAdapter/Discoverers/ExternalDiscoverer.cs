@@ -188,7 +188,7 @@ namespace BoostTestAdapter.Discoverers
             catch(Exception ex)
             {
                 Logger.Error("Exception caught while reading xml file {0} ({1} -  {2})", path, ex.Message, ex.HResult);
-                Logger.Error(ex.StackTrace);
+                Logger.Trace(ex.StackTrace);
             }
             return null;
         }

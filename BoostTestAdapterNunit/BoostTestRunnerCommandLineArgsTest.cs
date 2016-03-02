@@ -15,6 +15,16 @@ namespace BoostTestAdapterNunit
         #region Utility Methods
 
         /// <summary>
+        /// Generates a dummy fully qualified path for the provided filename
+        /// </summary>
+        /// <param name="filename">The filename to generate a fully qualified version for it</param>
+        /// <returns>A dummy fully qualified path</returns>
+        private static string GenerateFullyQualifiedPath(string filename)
+        {
+            return @"C:\Temp\" + filename;
+        }
+        
+        /// <summary>
         /// Generates a command line args instance with pre-determined values.
         /// </summary>
         /// <returns>A new BoostTestRunnerCommandLineArgs instance populated with pre-determined values.</returns>
@@ -27,19 +37,19 @@ namespace BoostTestAdapterNunit
 
             args.LogFormat = OutputFormat.XML;
             args.LogLevel = LogLevel.TestSuite;
-            args.LogFile = Path.Combine(Path.GetTempPath(), "log.xml");
+            args.LogFile = GenerateFullyQualifiedPath("log.xml");
 
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
-            args.ReportFile = Path.Combine(Path.GetTempPath(), "report.xml");
+            args.ReportFile = GenerateFullyQualifiedPath("report.xml");
 
             args.DetectMemoryLeaks = 0;
 
             args.CatchSystemErrors = false;
             args.DetectFPExceptions = true;
 
-            args.StandardOutFile = Path.Combine(Path.GetTempPath(), "stdout.log");
-            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), "stderr.log");
+            args.StandardOutFile = GenerateFullyQualifiedPath("stdout.log");
+            args.StandardErrorFile = GenerateFullyQualifiedPath("stderr.log");
 
             return args;
         }
@@ -73,10 +83,10 @@ namespace BoostTestAdapterNunit
             BoostTestRunnerCommandLineArgs args = GenerateCommandLineArgs();
             // serge: boost 1.60 requires uppercase input
             Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink="
-                + Path.Combine(Path.GetTempPath(), "log.xml") + "\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink="
-                + Path.Combine(Path.GetTempPath(), "report.xml") + "\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"" 
-                + Path.Combine(Path.GetTempPath(), "stdout.log") + "\" 2> \""
-                + Path.Combine(Path.GetTempPath(), "stderr.log") + "\""));
+                + GenerateFullyQualifiedPath("log.xml") + "\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink="
+                + GenerateFullyQualifiedPath("report.xml") + "\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"" 
+                + GenerateFullyQualifiedPath("stdout.log") + "\" 2> \""
+                + GenerateFullyQualifiedPath("stderr.log") + "\""));
         }
 
         /// <summary>
@@ -117,6 +127,30 @@ namespace BoostTestAdapterNunit
             Assert.That(args.ListContent, Is.EqualTo(clone.ListContent));
 
             Assert.That(args.ToString(), Is.EqualTo(clone.ToString()));
+        }
+
+        /// <summary>
+        /// Based on how a file path is provided, the class tries to root the path if possible
+        /// 
+        /// Test aims:
+        ///     - The file path is rooted if possible.
+        /// </summary>
+        [Test]
+        public void FilePaths()
+        {
+            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs();
+
+            args.LogFile = "log.xml";
+            Assert.That(args.LogFile, Is.EqualTo("log.xml"));
+            Assert.That(args.ToString(), Is.EqualTo("\"--log_sink=log.xml\""));
+
+            args.WorkingDirectory = @"C:\";
+            Assert.That(args.LogFile, Is.EqualTo(@"C:\log.xml"));
+            Assert.That(args.ToString(), Is.EqualTo("\"--log_sink=C:\\log.xml\""));
+
+            args.LogFile = @"D:\Temp\log.xml";
+            Assert.That(args.LogFile, Is.EqualTo(@"D:\Temp\log.xml"));
+            Assert.That(args.ToString(), Is.EqualTo("\"--log_sink=D:\\Temp\\log.xml\""));
         }
 
         #endregion Tests

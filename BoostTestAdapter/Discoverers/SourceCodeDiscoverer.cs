@@ -170,7 +170,7 @@ namespace BoostTestAdapter.Discoverers
                                     Logger.Error(
                                             "Exception raised while discovering tests from \"{0}\" of project \"{1}\", ({2})",
                                             sourceFile, projectInfo.ProjectExe, ex.Message);
-                                    Logger.Error(ex.StackTrace);
+                                    Logger.Trace(ex.StackTrace);
                                 }
                             }
                         }

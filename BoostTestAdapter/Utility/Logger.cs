@@ -131,6 +131,9 @@ namespace BoostTestAdapter.Utility
 #if TRACE
             // Represent a trace log as a regular info log for proper output
             Info(format, args);
+
+            // Persist the log information for later inspection
+            log4netLogger.Debug(string.Format(CultureInfo.InvariantCulture, format, args));
 #endif
         }
 

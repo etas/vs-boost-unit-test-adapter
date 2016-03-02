@@ -161,6 +161,7 @@
     <Compile Include="Utility\QualifiedNameBuilder.cs" />
     <Compile Include="Utility\ROTException.cs" />
     <Compile Include="Utility\SourceFileInfo.cs" />
+    <Compile Include="Utility\TemporaryFile.cs" />
     <Compile Include="Utility\TestRun.cs" />
     <Compile Include="Utility\VisualStudio\DefaultDiscoverySink.cs" />
     <Compile Include="Utility\VisualStudio\DefaultVisualStudioInstanceProvider.cs" />
