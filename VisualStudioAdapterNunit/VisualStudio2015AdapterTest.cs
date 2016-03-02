@@ -10,10 +10,10 @@ using NUnit.Framework;
 using System.IO;
 using VisualStudioAdapter;
 
-namespace BoostTestAdapterNunit
+namespace VisualStudioAdapterNunit
 {
     [TestFixture]
-    public class VisualStudio2012AdapterTest
+    public class VisualStudio2015AdapterTest
     {
         #region Test Setup/Teardown
 
@@ -114,7 +114,7 @@ namespace BoostTestAdapterNunit
         ///     - Ensure that EnvDTE and VCProjectEngine structures are properly adapted to VisualStudioAdapter structures.
         /// </summary>
         [Test]
-        public void VisualStudio2012Adaptation()
+        public void VisualStudio2015Adaptation()
         {
             Assert.That(this.Project.Name, Is.EqualTo(DefaultProjectName));
             Assert.That(this.Project.ActiveConfiguration.PrimaryOutput, Is.EqualTo(DefaultOutput));

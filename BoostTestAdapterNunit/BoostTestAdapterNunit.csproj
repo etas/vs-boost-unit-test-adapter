@@ -42,9 +42,6 @@
     <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)' ">$(ProgramFiles)</ProgramFiles32>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
     <Reference Include="FakeItEasy">
       <HintPath>..\packages\FakeItEasy.1.13.1\lib\net40\FakeItEasy.dll</HintPath>
     </Reference>
@@ -53,9 +50,6 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
       <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.VCProjectEngine, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
@@ -100,17 +94,12 @@
     <Compile Include="Utility\TestHelper.cs" />
     <Compile Include="Utility\VisualStudioInstanceBuilders.cs" />
     <Compile Include="Utility\Xml\XmlComparison.cs" />
-    <Compile Include="VisualStudio2012AdapterTest.cs" />
     <Compile Include="VSTestModelTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BoostTestAdapter\BoostTestAdapter.csproj">
       <Project>{bc4b3bed-9241-4dd6-8070-a9b66dfc08c1}</Project>
       <Name>BoostTestAdapter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
-      <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
-      <Name>VisualStudio2012Adapter</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualStudioAdapter\VisualStudioAdapter.csproj">
       <Project>{62347cc7-c839-413d-a7ce-598409f6f15b}</Project>

@@ -25,6 +25,7 @@ build:
 test:
   assemblies:
     - BoostTestAdapterNunit\bin\$(configuration)\BoostTestAdapterNunit.dll
+    - VisualStudioAdapterNunit\bin\$(configuration)\VisualStudioAdapterNunit.dll
 artifacts:
   - path: BoostTestPlugin\bin\$(configuration)\BoostUnitTestAdapter.vsix
 on_failure:
