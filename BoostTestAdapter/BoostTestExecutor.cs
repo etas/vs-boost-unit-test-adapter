@@ -445,9 +445,9 @@ namespace BoostTestAdapter
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
             args.ReportFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.ReportFile));
-
-            args.StandardOutFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdOutFile));
-            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdErrFile));
+            
+            args.StandardOutFile = ((settings.EnableStdOutRedirection) ? Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdOutFile)) : null);
+            args.StandardErrorFile = ((settings.EnableStdErrRedirection) ? Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdErrFile)) : null);
 
             return args;
         }

@@ -54,6 +54,9 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.CatchSystemErrors, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
             Assert.That(settings.UseListContent, Is.False);
+            Assert.That(settings.WorkingDirectory, Is.Null);
+            Assert.That(settings.EnableStdOutRedirection, Is.True);
+            Assert.That(settings.EnableStdErrRedirection, Is.True);
         }
 
         /// <summary>

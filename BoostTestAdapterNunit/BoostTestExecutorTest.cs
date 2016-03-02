@@ -372,7 +372,7 @@ namespace BoostTestAdapterNunit
                 {
                     Assert.That(Path.GetDirectoryName(args.StandardErrorFile), Is.EqualTo(this.Parent.TempDir));
                 }
-
+                
                 // Create empty result files just in case we are running via the source batching strategy
                 
                 Copy("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.log.xml", args.LogFile);
@@ -1008,6 +1008,39 @@ namespace BoostTestAdapterNunit
             }
 
             Assert.That(expectedBatches, Is.Empty);
+        }
+
+        /// <summary>
+        /// Given a .runsettings which specifies that standard output and standard error should not be redirected, the executor should respect such settings.
+        /// 
+        /// Test aims:
+        ///     - Ensure that EnableStdOutRedirection and EnableStdErrRedirection configuration elements are respected.
+        /// </summary>
+        [Test]
+        public void DisableStdOutErrRedirection()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><EnableStdOutRedirection>false</EnableStdOutRedirection><EnableStdErrRedirection>false</EnableStdErrRedirection></BoostTest></RunSettings>");
+
+            this.Executor.RunTests(
+                new string[] { DefaultSource },
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+            AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
+
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner) runner;
+
+                foreach (BoostTestRunnerCommandLineArgs args in testRunner.Args)
+                {
+                    Assert.That(args.StandardOutFile, Is.Null);
+                    Assert.That(args.StandardErrorFile, Is.Null);
+                }
+            }
         }
 
         #endregion Tests

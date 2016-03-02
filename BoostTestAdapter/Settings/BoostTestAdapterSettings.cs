@@ -48,6 +48,10 @@ namespace BoostTestAdapter.Settings
             this.UseListContent = false;
 
             this.WorkingDirectory = null;
+
+            this.EnableStdOutRedirection = true;
+
+            this.EnableStdErrRedirection = true;
         }
 
         #region Properties
@@ -129,7 +133,12 @@ namespace BoostTestAdapter.Settings
 
         [DefaultValue(null)]
         public string WorkingDirectory { get; set; }
+        
+        [DefaultValue(true)]
+        public bool EnableStdOutRedirection { get; set; }
 
+        [DefaultValue(true)]
+        public bool EnableStdErrRedirection { get; set; }
 
         #endregion Serialisable Fields
 
