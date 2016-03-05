@@ -20,7 +20,8 @@ using BoostTestAdapter.Utility.VisualStudio;
 using System.Runtime.InteropServices;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
-
+using System.Diagnostics;
+using System.Threading;
 
 namespace BoostTestAdapter
 {
@@ -299,15 +300,25 @@ namespace BoostTestAdapter
                 {
                     Logger.Info("{0}:   -> [{1}]", ((runContext.IsBeingDebugged) ? "Debugging" : "Executing"), string.Join(", ", batch.Tests));
 
-                    CleanOutput(batch.Arguments);
-
-                    // Execute the tests
-                    if (ExecuteTests(batch, runContext, frameworkHandle))
+                    using (TemporaryFile report = new TemporaryFile(batch.Arguments.ReportFile))
+                    using (TemporaryFile log    = new TemporaryFile(batch.Arguments.LogFile))
+                    using (TemporaryFile stdout = new TemporaryFile(batch.Arguments.StandardOutFile))
+                    using (TemporaryFile stderr = new TemporaryFile(batch.Arguments.StandardErrorFile))
                     {
-                        foreach (VSTestResult result in GenerateTestResults(batch, start, settings))
+                        Logger.Trace("Working directory: {0}", batch.Arguments.WorkingDirectory ?? "(null)");
+                        Logger.Trace("Report file      : {0}", batch.Arguments.ReportFile);
+                        Logger.Trace("Log file         : {0}", batch.Arguments.LogFile);
+                        Logger.Trace("StdOut file      : {0}", batch.Arguments.StandardOutFile ?? "(null)");
+                        Logger.Trace("StdErr file      : {0}", batch.Arguments.StandardErrorFile ?? "(null)");
+
+                        // Execute the tests
+                        if (ExecuteTests(batch, runContext, frameworkHandle))
                         {
-                            // Identify test result to Visual Studio Test framework
-                            frameworkHandle.RecordResult(result);
+                            foreach (VSTestResult result in GenerateTestResults(batch, start, settings))
+                            {
+                                // Identify test result to Visual Studio Test framework
+                                frameworkHandle.RecordResult(result);
+                            }
                         }
                     }
                 }
@@ -324,38 +335,11 @@ namespace BoostTestAdapter
                 catch (Exception ex)
                 {
                     Logger.Error("Exception caught while running test batch {0} [{1}] ({2})", batch.Source, string.Join(", ", batch.Tests), ex.Message);
+                    Logger.Trace(ex.StackTrace);
                 }
             }
         }
-
-        /// <summary>
-        /// Delete output files.
-        /// </summary>
-        /// <param name="args">The BoostTestRunnerCommandLineArgs which contains references to output files.</param>
-        private static void CleanOutput(BoostTestRunnerCommandLineArgs args)
-        {
-            DeleteFile(args.LogFile);
-            DeleteFile(args.ReportFile);
-            DeleteFile(args.StandardOutFile);
-            DeleteFile(args.StandardErrorFile);
-        }
-
-        /// <summary>
-        /// Checks to see if the file is available and deletes it.
-        /// </summary>
-        /// <param name="file">The file to delete.</param>
-        /// <returns>true if the file is deleted; false otherwise.</returns>
-        private static bool DeleteFile(string file)
-        {
-            if (!string.IsNullOrEmpty(file) && File.Exists(file))
-            {
-                File.Delete(file);
-                return true;
-            }
-
-            return false;
-        }
-
+        
         /// <summary>
         /// Executes the provided test batch
         /// </summary>
@@ -451,23 +435,33 @@ namespace BoostTestAdapter
 
             GetDebugConfigurationProperties(source, settings, args);
             
-            string filename = Path.GetFileName(source);
+            string filename = GenerateFileName(source);
 
             // Specify log and report file information
             args.LogFormat = OutputFormat.XML;
             args.LogLevel = settings.LogLevel;
-            args.LogFile = Path.Combine(Path.GetTempPath(), SanitizeFileName( filename+FileExtensions.LogFile));
+            args.LogFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.LogFile));
 
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
-            args.ReportFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.ReportFile));
+            args.ReportFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.ReportFile));
 
-            args.StandardOutFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.StdOutFile));
-            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename+FileExtensions.StdErrFile));
+            args.StandardOutFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdOutFile));
+            args.StandardErrorFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdErrFile));
 
             return args;
         }
 
+        /// <summary>
+        /// Generates a file name based on the test source. Guaranteed to be unique across multiple executions of the same test source.
+        /// </summary>
+        /// <param name="source">The test source to execute</param>
+        /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
+        private static string GenerateFileName(string source)
+        {
+            return Path.GetFileName(source) + '.' + Process.GetCurrentProcess().Id + '.' + Thread.CurrentThread.ManagedThreadId;
+        }
+        
         /// <summary>
         /// Factory function which returns an appropriate BoostTestRunnerCommandLineArgs structure for batched test runs
         /// </summary>
