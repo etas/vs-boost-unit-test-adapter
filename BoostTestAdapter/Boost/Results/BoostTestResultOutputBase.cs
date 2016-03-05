@@ -21,10 +21,9 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="path">The path to an external file. File will be opened on construction.</param>
         protected BoostTestResultOutputBase(string path)
+            : this(File.OpenRead(path))
         {
             this.CloseStreamOnDispose = true;
-            this.InputStream = File.OpenRead(path);
-            this.IsDisposed = false;
         }
 
         /// <summary>
@@ -34,8 +33,7 @@ namespace BoostTestAdapter.Boost.Results
         protected BoostTestResultOutputBase(Stream stream)
         {
             this.CloseStreamOnDispose = false;
-            this.InputStream = stream;
-
+            this.InputStream = (stream ?? Stream.Null);
             this.IsDisposed = false;
         }
 
