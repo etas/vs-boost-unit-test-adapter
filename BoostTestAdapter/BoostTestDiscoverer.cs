@@ -102,6 +102,12 @@ namespace BoostTestAdapter
 
             try
             {
+                // Filter out any sources which are not of interest
+                if (!TestSourceFilter.IsNullOrEmpty(settings.Filters))
+                {
+                    sources = sources.Where(source => settings.Filters.ShouldInclude(source));
+                }
+
                 var results = _boostTestDiscovererFactory.GetDiscoverers(sources.ToList(), settings);
                 if (results == null)
                     return;
@@ -119,7 +125,7 @@ namespace BoostTestAdapter
             catch (Exception ex)
             {
                 Logger.Error("Exception caught while discovering tests: {0} ({1})", ex.Message, ex.HResult);
-                Logger.Trace(ex.StackTrace);
+                Logger.Debug(ex.StackTrace);
             }
         }
     }

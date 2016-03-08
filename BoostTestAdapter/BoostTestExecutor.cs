@@ -305,11 +305,11 @@ namespace BoostTestAdapter
                     using (TemporaryFile stdout = new TemporaryFile(batch.Arguments.StandardOutFile))
                     using (TemporaryFile stderr = new TemporaryFile(batch.Arguments.StandardErrorFile))
                     {
-                        Logger.Trace("Working directory: {0}", batch.Arguments.WorkingDirectory ?? "(null)");
-                        Logger.Trace("Report file      : {0}", batch.Arguments.ReportFile);
-                        Logger.Trace("Log file         : {0}", batch.Arguments.LogFile);
-                        Logger.Trace("StdOut file      : {0}", batch.Arguments.StandardOutFile ?? "(null)");
-                        Logger.Trace("StdErr file      : {0}", batch.Arguments.StandardErrorFile ?? "(null)");
+                        Logger.Debug("Working directory: {0}", batch.Arguments.WorkingDirectory ?? "(null)");
+                        Logger.Debug("Report file      : {0}", batch.Arguments.ReportFile);
+                        Logger.Debug("Log file         : {0}", batch.Arguments.LogFile);
+                        Logger.Debug("StdOut file      : {0}", batch.Arguments.StandardOutFile ?? "(null)");
+                        Logger.Debug("StdErr file      : {0}", batch.Arguments.StandardErrorFile ?? "(null)");
 
                         // Execute the tests
                         if (ExecuteTests(batch, runContext, frameworkHandle))
@@ -335,7 +335,7 @@ namespace BoostTestAdapter
                 catch (Exception ex)
                 {
                     Logger.Error("Exception caught while running test batch {0} [{1}] ({2})", batch.Source, string.Join(", ", batch.Tests), ex.Message);
-                    Logger.Trace(ex.StackTrace);
+                    Logger.Debug(ex.StackTrace);
                 }
             }
         }

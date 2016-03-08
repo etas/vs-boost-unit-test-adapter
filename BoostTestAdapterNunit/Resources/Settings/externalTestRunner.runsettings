@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
-	<!-- Adapter Specific sections -->
+    <!-- Adapter Specific sections -->
 
-	<!-- BoostTest adapter -->
-	<BoostTest>
-		<ExternalTestRunner type=".dll">
-			<DiscoveryFileMap>
-				<File source="test_1.dll">C:\tests\test_1.xml</File>
-				<File source="test_2.dll">C:\tests\test_2.xml</File>
-			</DiscoveryFileMap>
-			<ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
-		</ExternalTestRunner>
+    <!-- BoostTest adapter -->
+    <BoostTest>
+        <ExternalTestRunner type=".dll">
+            <DiscoveryFileMap>
+                <File source="test_1.dll">C:\tests\test_1.xml</File>
+                <File source="test_2.dll">C:\tests\test_2.xml</File>
+            </DiscoveryFileMap>
+            <ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
+        </ExternalTestRunner>
         <TestBatchStrategy>TestCase</TestBatchStrategy>
+        <Filters />
     </BoostTest>		
 </RunSettings>

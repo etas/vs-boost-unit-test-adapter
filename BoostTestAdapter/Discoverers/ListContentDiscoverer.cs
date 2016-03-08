@@ -129,7 +129,7 @@ namespace BoostTestAdapter.Discoverers
                 catch (Exception ex)
                 {
                     Logger.Error("Exception caught while discovering tests for {0} ({1} - {2})", source, ex.Message, ex.HResult);
-                    Logger.Trace(ex.StackTrace);
+                    Logger.Debug(ex.StackTrace);
                 }
             }
         }

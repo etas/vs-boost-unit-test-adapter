@@ -57,6 +57,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.WorkingDirectory, Is.Null);
             Assert.That(settings.EnableStdOutRedirection, Is.True);
             Assert.That(settings.EnableStdErrRedirection, Is.True);
+            Assert.That(settings.Filters, Is.EqualTo(TestSourceFilter.Empty));
         }
 
         /// <summary>
@@ -163,6 +164,13 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestSuite));
 
             Assert.That(settings.UseListContent, Is.True);
+
+            Assert.That(settings.Filters, Is.Not.Null);
+            Assert.That(settings.Filters.Include, Is.Not.Empty);
+            Assert.That(settings.Filters.Include, Is.EquivalentTo(new[] { "mytest.exe$" }));
+
+            Assert.That(settings.Filters.Exclude, Is.Not.Empty);
+            Assert.That(settings.Filters.Exclude, Is.EquivalentTo(new[] { "test.exe$" }));
         }
 
         /// <summary>
