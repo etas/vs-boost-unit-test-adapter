@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
 
-	<!-- Adapter Specific sections -->
+    <!-- Adapter Specific sections -->
 
-	<!-- BoostTest adapter -->
-	<BoostTest>
-    <ExecutionTimeoutMilliseconds>600000</ExecutionTimeoutMilliseconds>
-    <DiscoveryTimeoutMilliseconds>600000</DiscoveryTimeoutMilliseconds>
+    <!-- BoostTest adapter -->
+    <BoostTest>
+        <ExecutionTimeoutMilliseconds>600000</ExecutionTimeoutMilliseconds>
+        <DiscoveryTimeoutMilliseconds>600000</DiscoveryTimeoutMilliseconds>
         <!-- Both 'true' and '1' are allowable values -->
         <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
-		<!-- <ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled> -->
+        <!-- <ConditionalInclusionsFilteringEnabled>true</ConditionalInclusionsFilteringEnabled> -->
         <!-- <LogLevel>TestSuite</LogLevel> -->
         <ExternalTestRunner type=".dll">
             <DiscoveryCommandLine>C:\ExternalTestRunner.exe --test "{source}" --list-debug "{out}"</DiscoveryCommandLine>
             <ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
         </ExternalTestRunner>
         <TestBatchStrategy>TestCase</TestBatchStrategy>
-	</BoostTest>
+        <Filters />
+    </BoostTest>
 
 </RunSettings>

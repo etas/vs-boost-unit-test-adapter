@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -128,6 +128,7 @@
     <Compile Include="Settings\BoostTestAdapterSettings.cs" />
     <Compile Include="Settings\BoostTestAdapterSettingsProvider.cs" />
     <Compile Include="Settings\ExternalBoostTestRunnerSettings.cs" />
+    <Compile Include="Settings\TestSourceFilter.cs" />
     <Compile Include="SourceFilter\ConditionalInclusionsFilter.cs" />
     <Compile Include="SourceFilter\ConditionalInclusions\ConditionalInclusionsMachine.cs" />
     <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToFailedIf.cs" />

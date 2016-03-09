@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
-	<!-- Reference: https://msdn.microsoft.com/en-us/library/jj635153.aspx -->
+    <!-- Reference: https://msdn.microsoft.com/en-us/library/jj635153.aspx -->
 
-	<!-- Configurations that affect the Test Framework -->
-	<RunConfiguration>
-		<!-- Path relative to solution directory -->
-		<ResultsDirectory>.\TestResults</ResultsDirectory>
+    <!-- Configurations that affect the Test Framework -->
+    <RunConfiguration>
+        <!-- Path relative to solution directory -->
+        <ResultsDirectory>.\TestResults</ResultsDirectory>
 
-		<!-- [x86] | x64  
+        <!-- [x86] | x64  
       - You can also change it from menu Test, Test Settings, Default Processor Architecture -->
-		<TargetPlatform>x86</TargetPlatform>
+        <TargetPlatform>x86</TargetPlatform>
 
-		<!-- Framework35 | [Framework40] | Framework45 -->
-		<TargetFrameworkVersion>Framework40</TargetFrameworkVersion>
-	</RunConfiguration>
+        <!-- Framework35 | [Framework40] | Framework45 -->
+        <TargetFrameworkVersion>Framework40</TargetFrameworkVersion>
+    </RunConfiguration>
 
-	<!-- Configurations for data collectors -->
-	<DataCollectionRunSettings>
-		<DataCollectors>
-			<DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-				<Configuration>
-					<CodeCoverage>
-						<ModulePaths>
-							<Exclude>
-								<ModulePath>.*CPPUnitTestFramework.*</ModulePath>
-							</Exclude>
-						</ModulePaths>
-					</CodeCoverage>
-				</Configuration>
-			</DataCollector>
+    <!-- Configurations for data collectors -->
+    <DataCollectionRunSettings>
+        <DataCollectors>
+            <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+                <Configuration>
+                    <CodeCoverage>
+                        <ModulePaths>
+                            <Exclude>
+                                <ModulePath>.*CPPUnitTestFramework.*</ModulePath>
+                            </Exclude>
+                        </ModulePaths>
+                    </CodeCoverage>
+                </Configuration>
+            </DataCollector>
 
-		</DataCollectors>
-	</DataCollectionRunSettings>
+        </DataCollectors>
+    </DataCollectionRunSettings>
 
-	<!-- Adapter Specific sections -->
+    <!-- Adapter Specific sections -->
 
-	<!-- BoostTest adapter -->
-	<BoostTest>
+    <!-- BoostTest adapter -->
+    <BoostTest>
         <ExecutionTimeoutMilliseconds>100</ExecutionTimeoutMilliseconds>
         <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds>
 
@@ -49,5 +49,14 @@
         <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
 
         <UseListContent>true</UseListContent>
-	</BoostTest>
+
+        <Filters>
+            <Exclude>
+                <Pattern>test.exe$</Pattern>
+            </Exclude>
+            <Include>
+                <Pattern>mytest.exe$</Pattern>
+            </Include>    
+        </Filters>
+    </BoostTest>
 </RunSettings>

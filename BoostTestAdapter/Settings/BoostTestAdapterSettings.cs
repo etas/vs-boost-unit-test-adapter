@@ -52,6 +52,8 @@ namespace BoostTestAdapter.Settings
             this.EnableStdOutRedirection = true;
 
             this.EnableStdErrRedirection = true;
+
+            this.Filters = TestSourceFilter.Empty;
         }
 
         #region Properties
@@ -139,6 +141,8 @@ namespace BoostTestAdapter.Settings
 
         [DefaultValue(true)]
         public bool EnableStdErrRedirection { get; set; }
+
+        public TestSourceFilter Filters { get; set; }
 
         #endregion Serialisable Fields
 
