@@ -13,7 +13,7 @@ namespace BoostTestAdapter.Boost.Runner
     public interface IBoostTestRunner
     {
         /// <summary>
-        /// Initializes a debug instance of this Boost Test runner.
+        /// Executes the Boost Test runner with the provided arguments in a debugging session.
         /// </summary>
         /// <param name="args">The Boost Test framework command line options.</param>
         /// <param name="settings">The Boost Test runner settings.</param>
@@ -33,5 +33,10 @@ namespace BoostTestAdapter.Boost.Runner
         /// Provides a source Id distinguishing different instances
         /// </summary>
         string Source { get; }
+
+        /// <summary>
+        /// Determines if the test runner provides --list_content capabilities.
+        /// </summary>
+        bool ListContentSupported { get; }
     }
 }

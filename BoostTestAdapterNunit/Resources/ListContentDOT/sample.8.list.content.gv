@@ -1,0 +1,20 @@
+digraph G {rankdir=LR;
+tu1[shape=ellipse,peripheries=2,fontname=Helvetica,color=yellow,label="sample"];
+{
+tu65536[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_1|d:\sample.boostunittest\file_1.cpp(14)"];
+tu1 -> tu65536;
+tu65537[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_2|d:\sample.boostunittest\file_1.cpp(44)|labels: @l1"];
+tu1 -> tu65537;
+tu65538[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_3|d:\sample.boostunittest\file_1.cpp(62)"];
+tu1 -> tu65538;
+tu65539[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_4|d:\sample.boostunittest\file_1.cpp(62)"];
+tu1 -> tu65539;
+tu65510[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_5|d:\sample.boostunittest\file_1.cpp(62)"];
+tu1 -> tu65510;
+tu65511[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_6|d:\sample.boostunittest\file_1.cpp(62)|labels: @l1"];
+tu1 -> tu65511;
+tu65512[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_7|d:\sample.boostunittest\file_1.cpp(62)"];
+tu1 -> tu65512;
+tu65513[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_8|d:\sample.boostunittest\file_1.cpp(62)|labels: @l1"];
+tu1 -> tu65513;
+}

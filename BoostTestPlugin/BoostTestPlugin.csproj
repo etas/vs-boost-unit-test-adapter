@@ -88,6 +88,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Antlr4.Runtime.license.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Boost_preview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -99,6 +103,10 @@
     <Content Include="ItemTemplates\VC\Test\Boost Unit Test File.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Antlr.DOT.license.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ProjectTemplates\VC\Test\Boost Unit Test Project.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -123,6 +131,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Antlr.DOT\Antlr.DOT.csproj">
+      <Project>{488AE1CE-107D-4F5B-9F1F-ED7905D5CE75}</Project>
+      <Name>Antlr.DOT</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\BoostTestAdapter\BoostTestAdapter.csproj">
       <Project>{bc4b3bed-9241-4dd6-8070-a9b66dfc08c1}</Project>
       <Name>BoostTestAdapter</Name>
@@ -153,9 +167,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="NCalc, Version=1.3.8.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03, processorArchitecture=MSIL">
-      <HintPath>..\packages\NCalc.1.3.8\NCalc.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

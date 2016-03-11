@@ -62,7 +62,7 @@ namespace BoostTestAdapterNunit
             };
 
             SourceCodeDiscoverer discoverer = new SourceCodeDiscoverer(solution.Provider);
-            discoverer.DiscoverTests(new []{solution.Source}, new DefaultTestContext(true), new ConsoleMessageLogger(), discoverySink);
+            discoverer.DiscoverTests(new []{solution.Source}, new DefaultTestContext(true), discoverySink);
 
             return discoverySink.Tests.ToList();
         }
@@ -162,7 +162,7 @@ namespace BoostTestAdapterNunit
 
                 #region verify
 
-                AssertTestDetails(tests.Last(), QualifiedNameBuilder.FromString("my_test<char>"), solution.SourceFileResourcePaths.First().TempSourcePath, 33);
+                AssertTestDetails(tests.Last(), QualifiedNameBuilder.FromString("my_test<char>"), solution.SourceFileResourcePaths.First().Path, 33);
 
                 #endregion verify
             }

@@ -28,53 +28,7 @@ namespace BoostTestAdapterNunit
         #endregion Test Data
 
         #region Helper Classes
-
-        /// <summary>
-        /// Base implementation of ITestVisitor which visits children accordingly.
-        /// </summary>
-        private class DefaultTestVisitor : ITestVisitor
-        {
-            public virtual void Visit(TestCase testCase)
-            {
-            }
-
-            public virtual void Visit(TestSuite testSuite)
-            {
-                foreach (TestUnit child in testSuite.Children)
-                {
-                    child.Apply(this);
-                }
-            }
-        }
-
-        /// <summary>
-        /// ITestVisitor implementation which counts the number of test cases.
-        /// </summary>
-        private class TestCaseCounter : DefaultTestVisitor
-        {
-            public uint Count { get; private set; }
-
-            public override void Visit(TestCase testCase)
-            {
-                ++this.Count;
-            }
-        }
-
-        /// <summary>
-        /// ITestVisitor implementation which counts the number of test suites.
-        /// </summary>
-        private class TestSuiteCounter : DefaultTestVisitor
-        {
-            public uint Count { get; private set; }
-
-            public override void Visit(TestSuite testSuite)
-            {
-                ++this.Count;
-
-                base.Visit(testSuite);
-            }
-        }
-
+        
         /// <summary>
         /// ITestVisitor implementation which looks up test units based on their qualified name.
         /// </summary>
@@ -124,31 +78,7 @@ namespace BoostTestAdapterNunit
         #endregion Helper Classes
 
         #region Helper Methods
-
-        /// <summary>
-        /// States the number of test suites for the provided test unit (including itself)
-        /// </summary>
-        /// <param name="root">The root test unit from which to start enumerating test suites</param>
-        /// <returns>The number of test suites for the provided test unit</returns>
-        private uint GetTestSuiteCount(TestUnit root)
-        {
-            TestSuiteCounter counter = new TestSuiteCounter();
-            root.Apply(counter);
-            return counter.Count;
-        }
-
-        /// <summary>
-        /// States the number of test cases for the provided test unit (including itself)
-        /// </summary>
-        /// <param name="root">The root test unit from which to start enumerating test cases</param>
-        /// <returns>The number of test cases for the provided test unit</returns>
-        private uint GetTestCaseCount(TestUnit root)
-        {
-            TestCaseCounter counter = new TestCaseCounter();
-            root.Apply(counter);
-            return counter.Count;
-        }
-
+        
         /// <summary>
         /// Looks up a test unit by fully qualified name
         /// </summary>
@@ -320,76 +250,27 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseTestList()
         {
+            const string sourceFile = "test_runner_test.cpp";
+
+            TestFramework expected = new TestFrameworkBuilder(Source, "Test runner test", 1).
+                TestCase("test1", 65536, new SourceFileInfo(sourceFile, 26)).
+                TestCase("test2", 65537, new SourceFileInfo(sourceFile, 35)).
+                TestSuite("SampleSuite", 2).
+                    TestSuite("SampleNestedSuite", 3).
+                        TestCase("test3", 65538, new SourceFileInfo(sourceFile, 48)).
+                    EndSuite().
+                EndSuite().
+                TestSuite("TemplateSuite", 4).
+                    TestCase("TemplateSuite/my_test<char>", 65539, new SourceFileInfo(sourceFile, 79)).
+                    TestCase("TemplateSuite/my_test<int>", 65540, new SourceFileInfo(sourceFile, 79)).
+                    TestCase("TemplateSuite/my_test<float>", 65541, new SourceFileInfo(sourceFile, 79)).
+                    TestCase("TemplateSuite/my_test<double>", 65542, new SourceFileInfo(sourceFile, 79)).
+                EndSuite().
+            Build();
+
             TestFramework framework = Deserialize("BoostTestAdapterNunit.Resources.TestLists.sample.test.list.xml");
 
-            Assert.That(framework.Source, Is.EqualTo(Source));
-
-            Assert.That(framework.MasterTestSuite, Is.Not.Null);
-            Assert.That(framework.MasterTestSuite.Name, Is.EqualTo("Test runner test"));
-            Assert.That(framework.MasterTestSuite.Id, Is.EqualTo(1));
-
-            Assert.That(GetTestSuiteCount(framework.MasterTestSuite), Is.EqualTo(4));
-            Assert.That(GetTestCaseCount(framework.MasterTestSuite), Is.EqualTo(7));
-            
-            string sourceFile = "test_runner_test.cpp";
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "test1"),
-                65536,
-                new SourceFileInfo(sourceFile, 26),
-                framework.MasterTestSuite
-            );
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "test2"),
-                65537,
-                new SourceFileInfo(sourceFile, 35),
-                framework.MasterTestSuite
-            );
-
-            TestUnit sampleSuite = Lookup(framework.MasterTestSuite, "SampleSuite");
-            AssertTestSuite(sampleSuite, 2, framework.MasterTestSuite);
-
-            TestUnit sampleNestedSuite = Lookup(framework.MasterTestSuite, "SampleSuite/SampleNestedSuite");
-            AssertTestSuite(sampleNestedSuite, 3, sampleSuite);
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "SampleSuite/SampleNestedSuite/test3"),
-                65538,
-                new SourceFileInfo(sourceFile, 48),
-                sampleNestedSuite
-            );
-
-            TestUnit templateSuite = Lookup(framework.MasterTestSuite, "TemplateSuite");
-            AssertTestSuite(templateSuite, 4, framework.MasterTestSuite);
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "TemplateSuite/my_test<char>"),
-                65539,
-                new SourceFileInfo(sourceFile, 79),
-                templateSuite
-            );
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "TemplateSuite/my_test<int>"),
-                65540,
-                new SourceFileInfo(sourceFile, 79),
-                templateSuite
-            );
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "TemplateSuite/my_test<float>"),
-                65541,
-                new SourceFileInfo(sourceFile, 79),
-                templateSuite
-            );
-
-            AssertTestCase(
-                Lookup(framework.MasterTestSuite, "TemplateSuite/my_test<double>"),
-                65542,
-                new SourceFileInfo(sourceFile, 79),
-                templateSuite
-            );
+            FrameworkEqualityVisitor.IsEqualTo(framework, expected);
         }
 
         /// <summary>
@@ -401,12 +282,10 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseEmptyTestList()
         {
+            TestFramework expected = new TestFrameworkBuilder("", "Master Test Suite", 1).Build();
             TestFramework framework = Deserialize("BoostTestAdapterNunit.Resources.TestLists.empty.test.list.xml");
 
-            Assert.That(framework.MasterTestSuite, Is.Not.Null);
-            Assert.That(framework.Source, Is.Empty);
-            Assert.That(GetTestSuiteCount(framework.MasterTestSuite), Is.EqualTo(1));
-            Assert.That(GetTestCaseCount(framework.MasterTestSuite), Is.EqualTo(0));
+            FrameworkEqualityVisitor.IsEqualTo(framework, expected);
         }
 
         /// <summary>
@@ -418,7 +297,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void SerializeTestFramework()
         {
-            string sourceFile = "test_runner_test.cpp";
+            const string sourceFile = "test_runner_test.cpp";
 
             TestFramework framework = new TestFrameworkBuilder(Source, "Test runner test", 1).
                 TestCase("test1", 65536, new SourceFileInfo(sourceFile, 26)).

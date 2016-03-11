@@ -1,0 +1,15 @@
+digraph G {rankdir=LR;
+tu1[shape=ellipse,peripheries=2,fontname=Helvetica,color=yellow,label="MyTest"];
+{
+tu65536[shape=Mrecord,fontname=Helvetica,color=yellow,label="Test|c:\boostunittest\boostunittestsample.cpp(30)"];
+tu1 -> tu65536;
+tu2[shape=Mrecord,fontname=Helvetica,color=yellow,label="Suite|c:\boostunittest\boostunittestsample.cpp(35)"];
+tu1 -> tu2;
+{
+tu65537[shape=Mrecord,fontname=Helvetica,color=yellow,label="Test|c:\boostunittest\boostunittestsample.cpp(37)"];
+tu2 -> tu65537;
+}
+tu65538[shape=Mrecord,fontname=Helvetica,color=yellow,label="TestB|c:\boostunittest\boostunittestsample.cpp(44)"];
+tu1 -> tu65538;
+}
+}

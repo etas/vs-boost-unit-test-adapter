@@ -153,6 +153,32 @@ namespace BoostTestAdapterNunit
             Assert.That(args.ToString(), Is.EqualTo("\"--log_sink=D:\\Temp\\log.xml\""));
         }
 
+        /// <summary>
+        /// Verifies that when requesting list content, the command line is generated accordingly
+        /// 
+        /// Test aims:
+        ///     - --list_content command line arguments are correctly generated
+        /// </summary>
+        [Test]
+        public void ListContentCommandLineArgs()
+        {
+            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs();
+
+            args.ListContent = ListContentFormat.DOT;
+
+            args.StandardOutFile = @"C:\Temp\list_content.dot.out";
+            args.StandardErrorFile = @"C:\Temp\list_content.dot.err";
+
+            const string expected = "\"--list_content=DOT\" > \"C:\\Temp\\list_content.dot.out\" 2> \"C:\\Temp\\list_content.dot.err\"";
+            Assert.That(args.ToString(), Is.EqualTo(expected));
+
+            args.ReportFormat = OutputFormat.XML;
+            args.ReportFile = @"C:\Temp\list_content.report.xml";
+            
+            // list content only includes the --list_content and the output redirection commands
+            Assert.That(args.ToString(), Is.EqualTo(expected));
+        }
+
         #endregion Tests
     }
 }

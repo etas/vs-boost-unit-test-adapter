@@ -29,7 +29,8 @@ namespace BoostTestAdapter.Boost.Test
             this.Id = null;
             this.Name = name;
             this.Parent = parent;
-
+            this.Labels = Enumerable.Empty<string>();
+            
             if (parent != null)
             {
                 parent.AddChild(this);
@@ -67,13 +68,45 @@ namespace BoostTestAdapter.Boost.Test
         }
 
         /// <summary>
+        /// Optional source file information related to this test unit.
+        /// </summary>
+        public SourceFileInfo Source { get; set; }
+
+        /// <summary>
+        /// Identifies any label associations with this test unit
+        /// </summary>
+        public IEnumerable<string> Labels { get; set; }
+
+        /// <summary>
+        /// Cached version of the fully qualified name builder
+        /// </summary>
+        private QualifiedNameBuilder _fullyQualifiedName = null;
+
+        /// <summary>
+        /// Internal property which provides a cached QualifiedNameBuilder to represent the fully qualified name
+        /// </summary>
+        private QualifiedNameBuilder FullyQualifiedNameBuilder
+        {
+            get
+            {
+                if (this._fullyQualifiedName == null)
+                {
+                    _fullyQualifiedName = (Parent == null) ? new QualifiedNameBuilder() : Parent.FullyQualifiedNameBuilder.Clone();
+                    _fullyQualifiedName.Push(this);
+                }
+
+                return _fullyQualifiedName;
+            }
+        }
+        
+        /// <summary>
         /// Identifies the fully qualified name of this TestUnit
         /// </summary>
         public string FullyQualifiedName
         {
             get
             {
-                return new QualifiedNameBuilder(this).ToString();
+                return FullyQualifiedNameBuilder.ToString();
             }
         }
 
@@ -97,6 +130,8 @@ namespace BoostTestAdapter.Boost.Test
         {
             public const string Id = "id";
             public const string Name = "name";
+            public const string File = "file";
+            public const string Line = "line";
         }
 
         /// <summary>
@@ -114,6 +149,14 @@ namespace BoostTestAdapter.Boost.Test
             {
                 this.Id = int.Parse(id, CultureInfo.InvariantCulture);
             }
+
+            string file = reader.GetAttribute(Xml.File);
+
+            if (!string.IsNullOrEmpty(file))
+            {
+                this.Source = new SourceFileInfo(file);
+                this.Source.LineNumber = int.Parse(reader.GetAttribute(Xml.Line), CultureInfo.InvariantCulture);
+            }
         }
 
         /// <summary>
@@ -130,6 +173,12 @@ namespace BoostTestAdapter.Boost.Test
             }
 
             writer.WriteAttributeString(Xml.Name, this.Name);
+
+            if (this.Source != null)
+            {
+                writer.WriteAttributeString(Xml.File, this.Source.File);
+                writer.WriteAttributeString(Xml.Line, this.Source.LineNumber.ToString(CultureInfo.InvariantCulture));
+            }
         }
 
         #endregion IXmlSerializable Helpers
@@ -156,7 +205,7 @@ namespace BoostTestAdapter.Boost.Test
         /// Given a fully qualified name of a <b>test case</b>, generates the respective test unit hierarchy.
         /// </summary>
         /// <param name="fullyQualifiedName">The fully qualified name of the <b>test case</b></param>
-        /// <returns>The test case hierarcy represented by the provided fully qualified name</returns>
+        /// <returns>The test case hierarchy represented by the provided fully qualified name</returns>
         /// <remarks>The parameter 'fullyQualifiedName' will be modified and emptied in due process</remarks>
         private static TestCase FromFullyQualifiedName(QualifiedNameBuilder fullyQualifiedName)
         {

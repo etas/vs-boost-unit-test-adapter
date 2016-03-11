@@ -4,6 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
+using System.Text.RegularExpressions;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.Utility;
@@ -53,13 +54,16 @@ namespace BoostTestAdapterNunit
         public void ExternalBoostTestRunnerProvisioning(string source, string externalExtension, Type type)
         {
             BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions();
-            options.ExternalTestRunnerSettings = new ExternalBoostTestRunnerSettings
+            if (externalExtension != null)
             {
-                ExtensionType = externalExtension,
-                DiscoveryCommandLine = new CommandLine(),
-                ExecutionCommandLine = new CommandLine()
-            };
-
+                options.ExternalTestRunnerSettings = new ExternalBoostTestRunnerSettings
+                {
+                    ExtensionType = new Regex(externalExtension),
+                    DiscoveryCommandLine = new CommandLine(),
+                    ExecutionCommandLine = new CommandLine()
+                };
+            }
+            
             IBoostTestRunner runner = this.Factory.GetRunner(source, options);
 
             if (runner == null)

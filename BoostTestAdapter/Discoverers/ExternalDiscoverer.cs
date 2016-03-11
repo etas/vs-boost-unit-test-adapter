@@ -11,12 +11,9 @@ using System.Xml.Serialization;
 using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.Utility;
-using BoostTestAdapter.Utility.VisualStudio;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
-using TestCase = BoostTestAdapter.Boost.Test.TestCase;
-using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Boost.Runner;
+using BoostTestAdapter.Utility.VisualStudio;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -36,8 +33,19 @@ namespace BoostTestAdapter.Discoverers
         /// </summary>
         /// <param name="settings">Settings for this instance of the discoverer.</param>
         public ExternalDiscoverer(ExternalBoostTestRunnerSettings settings)
+            : this(settings, new DefaultVisualStudioInstanceProvider())
+        {
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="settings">Settings for this instance of the discoverer.</param>
+        /// <param name="provider">Visual Studio Instance provider</param>
+        public ExternalDiscoverer(ExternalBoostTestRunnerSettings settings, IVisualStudioInstanceProvider provider)
         {
             Settings = settings;
+            VSProvider = provider;
         }
 
         /// <summary>
@@ -45,21 +53,35 @@ namespace BoostTestAdapter.Discoverers
         /// </summary>
         public ExternalBoostTestRunnerSettings Settings { get; private set; }
 
+        /// <summary>
+        /// Visual Studio Instance Provider
+        /// </summary>
+        public IVisualStudioInstanceProvider VSProvider { get; private set; }
+
         #region IBoostTestDiscoverer
 
-        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
+        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)
         {
             Code.Require(sources, "sources");
             Code.Require(discoverySink, "discoverySink");
 
-            foreach (string source in sources)
+            if (this.Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryListContent)
             {
-                TestFramework framework = DiscoverTestFramework(source);
-
-                if ((framework != null) && (framework.MasterTestSuite != null))
+                // Delegate to ListContentDiscoverer
+                ListContentDiscoverer discoverer = new ListContentDiscoverer(new ExternalBoostTestRunnerFactory(), VSProvider);
+                discoverer.DiscoverTests(sources, discoveryContext, discoverySink);
+            }            
+            else
+            {
+                foreach (string source in sources)
                 {
-                    BoostTestCaseDiscoverer frameworkDiscoverer = new BoostTestCaseDiscoverer(source, discoverySink);
-                    framework.MasterTestSuite.Apply(frameworkDiscoverer);
+                    TestFramework framework = DiscoverTestFramework(source);
+
+                    if ((framework != null) && (framework.MasterTestSuite != null))
+                    {
+                        VSDiscoveryVisitor visitor = new VSDiscoveryVisitor(source, discoverySink);
+                        framework.MasterTestSuite.Apply(visitor);
+                    }
                 }
             }
         }
@@ -67,7 +89,7 @@ namespace BoostTestAdapter.Discoverers
         #endregion IBoostTestDiscoverer
 
         /// <summary>
-        /// Based on the establishsed configuration, discovers the tests within the provided test source module.
+        /// Based on the established configuration, discovers the tests within the provided test source module.
         /// </summary>
         /// <param name="source">The test source module</param>
         /// <returns>The test framework describing all tests contained within the test source or null if one cannot be provided.</returns>
@@ -84,7 +106,7 @@ namespace BoostTestAdapter.Discoverers
 
             return null;
         }
-
+        
         /// <summary>
         /// Executes the discovery command as specified in the configuration for the requested test source.
         /// </summary>
@@ -154,7 +176,7 @@ namespace BoostTestAdapter.Discoverers
         }
 
         /// <summary>
-        /// Parses a static file containing the test lising for the requested test source as specified in the configuration.
+        /// Parses a static file containing the test listing for the requested test source as specified in the configuration.
         /// </summary>
         /// <param name="source">The test source module</param>
         /// <returns>The test framework describing all tests contained within the test source or null if one cannot be provided.</returns>
@@ -187,135 +209,29 @@ namespace BoostTestAdapter.Discoverers
             }
             catch(Exception ex)
             {
-                Logger.Error("Exception caught while reading xml file {0} ({1} -  {2})", path, ex.Message, ex.HResult);
-                Logger.Debug(ex.StackTrace);
+                Logger.Exception(ex, "Exception caught while reading xml file {0} ({1} -  {2})", path, ex.Message, ex.HResult);
             }
             return null;
         }
 
         /// <summary>
-        /// ITestVisitor implementation. Visits TestCases and registers them
-        /// with the supplied ITestCaseDiscoverySink.
+        /// Internal IBoostTestRunnerFactory implementation which
+        /// exclusively produces ExternalBoostTestRunner instances.
         /// </summary>
-        private class BoostTestCaseDiscoverer : ITestVisitor
+        private class ExternalBoostTestRunnerFactory : IBoostTestRunnerFactory
         {
-            #region Constructors
+            #region IBoostTestRunnerFactory
 
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="source">The source test module which contains the discovered tests</param>
-            /// <param name="sink">The ITestCaseDiscoverySink which will have tests registered with</param>
-            public BoostTestCaseDiscoverer(string source, ITestCaseDiscoverySink sink)
+            public IBoostTestRunner GetRunner(string source, BoostTestRunnerFactoryOptions options)
             {
-                Source = source;
-                Sink = sink;
-
-                TestSuite = new QualifiedNameBuilder();
+                Code.Require(source, "source");
+                Code.Require(options, "options");
+                Code.Require(options.ExternalTestRunnerSettings, "options.ExternalTestRunnerSettings");
+                
+                return new ExternalBoostTestRunner(source, options.ExternalTestRunnerSettings);
             }
 
-            #endregion Constructors
-
-            #region Properties
-
-            public ITestCaseDiscoverySink Sink { get; private set; }
-
-            private QualifiedNameBuilder TestSuite { get; set; }
-
-            public uint Count { get; private set; }
-
-            private TestSuite MasterTestSuite { get; set; }
-
-            public string Source { get; private set; }
-
-            #endregion Properties
-
-            public void Visit(TestCase testCase)
-            {
-                Code.Require(testCase, "testCase");
-
-                // Convert from Boost.Test.TestCase to a Visual Studio TestCase object
-                VSTestCase test = GenerateTestCase(testCase);
-
-                if (test != null)
-                {
-                    Logger.Info("Found test: {0}", testCase.FullyQualifiedName);
-
-                    ++Count;
-
-                    // Register test case
-                    Sink.SendTestCase(test);
-                }
-            }
-
-            public void Visit(TestSuite testSuite)
-            {
-                Code.Require(testSuite, "testSuite");
-
-                TestSuite.Push(testSuite);
-
-                // Identify Master Test Suite
-                if ((MasterTestSuite == null) && (testSuite.Parent == null))
-                {
-                    MasterTestSuite = testSuite;
-                }
-
-                foreach (TestUnit child in testSuite.Children)
-                {
-                    child.Apply(this);
-                }
-
-                TestSuite.Pop();
-            }
-
-            /// <summary>
-            /// Generates a Visual Studio equivalent test case structure.
-            /// </summary>
-            /// <param name="testCase">The Boost.Test.TestCase to convert.</param>
-            /// <returns>An equivalent Visual Studio TestCase structure to the one provided.</returns>
-            private VSTestCase GenerateTestCase(TestCase testCase)
-            {
-                // Temporarily push TestCase on TestSuite name builder to acquire the fully qualified name of the TestCase
-                TestSuite.Push(testCase);
-
-                VSTestCase test = new VSTestCase(
-                    TestSuite.ToString(),
-                    BoostTestExecutor.ExecutorUri,
-                    Source
-                );
-
-                // Reset TestSuite QualifiedNameBuilder to original value
-                TestSuite.Pop();
-
-                if (testCase.Source != null)
-                {
-                    test.CodeFilePath = testCase.Source.File;
-                    test.LineNumber = testCase.Source.LineNumber;
-                }
-
-                test.DisplayName = testCase.Name;
-
-                // Register the test suite as a trait
-                test.Traits.Add(new Trait(VSTestModel.TestSuiteTrait, GetCurrentTestSuite()));
-
-                return test;
-            }
-
-            /// <summary>
-            /// Provides the fully qualified name of the current TestSuite
-            /// </summary>
-            /// <returns>The fully qualified name of the current TestSuite</returns>
-            private string GetCurrentTestSuite()
-            {
-                // Since the master test suite name is not included in the fully qualified name, identify
-                // this edge case and explicitly return the master test suite name in such cases.
-                if (TestSuite.Level == QualifiedNameBuilder.MasterTestSuiteLevel)
-                {
-                    return (MasterTestSuite == null) ? QualifiedNameBuilder.DefaultMasterTestSuiteName : MasterTestSuite.Name;
-                }
-
-                return TestSuite.ToString();
-            }
+            #endregion IBoostTestRunnerFactory
         }
     }
 }

@@ -61,7 +61,7 @@ namespace BoostTestAdapterNunit.Utility
         /// </summary>
         private void SetUpSolution()
         {
-            IList<string> sources = this.SourceFileResourcePaths.Select(source => source.TempSourcePath).ToList();
+            IList<string> sources = this.SourceFileResourcePaths.Select(source => source.Path).ToList();
 
             IVisualStudio vs = new FakeVisualStudioInstanceBuilder().
                 Solution(
@@ -110,13 +110,12 @@ namespace BoostTestAdapterNunit.Utility
                     resource.Dispose();
                 }
             }
-
-            GC.SuppressFinalize(this);
         }
 
         public void Dispose()
         {
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion System.IDisposable

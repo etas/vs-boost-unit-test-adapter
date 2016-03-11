@@ -36,15 +36,6 @@ namespace BoostTestAdapter.Boost.Test
 
         #endregion Constructors
 
-        #region Properties
-
-        /// <summary>
-        /// Optional source file information related to this test.
-        /// </summary>
-        public SourceFileInfo Source { get; set; }
-
-        #endregion Properties
-
         #region IXmlSerializable
 
         /// <summary>
@@ -53,8 +44,6 @@ namespace BoostTestAdapter.Boost.Test
         internal static class Xml
         {
             public const string TestCase = "TestCase";
-            public const string File = "file";
-            public const string Line = "line";
         }
 
         public XmlSchema GetSchema()
@@ -65,14 +54,6 @@ namespace BoostTestAdapter.Boost.Test
         public void ReadXml(XmlReader reader)
         {
             base.ReadXmlAttributes(reader);
-
-            string file = reader.GetAttribute(Xml.File);
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                this.Source = new SourceFileInfo(file);
-                this.Source.LineNumber = int.Parse(reader.GetAttribute(Xml.Line), CultureInfo.InvariantCulture);
-            }
 
             reader.MoveToElement();
             bool empty = reader.IsEmptyElement;
@@ -87,12 +68,6 @@ namespace BoostTestAdapter.Boost.Test
         public void WriteXml(XmlWriter writer)
         {
             base.WriteXmlAttributes(writer);
-
-            if (this.Source != null)
-            {
-                writer.WriteAttributeString(Xml.File, this.Source.File);
-                writer.WriteAttributeString(Xml.Line, this.Source.LineNumber.ToString(CultureInfo.InvariantCulture));
-            }
         }
 
         #endregion IXmlSerializable

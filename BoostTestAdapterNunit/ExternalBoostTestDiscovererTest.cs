@@ -73,28 +73,24 @@ namespace BoostTestAdapterNunit
         [Test]
         public void DiscoveryFileMapDiscovery()
         {
-            string listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml", Path.GetTempPath());
-
-            try
+            using (var listing = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml"))
             {
                 ExternalBoostTestRunnerSettings settings = new ExternalBoostTestRunnerSettings
                 {
-                    ExtensionType = ".dll",
                     DiscoveryMethodType = DiscoveryMethodType.DiscoveryFileMap
                 };
 
-                settings.DiscoveryFileMap["test_1.dll"] = listing;
+                settings.DiscoveryFileMap["test_1.dll"] = listing.Path;
 
-                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings, DummyVSProvider.Default);
 
                 DefaultTestContext context = new DefaultTestContext();
-                ConsoleMessageLogger logger = new ConsoleMessageLogger();
                 DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
 
                 const string mappedSource = "C:\\test_1.dll";
                 const string unmappedSource = "C:\\test_2.dll";
 
-                discoverer.DiscoverTests(new string[] { mappedSource, unmappedSource }, context, logger, sink);
+                discoverer.DiscoverTests(new string[] { mappedSource, unmappedSource }, context, sink);
 
                 // A total of 7 tests should be discovered as described in the Xml descriptor
                 Assert.That(sink.Tests.Count(), Is.EqualTo(7));
@@ -113,39 +109,29 @@ namespace BoostTestAdapterNunit
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<float>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<double>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
             }
-            finally
-            {
-                if (File.Exists(listing))
-                {
-                    File.Delete(listing);
-                }
-            }
         }
 
         /// <summary>
         /// External test discovery based on static test listings and an initial test listing containing invalid XML
         /// 
         /// Test aims:
-        ///     - Ensure that a malformed xml file doesn't prevent the dectection of the following test sources.
+        ///     - Ensure that a malformed xml file doesn't prevent the detection of the following test sources.
         /// </summary>
         [Test]
         public void DiscoveryFileMapWithInvalidDiscovery()
         {
-            string listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml", Path.GetTempPath());
-            string invalid_listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "invalid.test.list.xml", Path.GetTempPath());
-
-            try
+            using (var listing = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml"))
+            using (var invalid_listing = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.TestLists", "invalid.test.list.xml"))
             {
                 ExternalBoostTestRunnerSettings settings = new ExternalBoostTestRunnerSettings
                 {
-                    ExtensionType = ".dll",
                     DiscoveryMethodType = DiscoveryMethodType.DiscoveryFileMap
                 };
 
-                settings.DiscoveryFileMap["test_2.dll"] = invalid_listing;
-                settings.DiscoveryFileMap["test_1.dll"] = listing;
+                settings.DiscoveryFileMap["test_2.dll"] = invalid_listing.Path;
+                settings.DiscoveryFileMap["test_1.dll"] = listing.Path;
 
-                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings, DummyVSProvider.Default);
 
                 DefaultTestContext context = new DefaultTestContext();
                 ConsoleMessageLogger logger = new ConsoleMessageLogger();
@@ -154,7 +140,7 @@ namespace BoostTestAdapterNunit
                 const string mappedSource = "C:\\test_1.dll";
                 const string invalidSource = "C:\\test_2.dll";
 
-                discoverer.DiscoverTests(new string[] { mappedSource, invalidSource }, context, logger, sink);
+                discoverer.DiscoverTests(new string[] { mappedSource, invalidSource }, context, sink);
 
                 // A total of 7 tests should be discovered as described in the Xml descriptor
                 Assert.That(sink.Tests.Count(), Is.EqualTo(7));
@@ -172,13 +158,6 @@ namespace BoostTestAdapterNunit
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<int>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<float>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<double>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
-            }
-            finally
-            {
-                if (File.Exists(listing))
-                {
-                    File.Delete(listing);
-                }
             }
         }
         #endregion Tests

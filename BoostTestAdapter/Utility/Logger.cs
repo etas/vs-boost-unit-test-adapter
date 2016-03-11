@@ -56,7 +56,7 @@ namespace BoostTestAdapter.Utility
         /// </summary>
         /// <param name="testMessageLevel">level parameter used to indicate the severity of the message</param>
         /// <param name="message">text message that needs to be printed</param>
-        /// <remarks>In case the Logger is not properly initialized then any messages are simply discared without raising any exceptions</remarks>
+        /// <remarks>In case the Logger is not properly initialized then any messages are simply discarded without raising any exceptions</remarks>
         public static void SendMessage(TestMessageLevel testMessageLevel, string message)
         {
             if (_loggerInstance != null)
@@ -122,19 +122,44 @@ namespace BoostTestAdapter.Utility
         }
 
         /// <summary>
-        /// Logs the provided message at the 'Trace' severity level. Uses a format, args pair to construct the log message.
+        /// Logs the provided message at the 'Debug' severity level. Uses a format, args pair to construct the log message.
         /// </summary>
         /// <param name="format">Format string</param>
         /// <param name="args">Arguments for the format string</param>
         public static void Debug(string format, params object[] args)
         {
 #if DEBUG
-            // Represent a trace log as a regular info log for proper output
+            // Represent a debug log as a regular info log for output in the test window
             Info(format, args);
-
+#else
             // Persist the log information for later inspection
             log4netLogger.Debug(string.Format(CultureInfo.InvariantCulture, format, args));
 #endif
+        }
+
+        /// <summary>
+        /// Logs the provided exception with a default message at the 'Error' severity level.
+        /// </summary>
+        /// <param name="ex">The exception which was triggered</param>
+        public static void Exception(Exception ex)
+        {
+            Code.Require(ex, "ex");
+
+            Exception(ex, "Exception: {0} ({1})", ex.Message, ex.HResult);
+        }
+
+        /// <summary>
+        /// Logs the provided exception and message at the 'Error' severity level. Uses a format, args pair to construct the log message.
+        /// </summary>
+        /// <param name="ex">The exception which was triggered</param>
+        /// <param name="format">Format string</param>
+        /// <param name="args">Arguments for the format string</param>
+        public static void Exception(Exception ex, string format, params object[] args)
+        {
+            Code.Require(ex, "ex");
+
+            Error(format, args);
+            Debug(ex.StackTrace);
         }
 
         /// <summary>
@@ -151,7 +176,8 @@ namespace BoostTestAdapter.Utility
         /// <summary>
         /// Returns the current IMessageLogger instance.
         /// </summary>
-        public static IMessageLogger Instance {
+        public static IMessageLogger Instance
+        {
             get { return _loggerInstance; }
         }
 

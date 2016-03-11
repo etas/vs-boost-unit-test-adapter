@@ -13,7 +13,7 @@ namespace BoostTestAdapter.Utility
     /// <summary>
     /// Builds qualified names for Boost Test Test Units.
     /// </summary>
-    public class QualifiedNameBuilder
+    public class QualifiedNameBuilder : ICloneable
     {
         #region Constants
 
@@ -27,8 +27,17 @@ namespace BoostTestAdapter.Utility
         /// Default constructor.
         /// </summary>
         public QualifiedNameBuilder()
+            : this(new List<string>())
         {
-            this.Path = new List<string>();
+        }
+
+        /// <summary>
+        /// Internal constructor.
+        /// </summary>
+        /// <param name="path">The initial fully qualified path</param>
+        private QualifiedNameBuilder(List<string> path)
+        {
+            this.Path = path;
         }
 
         /// <summary>
@@ -196,5 +205,20 @@ namespace BoostTestAdapter.Utility
 
             return builder;
         }
+
+        #region ICloneable
+
+        object ICloneable.Clone()
+        {
+            return this.Clone();
+        }
+
+        public QualifiedNameBuilder Clone()
+        {
+            // NOTE Make an explicit copy of the path
+            return new QualifiedNameBuilder(new List<string>(this.Path));
+        }
+
+        #endregion ICloneable
     }
 }

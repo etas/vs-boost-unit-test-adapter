@@ -1,0 +1,84 @@
+digraph G {rankdir=LR;
+tu1[shape=ellipse,peripheries=2,fontname=Helvetica,color=yellow,label="sample"];
+{
+tu2[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_1|d:\sample.boostunittest\file_1.cpp(6)"];
+tu1 -> tu2;
+{
+tu3[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_2|d:\sample.boostunittest\file_1.cpp(8)"];
+tu2 -> tu3;
+{
+tu65536[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_3|d:\sample.boostunittest\file_1.cpp(14)"];
+tu3 -> tu65536;
+tu65537[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_4|d:\sample.boostunittest\file_1.cpp(44)"];
+tu3 -> tu65537;
+tu65538[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_5|d:\sample.boostunittest\file_1.cpp(62)"];
+tu3 -> tu65538;
+}
+tu4[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_6|d:\sample.boostunittest\file_2.cpp(19)"];
+tu2 -> tu4;
+{
+tu65539[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_7|d:\sample.boostunittest\file_2.cpp(24)"];
+tu4 -> tu65539;
+tu65540[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_8|d:\sample.boostunittest\file_2.cpp(40)"];
+tu4 -> tu65540;
+tu65541[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_9|d:\sample.boostunittest\file_2.cpp(90)"];
+tu4 -> tu65541;
+tu65542[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_10|d:\sample.boostunittest\file_2.cpp(105)"];
+tu4 -> tu65542;
+tu65543[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_11|d:\sample.boostunittest\file_2.cpp(121)"];
+tu4 -> tu65543;
+tu65544[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_12|d:\sample.boostunittest\file_2.cpp(134)"];
+tu4 -> tu65544;
+tu65545[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_13|d:\sample.boostunittest\file_2.cpp(310)"];
+tu4 -> tu65545;
+}
+tu5[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_14|d:\sample.boostunittest\file_3.cpp(20)"];
+tu2 -> tu5;
+{
+tu65546[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_15|d:\sample.boostunittest\file_3.cpp(27)"];
+tu5 -> tu65546;
+tu65547[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_16|d:\sample.boostunittest\file_3.cpp(49)"];
+tu5 -> tu65547;
+tu65548[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_17|d:\sample.boostunittest\file_3.cpp(59)"];
+tu5 -> tu65548;
+tu65549[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_18|d:\sample.boostunittest\file_3.cpp(88)"];
+tu5 -> tu65549;
+}
+tu6[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_19|d:\sample.boostunittest\file_4.cpp(7)"];
+tu2 -> tu6;
+{
+tu65550[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_20|d:\sample.boostunittest\file_4.cpp(12)"];
+tu6 -> tu65550;
+}
+tu7[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_21|d:\sample.boostunittest\file_5.cpp(8)"];
+tu2 -> tu7;
+{
+tu65551[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_22|d:\sample.boostunittest\file_5.cpp(14)"];
+tu7 -> tu65551;
+}
+tu8[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_23|d:\sample.boostunittest\file_6.cpp(13)"];
+tu2 -> tu8;
+{
+tu65552[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_24|d:\sample.boostunittest\file_6.cpp(18)"];
+tu8 -> tu65552;
+tu65553[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_25|d:\sample.boostunittest\file_6.cpp(28)"];
+tu8 -> tu65553;
+tu65554[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_26|d:\sample.boostunittest\file_6.cpp(38)"];
+tu8 -> tu65554;
+tu65555[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_27|d:\sample.boostunittest\file_6.cpp(48)"];
+tu8 -> tu65555;
+tu65556[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_28|d:\sample.boostunittest\file_6.cpp(59)"];
+tu8 -> tu65556;
+tu65557[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_29|d:\sample.boostunittest\file_6.cpp(70)"];
+tu8 -> tu65557;
+}
+tu9[shape=Mrecord,fontname=Helvetica,color=yellow,label="suite_30|d:\sample.boostunittest\file_7.cpp(8)"];
+tu2 -> tu9;
+{
+tu65558[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_31|d:\sample.boostunittest\file_7.cpp(14)|timeout=10|expected failures=1|labels: @hello @world @labels"];
+tu9 -> tu65558;
+tu65558 -> tu65557[color=red,style=dotted,constraint=false];
+}
+}
+}
+}

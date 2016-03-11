@@ -379,34 +379,33 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseBoostReportLogContainingGermanCharacters()
         {
+            using (var reportFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.report.xml"))
+            using (var logFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.log.xml"))
+            {
+                Parse(reportFile.Path, logFile.Path);
 
-            string reportFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.report.xml", Path.GetTempPath());
-            string logFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.log.xml", Path.GetTempPath());
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
 
-            Parse(reportFilePath, logFilePath);
+                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Failed, 0, 4, 0, 0, 1, 0, 0);
 
-            BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
-            Assert.That(masterSuiteResult, Is.Not.Null);
+                BoostTestResult testCaseResult = this.TestResultCollection["SpecialCharactersInStringAndIdentifier"];
+                Assert.That(testCaseResult, Is.Not.Null);
 
-            AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Failed, 0, 4, 0, 0, 1, 0, 0);
+                AssertReportDetails(testCaseResult, masterSuiteResult, "SpecialCharactersInStringAndIdentifier", TestResultType.Failed, 0, 4, 0);
+                AssertLogDetails(testCaseResult
+                    , 2000
+                    , new[]
+                    {
+                    new LogEntryError("check germanSpecialCharacterString == \"NotTheSameString\" failed [Hello my name is Rüdiger != NotTheSameString]",new SourceFileInfo("boostunittest.cpp", 8)),
+                    new LogEntryError("check germanSpecialCharacterString == \"\" failed [üöä != ]",new SourceFileInfo("boostunittest.cpp", 12)),
+                    new LogEntryError("check anzahlDerÄnderungen == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 17)),
+                    new LogEntryError("check üöä == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 18)),
 
-            BoostTestResult testCaseResult = this.TestResultCollection["SpecialCharactersInStringAndIdentifier"];
-            Assert.That(testCaseResult, Is.Not.Null);
+                    });
 
-            AssertReportDetails(testCaseResult, masterSuiteResult, "SpecialCharactersInStringAndIdentifier", TestResultType.Failed, 0, 4, 0);
-            AssertLogDetails(testCaseResult
-                , 2000
-                , new[]
-                {
-                    new LogEntryError("check germanSpecialCharacterString == \"NotTheSameString\" failed [Hello my name is Rüdiger != NotTheSameString]",new SourceFileInfo("boostunittest.cpp", 8)), 
-                    new LogEntryError("check germanSpecialCharacterString == \"\" failed [üöä != ]",new SourceFileInfo("boostunittest.cpp", 12)), 
-                    new LogEntryError("check anzahlDerÄnderungen == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 17)), 
-                    new LogEntryError("check üöä == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 18)), 
-            
-                });
-
-            Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(4));
-
+                Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(4));
+            }
         }
 
         /// <summary>
@@ -419,30 +418,29 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseBoostReportLogContainingControlCharacters()
         {
+            using (var reportFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.report.txt"))
+            using (var logFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.log.txt"))
+            {
+                Parse(reportFile.Path, logFile.Path);
 
-            string reportFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.report.txt", Path.GetTempPath());
-            string logFilePath = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.log.txt", Path.GetTempPath());
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
 
-            Parse(reportFilePath, logFilePath);
+                AssertReportDetails(masterSuiteResult, null, "ControlCharactersUnitTests", TestResultType.Failed, 0, 1, 0, 0, 1, 0, 0);
 
-            BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
-            Assert.That(masterSuiteResult, Is.Not.Null);
+                BoostTestResult testCaseResult = this.TestResultCollection["TestControlChar"];
+                Assert.That(testCaseResult, Is.Not.Null);
 
-            AssertReportDetails(masterSuiteResult, null, "ControlCharactersUnitTests", TestResultType.Failed, 0, 1, 0, 0, 1, 0, 0);
-
-            BoostTestResult testCaseResult = this.TestResultCollection["TestControlChar"];
-            Assert.That(testCaseResult, Is.Not.Null);
-
-            AssertReportDetails(testCaseResult, masterSuiteResult, "TestControlChar", TestResultType.Failed, 0, 1, 0);
-            AssertLogDetails(testCaseResult
-                , 2000
-                , new[]
-                {
-                    new LogEntryError("check { vect1.cbegin(), vect1.cend() } == { vect2.cbegin(), vect2.cend() } failed. \nMismatch in a position 1: 0x00 != 0x01\nMismatch in a position 2: 0x01 != 0x02\nMismatch in a position 3: 0x03 != 0x04\nMismatch in a position 7: 0x00 != A\nCollections size mismatch: 32 != 31",new SourceFileInfo("boostunittest.cpp", 8)), 
+                AssertReportDetails(testCaseResult, masterSuiteResult, "TestControlChar", TestResultType.Failed, 0, 1, 0);
+                AssertLogDetails(testCaseResult
+                    , 2000
+                    , new[]
+                    {
+                    new LogEntryError("check { vect1.cbegin(), vect1.cend() } == { vect2.cbegin(), vect2.cend() } failed. \nMismatch in a position 1: 0x00 != 0x01\nMismatch in a position 2: 0x01 != 0x02\nMismatch in a position 3: 0x03 != 0x04\nMismatch in a position 7: 0x00 != A\nCollections size mismatch: 32 != 31",new SourceFileInfo("boostunittest.cpp", 8)),
                 });
 
-            Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(1));
-
+                Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(1));
+            }
         }
 
 
@@ -555,7 +553,6 @@ namespace BoostTestAdapterNunit
             using (Stream report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.PassedTest.sample.test.report.xml"))
             using (Stream log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.PassedTest.sample.test.log.xml"))
             {
-
                 Parse(report, log);
 
                 BoostTestResult testCaseResult = AssertPassedReportDetails();

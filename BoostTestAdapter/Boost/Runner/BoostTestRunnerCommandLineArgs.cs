@@ -61,6 +61,18 @@ namespace BoostTestAdapter.Boost.Runner
         Default = Confirm
     }
 
+    /// <summary>
+    /// Output format options for Boost Test --list_content output.
+    /// Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/list_content.html
+    /// </summary>
+    public enum ListContentFormat
+    {
+        HRF, // Human Readable Format
+        DOT,
+
+        Default = HRF
+    }
+
     public class ExecutionPath
     {
         public string TestName { get; set; }
@@ -159,8 +171,10 @@ namespace BoostTestAdapter.Boost.Runner
             this.UseAltStack = true;
             this.DetectFPExceptions = false;
             this.SavePattern = false;
-            this.ListContent = false;
+            this.ListContent = null;
             this.Help = false;
+
+            this.Environment = new Dictionary<string, string>();
         }
 
         #endregion Constructors
@@ -173,7 +187,7 @@ namespace BoostTestAdapter.Boost.Runner
         /// <summary>
         /// Specifies the process's environment
         /// </summary>
-        public string Environment { get; set; }
+        public IDictionary<string, string> Environment { get; private set; }
 
         /// <summary>
         /// List of fully qualified name tests which are to be executed.
@@ -286,7 +300,7 @@ namespace BoostTestAdapter.Boost.Runner
         public bool UseAltStack { get; set; }
 
         /// <summary>
-        /// Instructs the Boost UTF to break on floating-point execptions.
+        /// Instructs the Boost UTF to break on floating-point exceptions.
         /// </summary>
         public bool DetectFPExceptions { get; set; }
 
@@ -300,7 +314,7 @@ namespace BoostTestAdapter.Boost.Runner
         /// The Boost UTF lists all tests which are to be executed without actually executing the tests.
         /// </summary>
         /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
-        public bool ListContent { get; set; }
+        public ListContentFormat? ListContent { get; set; }
 
         /// <summary>
         /// Help output.
@@ -338,7 +352,7 @@ namespace BoostTestAdapter.Boost.Runner
                 this._stdErrFile = value;
             }
         }
-
+        
         /// <summary>
         /// Provides a string representation of the command line.
         /// </summary>
@@ -357,9 +371,9 @@ namespace BoostTestAdapter.Boost.Runner
             }
 
             // --list_content
-            if (this.ListContent)
+            if (this.ListContent != null)
             {
-                AddArgument(ListContentArg, args);
+                AddArgument(ListContentArg, ListContentFormatToString(this.ListContent.Value), args);
 
                 // return immediately since Boost UTF should ignore the rest of the arguments
                 return AppendRedirection(args).ToString();
@@ -539,6 +553,16 @@ namespace BoostTestAdapter.Boost.Runner
         }
 
         /// <summary>
+        /// Provides a (valid) string representation of the provided ListContentFormat.
+        /// </summary>
+        /// <param name="value">The value to serialize to string.</param>
+        /// <returns>A (valid) string representation of the provided ListContentFormat.</returns>
+        private static string ListContentFormatToString(ListContentFormat value)
+        {
+            return value.ToString();
+        }
+        
+        /// <summary>
         /// Provides a (valid) string representation of the provided ReportLevel.
         /// </summary>
         /// <param name="value">The value to serialize to string.</param>
@@ -638,7 +662,8 @@ namespace BoostTestAdapter.Boost.Runner
 
             clone.WorkingDirectory = this.WorkingDirectory;
 
-            clone.Environment = this.Environment;
+            // Shallow copy
+            clone.Environment = new Dictionary<string, string>(this.Environment);
 
             // Deep copy
             clone.Tests = new List<string>(this.Tests);

@@ -6,7 +6,7 @@ namespace BoostTestAdapter.Utility
     /// <summary>
     /// A temporary file representation which is deleted once disposed.
     /// </summary>
-    class TemporaryFile : IDisposable
+    public class TemporaryFile : IDisposable
     {
         /// <summary>
         /// Constructor
@@ -23,7 +23,7 @@ namespace BoostTestAdapter.Utility
         /// <returns>true if deletion is successful; false otherwise</returns>
         private bool Delete()
         {
-            if (!string.IsNullOrEmpty(this.Path) && File.Exists(this.Path))
+            if (File.Exists(this.Path))
             {
                 File.Delete(this.Path);
                 return true;
@@ -37,28 +37,39 @@ namespace BoostTestAdapter.Utility
         /// </summary>
         public string Path { get; private set; }
 
+        /// <summary>
+        /// Releases the temporary file from resource management
+        /// </summary>
+        /// <returns>The path to the temporary file</returns>
+        public string Release()
+        {
+            string path = this.Path;
+            this.Path = null;
+            return path;
+        }
+
         #region IDisposable Support
-
-        private bool _disposedValue = false; // To detect redundant calls
-
+        
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!string.IsNullOrEmpty(this.Path))
             {
                 if (disposing)
                 {
                     Delete();
                 }
 
-                _disposedValue = true;
+                Release();
             }
         }
-        
+
         // This code added to correctly implement the disposable pattern.
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+
+            GC.SuppressFinalize(this);
         }
 
         #endregion

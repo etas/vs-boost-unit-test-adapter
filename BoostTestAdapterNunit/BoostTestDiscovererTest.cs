@@ -14,7 +14,9 @@ using BoostTestAdapter.Utility.VisualStudio;
 using BoostTestAdapterNunit.Fakes;
 using BoostTestAdapterNunit.Utility;
 using NUnit.Framework;
-using ListContentHelper = BoostTestAdapterNunit.Fakes.StubListContentHelper;
+using BoostTestAdapter.Boost.Runner;
+using FakeItEasy;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 namespace BoostTestAdapterNunit
 {
@@ -23,7 +25,7 @@ namespace BoostTestAdapterNunit
     {
         /// <summary>
         /// The scope of this test is to check that if the Discoverer is given multiple project,
-        /// method DiscoverTests splits appropiately the sources of type exe and of type dll in exe sources and dll sources
+        /// method DiscoverTests splits appropriately the sources of type exe and of type dll in exe sources and dll sources
         /// and dispatches the discovery accordingly.
         /// </summary>
         [Test]
@@ -45,7 +47,7 @@ namespace BoostTestAdapterNunit
             context.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
             context.LoadEmbeddedSettings("BoostTestAdapterNunit.Resources.Settings.externalTestRunner.runsettings");
 
-            var boostTestDiscovererFactory = new StubBoostTestDiscovereFactory();
+            var boostTestDiscovererFactory = new StubBoostTestDiscovererFactory();
 
             var boostTestDiscoverer = new BoostTestDiscoverer(boostTestDiscovererFactory);
             boostTestDiscoverer.DiscoverTests(sources, context, logger, sink);
@@ -67,7 +69,7 @@ namespace BoostTestAdapterNunit
         }
     }
 
-    internal class StubBoostTestDiscovereFactory : IBoostTestDiscovererFactory, IDisposable
+    internal class StubBoostTestDiscovererFactory : IBoostTestDiscovererFactory, IDisposable
     {
         private readonly DummySolution _dummySolution = new DummySolution("ParseSources1" + BoostTestDiscoverer.ExeExtension, "BoostUnitTestSample.cpp");
 
@@ -85,12 +87,12 @@ namespace BoostTestAdapterNunit
             if (settings.ExternalTestRunner != null)
             {
                 var extSources = tmpSources
-                    .Where(s => settings.ExternalTestRunner.ExtensionType == Path.GetExtension(s))
+                    .Where(s => settings.ExternalTestRunner.ExtensionType.IsMatch(Path.GetExtension(s)))
                     .ToList();
 
                 discoverers.Add(new FactoryResult()
                 {
-                    Discoverer = new ExternalDiscoverer(settings.ExternalTestRunner),
+                    Discoverer = new ExternalDiscoverer(settings.ExternalTestRunner, _dummySolution.Provider),
                     Sources = extSources
                 });
 
@@ -98,18 +100,18 @@ namespace BoostTestAdapterNunit
             }
 
             // sources that support list-content parameter
-            var listContentHelper = new StubListContentHelper();
-
             var listContentSources = tmpSources
-                .Where(s => Path.GetExtension(s) == BoostTestDiscoverer.ExeExtension)
-                .Where(listContentHelper.IsListContentSupported)
+                .Where(s => (s == ("ListContentSupport" + BoostTestDiscoverer.ExeExtension)))
                 .ToList();
 
             if (listContentSources.Count > 0)
             {
+                IBoostTestRunnerFactory factory = A.Fake<IBoostTestRunnerFactory>();
+                A.CallTo(() => factory.GetRunner(A<string>._, A<BoostTestRunnerFactoryOptions>._)).ReturnsLazily((string source, BoostTestRunnerFactoryOptions options) => new StubListContentRunner(source));
+
                 discoverers.Add(new FactoryResult()
                 {
-                    Discoverer = new ListContentDiscoverer(listContentHelper),
+                    Discoverer = new ListContentDiscoverer(factory, _dummySolution.Provider),
                     Sources = listContentSources
                 });
 
@@ -137,6 +139,43 @@ namespace BoostTestAdapterNunit
         public void Dispose()
         {
             ((IDisposable)_dummySolution).Dispose();
+        }
+    }
+
+    internal class StubListContentRunner : IBoostTestRunner
+    {
+        public StubListContentRunner(string source)
+        {
+            this.Source = source;
+        }
+
+        public bool ListContentSupported
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public string Source { get; private set; }
+
+        public void Debug(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IFrameworkHandle framework)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Run(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
+        {
+            Copy("BoostTestAdapterNunit.Resources.ListContentDOT.sample.8.list.content.gv", args.StandardErrorFile);
+        }
+
+        private void Copy(string embeddedResource, string path)
+        {
+            using (Stream inStream = TestHelper.LoadEmbeddedResource(embeddedResource))
+            using (FileStream outStream = File.Create(path))
+            {
+                inStream.CopyTo(outStream);
+            }
         }
     }
 }

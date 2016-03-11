@@ -13,14 +13,14 @@ using VisualStudioAdapter;
 namespace VisualStudioAdapterNunit
 {
     [TestFixture]
-    public class VisualStudio2015AdapterTest
+    public class VisualStudioAdapterTest
     {
         #region Test Setup/Teardown
 
         [SetUp]
         public void SetUp()
         {
-            this.FakeVS = new FakeVisualStudio2012();
+            this.FakeVS = new FakeVisualStudio();
             this.Project = new VisualStudioAdapter.Shared.Project(this.FakeVS.Project);
         }
 
@@ -28,7 +28,7 @@ namespace VisualStudioAdapterNunit
 
         #region Test Data
 
-        private FakeVisualStudio2012 FakeVS { get; set; }
+        private FakeVisualStudio FakeVS { get; set; }
         private IProject Project { get; set; }
         private const string DefaultProjectName = "SampleProject";
         private const string DefaultOutput = "test.boostd.exe";
@@ -44,9 +44,9 @@ namespace VisualStudioAdapterNunit
         /// <summary>
         /// Aggregates fake Visual Studio EnvDTE and VCProjectEngine structures
         /// </summary>
-        private class FakeVisualStudio2012
+        private class FakeVisualStudio
         {
-            public FakeVisualStudio2012()
+            public FakeVisualStudio()
             {
                 this.Project = A.Fake<Project>();
                 this.ConfigurationManager = A.Fake<ConfigurationManager>();
@@ -108,13 +108,13 @@ namespace VisualStudioAdapterNunit
         #region Tests
 
         /// <summary>
-        /// Visual Studio 2012 adaptation.
+        /// Visual Studio adaptation.
         /// 
         /// Test aims:
         ///     - Ensure that EnvDTE and VCProjectEngine structures are properly adapted to VisualStudioAdapter structures.
         /// </summary>
         [Test]
-        public void VisualStudio2015Adaptation()
+        public void VisualStudioAdaptation()
         {
             Assert.That(this.Project.Name, Is.EqualTo(DefaultProjectName));
             Assert.That(this.Project.ActiveConfiguration.PrimaryOutput, Is.EqualTo(DefaultOutput));

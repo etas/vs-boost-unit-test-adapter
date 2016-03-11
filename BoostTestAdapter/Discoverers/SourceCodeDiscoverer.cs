@@ -80,7 +80,7 @@ namespace BoostTestAdapter.Discoverers
 
         #region IBoostTestDiscoverer
 
-        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
+        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)
         {
             Code.Require(sources, "sources");
             Code.Require(discoverySink, "discoverySink");
@@ -121,7 +121,7 @@ namespace BoostTestAdapter.Discoverers
         #region Private methods
 
         /// <summary>
-        /// gets (parses) all testcases from cpp files checking for
+        /// gets (parses) all test cases from cpp files checking for
         /// BOOST_AUTO_TEST_CASE and BOOST_AUTO_TEST_SUITE parameter
         /// </summary>
         /// <param name="solutionInfo">mapping between projectexe and the corresponding .cpp files</param>
@@ -167,10 +167,13 @@ namespace BoostTestAdapter.Discoverers
                                 }
                                 catch (Exception ex)
                                 {
-                                    Logger.Error(
-                                            "Exception raised while discovering tests from \"{0}\" of project \"{1}\", ({2})",
-                                            sourceFile, projectInfo.ProjectExe, ex.Message);
-                                    Logger.Debug(ex.StackTrace);
+                                    Logger.Exception(
+                                        ex,
+                                        "Exception raised while discovering tests from \"{0}\" of project \"{1}\", ({2})",
+                                        sourceFile,
+                                        projectInfo.ProjectExe,
+                                        ex.Message
+                                    );
                                 }
                             }
                         }
@@ -375,7 +378,7 @@ namespace BoostTestAdapter.Discoverers
         }
 
         /// <summary>
-        /// Parses the beginning declaration of a fixture or auto test sute
+        /// Parses the beginning declaration of a fixture or auto test suite
         /// </summary>
         /// <param name="splitMacro">The current source line split into tokens</param>
         /// <param name="sourceInfo">Source file and line information/param>
@@ -387,7 +390,7 @@ namespace BoostTestAdapter.Discoverers
             int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
             if (sourceInfo.LineNumber != newLineNumber)
             {
-                // recalc splitMacro
+                // re calculate splitMacro
                 splitMacro = SplitMacro(line);
                 sourceInfo.LineNumber = newLineNumber;
             }

@@ -5,8 +5,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using BoostTestAdapter;
-using BoostTestAdapter.SourceFilter;
 using BoostTestAdapter.Utility;
 using BoostTestAdapter.Utility.VisualStudio;
 using BoostTestAdapterNunit.Fakes;
@@ -56,9 +54,8 @@ namespace BoostTestAdapterNunit
 
             DefaultTestContext context = new DefaultTestContext();
             DefaultTestCaseDiscoverySink discoverySink = new DefaultTestCaseDiscoverySink();
-            ConsoleMessageLogger logger = new ConsoleMessageLogger();
 
-            discoverer.DiscoverTests(new[] { solution.Source }, context, logger, discoverySink);
+            discoverer.DiscoverTests(new[] { solution.Source }, context, discoverySink);
                 
             return discoverySink.Tests.ToList();
         }
@@ -158,7 +155,7 @@ namespace BoostTestAdapterNunit
 
                 #region verify
 
-                AssertTestDetails(tests.Last(), QualifiedNameBuilder.FromString("my_test<char>"), solution.SourceFileResourcePaths.First().TempSourcePath, 33);
+                AssertTestDetails(tests.Last(), QualifiedNameBuilder.FromString("my_test<char>"), solution.SourceFileResourcePaths.First().Path, 33);
 
                 #endregion verify
             }

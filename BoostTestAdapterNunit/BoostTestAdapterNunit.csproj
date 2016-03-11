@@ -42,11 +42,11 @@
     <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)' ">$(ProgramFiles)</ProgramFiles32>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Antlr4.Runtime">
+      <HintPath>..\Antlr.DOT\lib\Antlr4.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="FakeItEasy">
       <HintPath>..\packages\FakeItEasy.1.13.1\lib\net40\FakeItEasy.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
       <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
@@ -71,12 +71,13 @@
     <Compile Include="CorrectReferencedAssembliesTest.cs" />
     <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />
     <Compile Include="DefaultTestDiscovererFactoryTest.cs" />
+    <Compile Include="ListContentDiscovererTest.cs" />
+    <Compile Include="DOTDeserialisationTest.cs" />
     <Compile Include="ExternalBoostTestDiscovererTest.cs" />
     <Compile Include="ExternalDiscovererTest.cs" />
     <Compile Include="Fakes\ConsoleMessageLogger.cs" />
-    <Compile Include="Fakes\StubDbgHelp.cs" />
     <Compile Include="Fakes\DefaultTestContext.cs" />
-    <Compile Include="Fakes\StubListContentHelper.cs" />
+    <Compile Include="Fakes\StubBoostTestRunnerFactory.cs" />
     <Compile Include="LoggerTest.cs" />
     <Compile Include="MultiLineCommentFilterTest.cs" />
     <Compile Include="QuotedStringsFilterTest.cs" />
@@ -87,10 +88,10 @@
     <Compile Include="ExpressionEvaluationTest.cs" />
     <Compile Include="TestDiscovererNunit.cs" />
     <Compile Include="TestSourceFilterTest.cs" />
-    <Compile Include="Utility\DummySolution.cs" />
-    <Compile Include="Utility\DummySourceFile.cs" />
-    <Compile Include="Utility\DummyVSProvider.cs" />
-    <Compile Include="Utility\ReadOnlyDictionaryWrapper.cs" />
+    <Compile Include="Fakes\DummySolution.cs" />
+    <Compile Include="Fakes\DummySourceFile.cs" />
+    <Compile Include="Fakes\DummyVSProvider.cs" />
+    <Compile Include="Utility\FrameworkEqualityVisitor.cs" />
     <Compile Include="Utility\SourceFilterTestBase.cs" />
     <Compile Include="Utility\TestHelper.cs" />
     <Compile Include="Utility\VisualStudioInstanceBuilders.cs" />
@@ -98,6 +99,10 @@
     <Compile Include="VSTestModelTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Antlr.DOT\Antlr.DOT.csproj">
+      <Project>{488ae1ce-107d-4f5b-9f1f-ed7905d5ce75}</Project>
+      <Name>Antlr.DOT</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BoostTestAdapter\BoostTestAdapter.csproj">
       <Project>{bc4b3bed-9241-4dd6-8070-a9b66dfc08c1}</Project>
       <Name>BoostTestAdapter</Name>
@@ -124,6 +129,9 @@
     <EmbeddedResource Include="Resources\ReportsLogs\GlobalFixtureError\sample.test.stdout.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\Empty\sample.test.stderr.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\Empty\sample.test.stdout.log" />
+    <EmbeddedResource Include="Resources\ListContentDOT\sample.3.list.content.gv" />
+    <EmbeddedResource Include="Resources\ListContentDOT\sample.list.content.gv" />
+    <EmbeddedResource Include="Resources\ListContentDOT\sample.8.list.content.gv" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestCase.cpp" />
@@ -172,9 +180,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.log.txt" />
     <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.report.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\ListContentSupport\SampleListContentOutput.txt" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

@@ -17,7 +17,6 @@ using BoostTestAdapterNunit.Utility;
 using FakeItEasy;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using NUnit.Framework;
 using TimeoutException = BoostTestAdapter.Boost.Runner.TimeoutException;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
@@ -33,8 +32,6 @@ namespace BoostTestAdapterNunit
         [SetUp]
         public void SetUp()
         {
-            this.TempDir = null;
-
             this.RunnerFactory = new StubBoostTestRunnerFactory(this);
 
             this.Executor = new BoostTestExecutor(
@@ -50,7 +47,6 @@ namespace BoostTestAdapterNunit
                                 (
                                     new FakeProjectBuilder()
                                         .PrimaryOutput(DefaultSource)
-                                        .WorkingDirectory(TempDir)                                        
                                 )
                         )
                     .Build()
@@ -102,36 +98,10 @@ namespace BoostTestAdapterNunit
         {
             get
             {
-                // Use temporary file path in order to allow NUnit
-                // tests to execute within different environments...
-                //
-                // And to be able to access test result output
-                // since test results are placed relative to the
-                // test source file.
-                return Path.Combine(TempDir, "default");
+                return "default";
             }
         }
-
-        private string _tempdir = null;
-
-        private string TempDir
-        {
-            get
-            {
-                if (_tempdir == null)
-                {
-                    _tempdir = Path.GetDirectoryName(Path.GetTempPath());
-                }
-
-                return _tempdir;
-            }
-
-            set
-            {
-                this._tempdir = value;
-            }
-        }
-
+        
         /// <summary>
         /// Empty test source fully qualified path.
         /// </summary>
@@ -231,7 +201,7 @@ namespace BoostTestAdapterNunit
 
             #region ITestDiscoverer
 
-            public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
+            public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)
             {
                 foreach (string source in sources)
                 {
@@ -311,6 +281,7 @@ namespace BoostTestAdapterNunit
             {
                 this.Source = source;
                 this.DebugExecution = false;
+                this.ListContentSupported = false;
 
                 this.Args = new List<BoostTestRunnerCommandLineArgs>();
                 this.Settings = new List<BoostTestRunnerSettings>();
@@ -347,6 +318,8 @@ namespace BoostTestAdapterNunit
 
             public string Source { get; private set; }
 
+            public bool ListContentSupported { get; private set; }
+
             #endregion IBoostTestRunner
 
             private void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
@@ -360,17 +333,19 @@ namespace BoostTestAdapterNunit
                 Assert.That(args.LogFile, Is.Not.Null);
                 Assert.That(args.LogFormat, Is.EqualTo(OutputFormat.XML));
 
-                Assert.That(Path.GetDirectoryName(args.ReportFile), Is.EqualTo(this.Parent.TempDir));
-                Assert.That(Path.GetDirectoryName(args.LogFile), Is.EqualTo(this.Parent.TempDir));
+                string temp = Path.GetDirectoryName(Path.GetTempPath());
+
+                Assert.That(Path.GetDirectoryName(args.ReportFile), Is.EqualTo(temp));
+                Assert.That(Path.GetDirectoryName(args.LogFile), Is.EqualTo(temp));
 
                 if (!string.IsNullOrEmpty(args.StandardOutFile))
                 {
-                    Assert.That(Path.GetDirectoryName(args.StandardOutFile), Is.EqualTo(this.Parent.TempDir));
+                    Assert.That(Path.GetDirectoryName(args.StandardOutFile), Is.EqualTo(temp));
                 }
 
                 if (!string.IsNullOrEmpty(args.StandardErrorFile))
                 {
-                    Assert.That(Path.GetDirectoryName(args.StandardErrorFile), Is.EqualTo(this.Parent.TempDir));
+                    Assert.That(Path.GetDirectoryName(args.StandardErrorFile), Is.EqualTo(temp));
                 }
                 
                 // Create empty result files just in case we are running via the source batching strategy
@@ -650,7 +625,7 @@ namespace BoostTestAdapterNunit
             Assert.That(runner, Is.Not.Null);
 
             Assert.That(runner.RunCount, Is.EqualTo(1));
-            Assert.That(runner.Settings.First().RunnerTimeout, Is.EqualTo(600000));
+            Assert.That(runner.Settings.First().Timeout, Is.EqualTo(600000));
         }
 
         /// <summary>
@@ -907,8 +882,8 @@ namespace BoostTestAdapterNunit
             this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
             this.RunContext.LoadSettings("<RunSettings><BoostTest><TestBatchStrategy>Source</TestBatchStrategy></BoostTest></RunSettings>");
 
-            string OtherSource = Path.Combine(TempDir, "OtherSource");
-            string YetAnotherSource = Path.Combine(TempDir, "YetAnotherSource");
+            string OtherSource = "OtherSource";
+            string YetAnotherSource = "YetAnotherSource";
             
             List<string> sources = new List<string> { DefaultSource, OtherSource, YetAnotherSource };
 
@@ -979,7 +954,7 @@ namespace BoostTestAdapterNunit
             this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
             this.RunContext.LoadSettings("<RunSettings><BoostTest><TestBatchStrategy>TestSuite</TestBatchStrategy></BoostTest></RunSettings>");
 
-            string otherSource = Path.Combine(TempDir, "OtherSource");
+            string otherSource = "OtherSource";
 
             this.Executor.RunTests(
                 new VSTestCase[] { CreateTestCase("A/Test1", DefaultSource), CreateTestCase("A/Test2", DefaultSource), CreateTestCase("B/Test1", DefaultSource), CreateTestCase("A/Test1", otherSource) },

@@ -68,10 +68,10 @@ namespace BoostTestAdapterNunit
         /// </summary>
         [TestCase(new[] { @"test.exe$" }, @"D:\test.exe", Result = false)]
         [TestCase(new[] { @"test.exe$", @"my.test.exe$" }, @"D:\my.test.exe", Result = false)]
-        [TestCase(new[] { @"no_match", @"test.exe$" }, @"D:\my.test.exe", Result = false)]
+        [TestCase(new[] { @"no_match", @"test.exe$" }, @"D:\my.test.exe", Result = false, TestName = "ExcludeDefinitionOnly: Partial match exclusion - my.test.exe")]
         [TestCase(new[] { @"test.exe$", @"my.test.exe$" }, @"D:\main.exe", Result = true)]
-        [TestCase(new[] { @"test.exe$" }, "", Result = true)]
-        [TestCase(new[] { "" }, "", Result = false)]
+        [TestCase(new[] { @"test.exe$" }, "", Result = true, TestName = "ExcludeDefinitionOnly: Include empty string")]
+        [TestCase(new[] { "" }, "", Result = false, TestName = "ExcludeDefinitionOnly: Exclude empty string")]
         [TestCase(new[] { "test.exe$" }, null, Result = false)]
         public bool ExcludeDefinitionOnly(IEnumerable<string> exclusions, string source)
         {
@@ -86,10 +86,10 @@ namespace BoostTestAdapterNunit
         /// </summary>
         [TestCase(new[] { @"test.exe$" }, @"D:\test.exe", Result = true)]
         [TestCase(new[] { @"test.exe$", @"my.test.exe$" }, @"D:\my.test.exe", Result = true)]
-        [TestCase(new[] { @"no_match", @"test.exe$" }, @"D:\my.test.exe", Result = true)]
+        [TestCase(new[] { @"no_match", @"test.exe$" }, @"D:\my.test.exe", Result = true, TestName = "IncludeDefinitionOnly: Partial match inclusion - my.test.exe")]
         [TestCase(new[] { @"test.exe$", @"my.test.exe$" }, @"D:\main.exe", Result = false)]
-        [TestCase(new[] { @"test.exe$" }, "", Result = false)]
-        [TestCase(new[] { "" }, "", Result = true)]
+        [TestCase(new[] { @"test.exe$" }, "", Result = false, TestName = "IncludeDefinitionOnly: Exclude empty string")]
+        [TestCase(new[] { "" }, "", Result = true, TestName = "IncludeDefinitionOnly: Include empty string")]
         [TestCase(new[] { "test.exe$" }, null, Result = false)]
         public bool IncludeDefinitionOnly(IEnumerable<string> inclusions, string source)
         {
@@ -104,9 +104,9 @@ namespace BoostTestAdapterNunit
         /// </summary>
         [TestCase(new[] { @"test.exe$" }, new[] { @"test.exe$" }, @"D:\test.exe", Result = false)]
         [TestCase(new[] { @"test.exe$" }, new[] { @"mytest.exe$" }, @"D:\mytest.exe", Result = false)]
-        [TestCase(new[] { @"test.exe$" }, new[] { @"mytest.exe$" }, @"D:\test.exe", Result = true)]
+        [TestCase(new[] { @"test.exe$" }, new[] { @"mytest.exe$" }, @"D:\test.exe", Result = true, TestName = "ExcludeAndIncludeDefinitions: Exclude - test.exe")]
         [TestCase(new[] { @"" }, new[] { @"test.exe$" }, "", Result = true)]
-        [TestCase(new[] { @"mytest.exe$" }, new[] { "" }, "", Result = false)]
+        [TestCase(new[] { @"mytest.exe$" }, new[] { "" }, "", Result = false, TestName = "ExcludeAndIncludeDefinitions: Exclude empty string")]
         [TestCase(new[] { @"mytest.exe$" }, new[] { @"test.exe$" }, null, Result = false)]
         public bool ExcludeAndIncludeDefinitions(IEnumerable<string> inclusions, IEnumerable<string> exclusions, string source)
         {

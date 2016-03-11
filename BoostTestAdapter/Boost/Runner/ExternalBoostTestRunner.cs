@@ -33,7 +33,7 @@ namespace BoostTestAdapter.Boost.Runner
         #endregion Members
 
         /// <summary>
-        /// Constructo
+        /// Constructor
         /// </summary>
         /// <param name="source">The test source (dll/exe) for which this external test runner will execute</param>
         /// <param name="settings">External test runner configuration</param>
@@ -52,7 +52,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get { return this._source; }
         }
-
+        
         #endregion IBoostTestRunner
 
         #region BoostTestRunnerBase
@@ -124,11 +124,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             CommandEvaluator evaluator = BuildEvaluator(source);
 
-            if (settings.RunnerTimeout > -1)
-            {
-                evaluator.SetVariable(TimeoutPlaceholder, settings.RunnerTimeout.ToString(CultureInfo.InvariantCulture));
-            }
-
+            evaluator.SetVariable(TimeoutPlaceholder, Math.Max(0, settings.Timeout).ToString(CultureInfo.InvariantCulture));
             evaluator.SetVariable(BoostArgsPlaceholder, args.ToString());
 
             return evaluator;

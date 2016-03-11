@@ -76,11 +76,10 @@ namespace BoostTestAdapterNunit
         /// <returns>An enumeration of discovered test cases</returns>
         private IEnumerable<VSTestCase> Discover(IVisualStudioInstanceProvider provider, IEnumerable<string> sources, IDiscoveryContext context)
         {
-            ConsoleMessageLogger logger = new ConsoleMessageLogger();
             DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
 
             IBoostTestDiscoverer discoverer = new SourceCodeDiscoverer(provider);
-            discoverer.DiscoverTests(sources, context, logger, sink);
+            discoverer.DiscoverTests(sources, context, sink);
 
             return sink.Tests;
         }
@@ -150,8 +149,8 @@ namespace BoostTestAdapterNunit
         /// <param name="solution">The dummy solution which contains a project referencing "BoostFixtureTestSuite.cpp"</param>
         private void AssertBoostFixtureTestSuiteTestDetails(IEnumerable<VSTestCase> tests, DummySolution solution)
         {
-            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.TempSourcePath.EndsWith(BoostFixtureTestSuite));
-            AssertBoostFixtureTestSuiteTestDetails(tests, solution.Source, codeFile.TempSourcePath);
+            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.Path.EndsWith(BoostFixtureTestSuite));
+            AssertBoostFixtureTestSuiteTestDetails(tests, solution.Source, codeFile.Path);
         }
 
         /// <summary>
@@ -191,8 +190,8 @@ namespace BoostTestAdapterNunit
         /// <param name="solution">The dummy solution which contains a project referencing "BoostUnitTestSample.cpp"</param>
         private void AssertBoostUnitTestSampleTestDetails(IEnumerable<VSTestCase> tests, DummySolution solution)
         {
-            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.TempSourcePath.EndsWith(BoostUnitTestSample));
-            AssertBoostUnitTestSampleTestDetails(tests, solution.Source, codeFile.TempSourcePath);
+            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.Path.EndsWith(BoostUnitTestSample));
+            AssertBoostUnitTestSampleTestDetails(tests, solution.Source, codeFile.Path);
         }
 
         /// <summary>
@@ -245,8 +244,8 @@ namespace BoostTestAdapterNunit
 
         private void AssertBoostUnitTestSampleRequiringUseOfFilters(IEnumerable<VSTestCase> tests, DummySolution solution)
         {
-            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.TempSourcePath.EndsWith(BoostUnitTestSampleRequiringUseOfFilters));
-            AssertBoostUnitTestSampleRequiringUseOfFilters(tests, solution.Source, codeFile.TempSourcePath);
+            DummySourceFile codeFile = solution.SourceFileResourcePaths.First((source) => source.Path.EndsWith(BoostUnitTestSampleRequiringUseOfFilters));
+            AssertBoostUnitTestSampleRequiringUseOfFilters(tests, solution.Source, codeFile.Path);
         }
 
         private void AssertBoostUnitTestSampleRequiringUseOfFilters(IEnumerable<VSTestCase> tests, string source,
@@ -346,8 +345,8 @@ namespace BoostTestAdapterNunit
                                     Sources(
                                             new List<string>()
                                             {
-                                                boostFixtureTestSuiteCodeFile.TempSourcePath,
-                                                boostFixtureTestCaseCodeFile.TempSourcePath
+                                                boostFixtureTestSuiteCodeFile.Path,
+                                                boostFixtureTestCaseCodeFile.Path
                                             })
                             ).
                             Project(
@@ -357,7 +356,7 @@ namespace BoostTestAdapterNunit
                                     Sources(
                                             new List<string>()
                                             {
-                                                boostUnitTestSampleSourceCodeFile.TempSourcePath,
+                                                boostUnitTestSampleSourceCodeFile.Path,
                                             })
                             )
                     ).Build();
@@ -365,9 +364,9 @@ namespace BoostTestAdapterNunit
                 IEnumerable<VSTestCase> vsTests = Discover(new DummyVSProvider(vs), new string[] { boostFixtureTestSuiteSource, boostUnitTestSampleSource });
                 Assert.That(vsTests.Count(), Is.EqualTo(17));
 
-                AssertBoostFixtureTestSuiteTestDetails(vsTests, boostFixtureTestSuiteSource, boostFixtureTestSuiteCodeFile.TempSourcePath);
-                AssertBoostFixtureTestCaseTestDetails(vsTests, boostFixtureTestSuiteSource, boostFixtureTestCaseCodeFile.TempSourcePath);
-                AssertBoostUnitTestSampleTestDetails(vsTests, boostUnitTestSampleSource, boostUnitTestSampleSourceCodeFile.TempSourcePath);
+                AssertBoostFixtureTestSuiteTestDetails(vsTests, boostFixtureTestSuiteSource, boostFixtureTestSuiteCodeFile.Path);
+                AssertBoostFixtureTestCaseTestDetails(vsTests, boostFixtureTestSuiteSource, boostFixtureTestCaseCodeFile.Path);
+                AssertBoostUnitTestSampleTestDetails(vsTests, boostUnitTestSampleSource, boostUnitTestSampleSourceCodeFile.Path);
             }
         }
 
@@ -409,7 +408,7 @@ namespace BoostTestAdapterNunit
                 AssertBoostUnitTestSampleRequiringUseOfFilters(vsTests, solution);
 
                 VSTestCase testConditional = AssertTestDetails(vsTests, QualifiedNameBuilder.FromString("BoostUnitTestShouldNotAppear3"), Source);
-                AssertSourceDetails(testConditional, solution.SourceFileResourcePaths.First().TempSourcePath, 47);
+                AssertSourceDetails(testConditional, solution.SourceFileResourcePaths.First().Path, 47);
             }
         }
 

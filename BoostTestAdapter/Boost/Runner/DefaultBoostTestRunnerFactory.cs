@@ -55,7 +55,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             Utility.Code.Require(settings, "settings");
 
-            if (settings.ExtensionType == Path.GetExtension(source))
+            if (settings.ExtensionType.IsMatch(Path.GetExtension(source)))
             {
                 return new ExternalBoostTestRunner(source, settings);
             }
