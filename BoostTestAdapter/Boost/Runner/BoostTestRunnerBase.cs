@@ -11,6 +11,8 @@ using System.Linq;
 using System.Management;
 using BoostTestAdapter.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using System.ComponentModel;
+using System.Collections.Specialized;
 
 namespace BoostTestAdapter.Boost.Runner
 {
@@ -50,7 +52,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             using (Process process = Debug(framework, GetStartInfo(args, settings)))
             {
-                MonitorProcess(process, settings.RunnerTimeout);
+                MonitorProcess(process, settings.Timeout);
             }
         }
 
@@ -60,13 +62,37 @@ namespace BoostTestAdapter.Boost.Runner
 
             using (Process process = Run(GetStartInfo(args, settings)))
             {
-                MonitorProcess(process, settings.RunnerTimeout);
+                MonitorProcess(process, settings.Timeout);
             }
         }
 
         public virtual string Source
         {
             get { return this.TestRunnerExecutable; }
+        }
+
+        public virtual bool ListContentSupported
+        {
+            get
+            {
+                // Try to locate the list_content function debug symbol. If this is not available, this implies that:
+                // - Debug symbols are not available for the requested source
+                // - Debug symbols are available but the source is not a Boost Unit Test version >= 3 module
+                try
+                {
+                    // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
+                    using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
+                    {
+                        return dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::list_content");
+                    }
+                }
+                catch (Win32Exception ex)
+                {
+                    Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
+                }
+
+                return false;
+            }
         }
 
         #endregion IBoostTestRunner
@@ -152,18 +178,27 @@ namespace BoostTestAdapter.Boost.Runner
                 RedirectStandardError = false,
                 RedirectStandardInput = false
             };
-
-            if ( !string.IsNullOrEmpty(args.Environment) )
+            
+            if (args.Environment != null)
             {
-                // Sets Path variable accordingly to the environment
-                string currentEnvironment = startInfo.EnvironmentVariables["Path"];
-
-                startInfo.EnvironmentVariables["Path"] = string.IsNullOrEmpty(currentEnvironment) ? args.Environment : (currentEnvironment + ";" + args.Environment);
-            }
+                foreach (var variable in args.Environment)
+                {
+                    // Sets variable accordingly to the environment
+                    if (startInfo.EnvironmentVariables.ContainsKey(variable.Key))
+                    {
+                        string value = startInfo.EnvironmentVariables[variable.Key];
+                        startInfo.EnvironmentVariables[variable.Key] = string.IsNullOrEmpty(value) ? variable.Value : (value + ';' + variable.Value);
+                    }
+                    else
+                    {
+                        startInfo.EnvironmentVariables.Add(variable.Key, variable.Value);
+                    }
+                }
+            }            
 
             return startInfo;
         }
-
+        
         /// <summary>
         ///     Kills a process identified by its pid and all its children processes
         /// </summary>

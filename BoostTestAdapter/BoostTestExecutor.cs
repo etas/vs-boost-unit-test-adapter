@@ -20,8 +20,6 @@ using BoostTestAdapter.Utility.VisualStudio;
 using System.Runtime.InteropServices;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
-using System.Diagnostics;
-using System.Threading;
 
 namespace BoostTestAdapter
 {
@@ -58,10 +56,12 @@ namespace BoostTestAdapter
         /// Default constructor
         /// </summary>
         public BoostTestExecutor()
-            : this(new DefaultBoostTestRunnerFactory(),
-            new BoostTestDiscovererFactory(new ListContentHelper()),
-            new DefaultVisualStudioInstanceProvider())
         {
+            _testRunnerFactory = new DefaultBoostTestRunnerFactory();
+            _boostTestDiscovererFactory = new BoostTestDiscovererFactory(_testRunnerFactory);
+            _vsProvider = new DefaultVisualStudioInstanceProvider();
+
+            _cancelled = false;
         }
 
         /// <summary>
@@ -70,9 +70,7 @@ namespace BoostTestAdapter
         /// <param name="testRunnerFactory">The IBoostTestRunnerFactory which is to be used</param>
         /// <param name="boostTestDiscovererFactory">The IBoostTestDiscovererFactory which is to be used</param>
         /// <param name="provider">The Visual Studio instance provider</param>
-        public BoostTestExecutor(IBoostTestRunnerFactory testRunnerFactory, 
-            IBoostTestDiscovererFactory boostTestDiscovererFactory,
-            IVisualStudioInstanceProvider provider)
+        public BoostTestExecutor(IBoostTestRunnerFactory testRunnerFactory, IBoostTestDiscovererFactory boostTestDiscovererFactory, IVisualStudioInstanceProvider provider)
         {
             _testRunnerFactory = testRunnerFactory;
             _boostTestDiscovererFactory = boostTestDiscovererFactory;
@@ -82,8 +80,7 @@ namespace BoostTestAdapter
         }
 
         #endregion Constructors
-
-
+        
         #region Member variables
 
         private volatile bool _cancelled;
@@ -97,8 +94,7 @@ namespace BoostTestAdapter
 
 
         #endregion Member variables
-
-
+        
         /// <summary>
 
         /// <summary>
@@ -164,7 +160,7 @@ namespace BoostTestAdapter
                         // Re-discover tests so that we could make use of the RunTests overload which takes an enumeration of test cases.
                         // This is necessary since we need to run tests one by one in order to have the test adapter remain responsive
                         // and have a list of tests over which we can generate test results for.
-                        discoverer.DiscoverTests(new[] { source }, runContext, frameworkHandle, sink);
+                        discoverer.DiscoverTests(new[] { source }, runContext, sink);
 
                         // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
                         // Batching by source since this overload is called when 'Run All...' or equivalent is triggered
@@ -230,7 +226,8 @@ namespace BoostTestAdapter
             }
             else
             {
-                IEnumerable<TestRun> batches = batchStrategy.BatchTests(tests);
+                // NOTE Apply distinct to avoid duplicate test cases. Common issue when using BOOST_DATA_TEST_CASE.
+                IEnumerable<TestRun> batches = batchStrategy.BatchTests(tests.Distinct(new TestCaseComparer()));
                 RunBoostTests(batches, runContext, frameworkHandle);
             }
 
@@ -334,8 +331,7 @@ namespace BoostTestAdapter
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Exception caught while running test batch {0} [{1}] ({2})", batch.Source, string.Join(", ", batch.Tests), ex.Message);
-                    Logger.Debug(ex.StackTrace);
+                    Logger.Exception(ex, "Exception caught while running test batch {0} [{1}] ({2})", batch.Source, string.Join(", ", batch.Tests), ex.Message);
                 }
             }
         }
@@ -367,60 +363,23 @@ namespace BoostTestAdapter
 
             return run.Runner != null;
         }
-
+        
         /// <summary>
-        /// Retrieves and assignes parameters by resolving configurations from different possible resources
+        /// Retrieves and assigns parameters by resolving configurations from different possible resources
         /// </summary>
         /// <param name="source">The TestCases source</param>
         /// <param name="settings">The Boost Test adapter settings currently in use</param>
         /// <returns>A string for the default working directory</returns>
         private void GetDebugConfigurationProperties(string source, BoostTestAdapterSettings settings, BoostTestRunnerCommandLineArgs args)
         {
-            string workingDirectory = null;
-            string environment = null;
-
-            bool applyVSWorkingDirectory = false;
-
-            // Get the currently loaded VisualStudio instance
-            if ( null != _vsProvider )
-            {                                               
-                try
-                {
-                    var vs = _vsProvider.Instance;
-
-                    foreach (var project in vs.Solution.Projects)
-                    {
-                        var configuration = project.ActiveConfiguration;
-
-                        if ( string.Equals(source, configuration.PrimaryOutput, StringComparison.Ordinal) )
-                        {
-                            workingDirectory = configuration.VSDebugConfiguration.WorkingDirectory;
-                            environment = configuration.VSDebugConfiguration.Environment;
-                            applyVSWorkingDirectory = true;
-                            break;
-                        }
-                    }                    
-                }
-                catch (COMException ex)
-                {
-                    Logger.Error("Could not retrieve WorkingDirectory from Visual Studio Configuration-{0}", ex.Message);
-                }                
-            }
-
-            if ( !applyVSWorkingDirectory )
+            try
             {
-                if ( string.IsNullOrEmpty(settings.WorkingDirectory) || !Directory.Exists(settings.WorkingDirectory) )
-                {
-                    workingDirectory = Path.GetDirectoryName(source);
-                }
-                else
-                {
-                    workingDirectory = settings.WorkingDirectory;
-                }
+                args.SetWorkingEnvironment(source, settings, ((_vsProvider == null) ? null : _vsProvider.Instance));
             }
-
-            args.WorkingDirectory = workingDirectory;
-            args.Environment = environment;
+            catch (COMException ex)
+            {
+                Logger.Exception(ex, "Could not retrieve WorkingDirectory from Visual Studio Configuration-{0}", ex.Message);
+            }
         }
 
         /// <summary>
@@ -435,31 +394,19 @@ namespace BoostTestAdapter
 
             GetDebugConfigurationProperties(source, settings, args);
             
-            string filename = GenerateFileName(source);
-
             // Specify log and report file information
             args.LogFormat = OutputFormat.XML;
             args.LogLevel = settings.LogLevel;
-            args.LogFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.LogFile));
+            args.LogFile = TestPathGenerator.Generate(source, FileExtensions.LogFile);
 
             args.ReportFormat = OutputFormat.XML;
             args.ReportLevel = ReportLevel.Detailed;
-            args.ReportFile = Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.ReportFile));
+            args.ReportFile = TestPathGenerator.Generate(source, FileExtensions.ReportFile);
             
-            args.StandardOutFile = ((settings.EnableStdOutRedirection) ? Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdOutFile)) : null);
-            args.StandardErrorFile = ((settings.EnableStdErrRedirection) ? Path.Combine(Path.GetTempPath(), SanitizeFileName(filename + FileExtensions.StdErrFile)) : null);
+            args.StandardOutFile = ((settings.EnableStdOutRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdOutFile) : null);
+            args.StandardErrorFile = ((settings.EnableStdErrRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdErrFile) : null);
 
             return args;
-        }
-
-        /// <summary>
-        /// Generates a file name based on the test source. Guaranteed to be unique across multiple executions of the same test source.
-        /// </summary>
-        /// <param name="source">The test source to execute</param>
-        /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
-        private static string GenerateFileName(string source)
-        {
-            return Path.GetFileName(source) + '.' + Process.GetCurrentProcess().Id + '.' + Thread.CurrentThread.ManagedThreadId;
         }
         
         /// <summary>
@@ -480,16 +427,6 @@ namespace BoostTestAdapter
             args.DetectMemoryLeaks = 0;
 
             return args;
-        }
-
-        /// <summary>
-        /// Sanitizes a file name suitable for Boost Test command line argument values
-        /// </summary>
-        /// <param name="file">The filename to sanitize.</param>
-        /// <returns>The sanitized filename.</returns>
-        private static string SanitizeFileName(string file)
-        {
-            return file.Replace(' ', '_');
         }
 
         /// <summary>

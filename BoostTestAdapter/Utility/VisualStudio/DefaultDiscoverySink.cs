@@ -36,31 +36,31 @@ namespace BoostTestAdapter.Utility.VisualStudio
         }
 
         #endregion ITestCaseDiscoverySink
+    }
+    
+    /// <summary>
+    /// TestCase equality comparer which defines equality based on the TestCase's
+    /// Fully Qualified Name.
+    /// </summary>
+    public class TestCaseComparer : IEqualityComparer<TestCase>
+    {
+        #region IEqualityComparer<TestCase>
 
-        /// <summary>
-        /// TestCase equality comparer which defines equality based on the TestCase's
-        /// Fully Qualified Name.
-        /// </summary>
-        private class TestCaseComparer : IEqualityComparer<TestCase>
+        public bool Equals(TestCase x, TestCase y)
         {
-            #region IEqualityComparer<TestCase>
+            Utility.Code.Require(x, "x");
+            Utility.Code.Require(y, "y");
 
-            public bool Equals(TestCase x, TestCase y)
-            {
-                Utility.Code.Require(x, "x");
-                Utility.Code.Require(y, "y");
-
-                return x.FullyQualifiedName == y.FullyQualifiedName;
-            }
-
-            public int GetHashCode(TestCase obj)
-            {
-                Utility.Code.Require(obj, "obj");
-
-                return obj.FullyQualifiedName.GetHashCode();
-            }
-
-            #endregion IEqualityComparer<TestCase>
+            return (x.FullyQualifiedName == y.FullyQualifiedName) && (x.Source == y.Source);
         }
+
+        public int GetHashCode(TestCase obj)
+        {
+            Utility.Code.Require(obj, "obj");
+
+            return obj.FullyQualifiedName.GetHashCode() ^ obj.Source.GetHashCode();
+        }
+
+        #endregion IEqualityComparer<TestCase>
     }
 }

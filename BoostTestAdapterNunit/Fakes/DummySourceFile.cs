@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
-using System.IO;
+using BoostTestAdapter.Utility;
 
 namespace BoostTestAdapterNunit.Utility
 {
@@ -14,7 +13,7 @@ namespace BoostTestAdapterNunit.Utility
     /// 
     /// Performs cleanup on calling Dispose.
     /// </summary>
-    public class DummySourceFile : IDisposable
+    public class DummySourceFile : TemporaryFile
     {
         /// <summary>
         /// Default resource namespace
@@ -36,35 +35,8 @@ namespace BoostTestAdapterNunit.Utility
         /// <param name="nameSpace">The embedded resource namespace</param>
         /// <param name="filename">The embedded resource file name located in nameSpace</param>
         public DummySourceFile(string nameSpace, string filename)
+            : base(TestHelper.CopyEmbeddedResourceToTempDirectory(nameSpace, filename).Release())
         {
-            this.TempSourcePath = TestHelper.CopyEmbeddedResourceToDirectory(nameSpace, filename, Path.GetTempPath());
         }
-
-        /// <summary>
-        /// The temporary file path of the copied embedded resource
-        /// </summary>
-        public string TempSourcePath { get; private set; }
-
-        #region IDisposable
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (!string.IsNullOrEmpty(this.TempSourcePath) && File.Exists(this.TempSourcePath))
-                {
-                    File.Delete(this.TempSourcePath);
-                }
-            }
-
-            GC.SuppressFinalize(this);
-        }
-
-        public void Dispose()
-        {
-            this.Dispose(true);
-        }
-
-        #endregion IDisposable
     }
 }

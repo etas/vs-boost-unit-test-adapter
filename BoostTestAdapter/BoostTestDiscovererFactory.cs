@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BoostTestAdapter.Discoverers;
-using System.Text.RegularExpressions;
+using BoostTestAdapter.Boost.Runner;
+using BoostTestAdapter.Settings;
 
 namespace BoostTestAdapter
 {
@@ -16,21 +17,20 @@ namespace BoostTestAdapter
         #region Constructors
 
         /// <summary>
-        /// Default constructor. The default implementation of IListContentHelper is provided.
+        /// Default constructor. The default implementation of IBoostTestRunnerFactory is provided.
         /// </summary>
         public BoostTestDiscovererFactory()
-            : this(new ListContentHelper())
+            : this(new DefaultBoostTestRunnerFactory())
         {
-
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="listContentHelper">A custom IListContentHelper implementation.</param>
-        public BoostTestDiscovererFactory(IListContentHelper listContentHelper)
+        /// <param name="factory">A custom IBoostTestRunnerFactory implementation.</param>
+        public BoostTestDiscovererFactory(IBoostTestRunnerFactory factory)
         {
-            _listContentHelper = listContentHelper;
+            _factory = factory;
         }
 
         #endregion
@@ -38,7 +38,7 @@ namespace BoostTestAdapter
 
         #region Members
 
-        private readonly IListContentHelper _listContentHelper;
+        private readonly IBoostTestRunnerFactory _factory;
 
         #endregion
 
@@ -80,7 +80,7 @@ namespace BoostTestAdapter
                 return discoverers;
 
             // Use default settings in case they are not provided by client code
-            settings = settings ?? new Settings.BoostTestAdapterSettings();
+            settings = settings ?? new BoostTestAdapterSettings();
 
             // sources that can be run on the external runner
             var externalDiscovererSources = new List<string>();
@@ -90,15 +90,14 @@ namespace BoostTestAdapter
 
             // sources that do NOT support the list-content parameter
             var sourceCodeDiscovererSources = new List<string>();
-
-            _listContentHelper.Timeout = settings.DiscoveryTimeoutMilliseconds;
-
+            
             foreach (var source in sources)
             {
+                string extension = Path.GetExtension(source);
+
                 if (settings.ExternalTestRunner != null)
                 {
-                    Regex matcher = new Regex(settings.ExternalTestRunner.ExtensionType);
-                    if (matcher.IsMatch(source))
+                    if (settings.ExternalTestRunner.ExtensionType.IsMatch(extension))
                     {
                         externalDiscovererSources.Add(source);
                         continue;
@@ -106,10 +105,10 @@ namespace BoostTestAdapter
                 }
 
                 // Skip modules which are not .exe
-                if (Path.GetExtension(source) != BoostTestDiscoverer.ExeExtension)
+                if (extension != BoostTestDiscoverer.ExeExtension)
                     continue;
 
-                if (settings.UseListContent && _listContentHelper.IsListContentSupported(source))
+                if ((settings.UseListContent) && ((settings.ForceListContent) || IsListContentSupported(source, settings)))
                 {
                     listContentDiscovererSources.Add(source);
                 }
@@ -146,5 +145,23 @@ namespace BoostTestAdapter
         }
 
         #endregion
+
+        /// <summary>
+        /// Determines whether the provided source has --list_content capabilities
+        /// </summary>
+        /// <param name="source">The source to test</param>
+        /// <param name="settings">Test adapter settings</param>
+        /// <returns>true if the source has list content capabilities; false otherwise</returns>
+        private bool IsListContentSupported(string source, BoostTestAdapterSettings settings)
+        {
+            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions()
+            {
+                ExternalTestRunnerSettings = settings.ExternalTestRunner
+            };
+
+            IBoostTestRunner runner = _factory.GetRunner(source, options);
+            return (runner != null) && runner.ListContentSupported;
+        }
+
     }
 }

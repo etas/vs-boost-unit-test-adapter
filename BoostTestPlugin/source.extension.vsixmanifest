@@ -34,5 +34,6 @@ In case of any issues please file an issue at https://github.com/etas/vs-boost-u
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VisualStudio2012Adapter" Path="|VisualStudio2012Adapter|" AssemblyName="|VisualStudio2012Adapter;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VisualStudio2013Adapter" Path="|VisualStudio2013Adapter|" AssemblyName="|VisualStudio2013Adapter;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VisualStudio2015Adapter" Path="|VisualStudio2015Adapter|" AssemblyName="|VisualStudio2015Adapter;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Antlr.DOT" Path="|Antlr.DOT|" AssemblyName="|Antlr.DOT;AssemblyName|" />
     </Assets>
 </PackageManifest>

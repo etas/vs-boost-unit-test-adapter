@@ -4,7 +4,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using BoostTestAdapter;
 using BoostTestAdapter.Settings;
@@ -73,28 +72,24 @@ namespace BoostTestAdapterNunit
         [Test]
         public void DiscoveryFileMapDiscovery()
         {
-            string listing = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml", Path.GetTempPath());
-
-            try
+            using (var listing = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.TestLists", "sample.test.list.xml"))
             {
                 ExternalBoostTestRunnerSettings settings = new ExternalBoostTestRunnerSettings
                 {
-                    ExtensionType = ".dll",
                     DiscoveryMethodType = DiscoveryMethodType.DiscoveryFileMap
                 };
 
-                settings.DiscoveryFileMap["test_1.dll"] = listing;
+                settings.DiscoveryFileMap["test_1.dll"] = listing.Path;
 
-                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings);
+                ExternalDiscoverer discoverer = new ExternalDiscoverer(settings, DummyVSProvider.Default);
 
                 DefaultTestContext context = new DefaultTestContext();
-                ConsoleMessageLogger logger = new ConsoleMessageLogger();
                 DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
 
                 const string mappedSource = "C:\\test_1.dll";
                 const string unmappedSource = "C:\\test_2.dll";
 
-                discoverer.DiscoverTests(new string[] { mappedSource, unmappedSource }, context, logger, sink);
+                discoverer.DiscoverTests(new string[] { mappedSource, unmappedSource }, context, sink);
 
                 // A total of 7 tests should be discovered as described in the Xml descriptor
                 Assert.That(sink.Tests.Count(), Is.EqualTo(7));
@@ -112,13 +107,6 @@ namespace BoostTestAdapterNunit
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<int>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<float>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
                 AssertVSTestCaseProperties(sink.Tests, QualifiedNameBuilder.FromString(masterTestSuite, "TemplateSuite/my_test<double>"), mappedSource, new SourceFileInfo("test_runner_test.cpp", 79));
-            }
-            finally
-            {
-                if (File.Exists(listing))
-                {
-                    File.Delete(listing);
-                }
             }
         }
 

@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -15,8 +16,11 @@ namespace BoostTestAdapter.Settings
     [Serializable]
     public enum DiscoveryMethodType
     {
-        DiscoveryCommandLine,
-        DiscoveryFileMap
+        DiscoveryListContent,           // Use the list_content or source code internal parsing mechanisms
+        DiscoveryCommandLine,           // Execute the designated command line and extract information from a TestFramework XML representation
+        DiscoveryFileMap,               // Discover tests from a static list of TestFramework XML representation files
+
+        Default = DiscoveryListContent
     }
 
     /// <summary>
@@ -27,7 +31,12 @@ namespace BoostTestAdapter.Settings
     {
         #region Constants
 
-        public const string DefaultExtensionType = ".dll";
+        private static Regex _defaultExtensionType = new Regex(".dll");
+
+        public static Regex DefaultExtensionType
+        {
+            get { return _defaultExtensionType; }
+        }
 
         #endregion Constants
 
@@ -36,6 +45,9 @@ namespace BoostTestAdapter.Settings
         public ExternalBoostTestRunnerSettings()
         {
             this.ExtensionType = DefaultExtensionType;
+
+            this.DiscoveryMethodType = DiscoveryMethodType.Default;
+
             this.DiscoveryFileMap = new Dictionary<string, string>();
 
             this.DiscoveryCommandLine = new CommandLine();
@@ -47,9 +59,9 @@ namespace BoostTestAdapter.Settings
         #region Properties
 
         /// <summary>
-        /// Specifies the file extension for which this test runner applies to
+        /// Specifies the file extension pattern for which this test runner applies to
         /// </summary>
-        public string ExtensionType { get; set; }
+        public Regex ExtensionType { get; set; }
 
         /// <summary>
         /// Specifies the discovery method i.e. either via a file map or via an external command
@@ -92,55 +104,59 @@ namespace BoostTestAdapter.Settings
         {
             Utility.Code.Require(reader, "reader");
 
-            this.ExtensionType = reader.GetAttribute(Xml.Type);
-            if (string.IsNullOrEmpty(this.ExtensionType))
+            string extension = reader.GetAttribute(Xml.Type);
+            if (!string.IsNullOrEmpty(extension))
             {
-                this.ExtensionType = DefaultExtensionType;
+                this.ExtensionType = new Regex(extension);
             }
 
             reader.ReadStartElement();
 
             reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
 
-            bool empty = reader.IsEmptyElement;
             string name = reader.Name;
-
-            this.DiscoveryMethodType = (DiscoveryMethodType)Enum.Parse(typeof(DiscoveryMethodType), name);
-
-            reader.ReadStartElement();
-            if (name == Xml.DiscoveryCommandLine)
+            if ((name == Xml.DiscoveryCommandLine) || (name == Xml.DiscoveryFileMap))
             {
-                empty = false;
-                this.DiscoveryCommandLine = CommandLine.FromString(reader.ReadString());
-            }
-            else if (name == Xml.DiscoveryFileMap)
-            {
-                reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-                while (reader.NodeType == XmlNodeType.Element)
+                this.DiscoveryMethodType = (DiscoveryMethodType)Enum.Parse(typeof(DiscoveryMethodType), name);
+
+                bool empty = reader.IsEmptyElement;
+
+                reader.ReadStartElement();
+                if (name == Xml.DiscoveryCommandLine)
                 {
-                    string key = reader.GetAttribute(Xml.DiscoveryFileMapSource);
-
-                    reader.MoveToElement();
-                    empty = reader.IsEmptyElement;
-                    reader.ReadStartElement();
-
-                    this.DiscoveryFileMap[key] = (empty) ? string.Empty : reader.ReadString();
-
-                    if (!empty)
-                    {
-                        reader.ReadEndElement();
-                    }
-
-                    reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
+                    empty = false;
+                    this.DiscoveryCommandLine = CommandLine.FromString(reader.ReadString());
                 }
-            }
+                else if (name == Xml.DiscoveryFileMap)
+                {
+                    reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
+                    while (reader.NodeType == XmlNodeType.Element)
+                    {
+                        string key = reader.GetAttribute(Xml.DiscoveryFileMapSource);
 
-            if (!empty)
-            {
-                reader.ReadEndElement();
+                        reader.MoveToElement();
+                        empty = reader.IsEmptyElement;
+                        reader.ReadStartElement();
+
+                        this.DiscoveryFileMap[key] = (empty) ? string.Empty : reader.ReadString();
+
+                        if (!empty)
+                        {
+                            reader.ReadEndElement();
+                        }
+
+                        reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
+                    }
+                }
+
+                if (!empty)
+                {
+                    reader.ReadEndElement();
+                }
+
+                reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
             }
             
-            reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
             this.ExecutionCommandLine = CommandLine.FromString(reader.ReadElementString(Xml.ExecutionCommandLine));
 
             reader.ReadEndElement();
@@ -149,8 +165,8 @@ namespace BoostTestAdapter.Settings
         public void WriteXml(XmlWriter writer)
         {
             Utility.Code.Require(writer, "writer");
-
-            writer.WriteAttributeString(Xml.Type, this.ExtensionType);
+            
+            writer.WriteAttributeString(Xml.Type, this.ExtensionType.ToString());
 
             if (DiscoveryMethodType == DiscoveryMethodType.DiscoveryCommandLine)
             {

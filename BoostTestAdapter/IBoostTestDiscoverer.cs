@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 namespace BoostTestAdapter
 {
@@ -19,9 +18,7 @@ namespace BoostTestAdapter
         /// </summary>
         /// <param name="sources">The list of sources to be analysed.</param>
         /// <param name="discoveryContext">The discovery context.</param>
-        /// <param name="logger">The logger instance.</param>
         /// <param name="discoverySink">The discovery sink where all the found test should be added.</param>
-        void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger,
-            ITestCaseDiscoverySink discoverySink);
+        void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink);
     }
 }

@@ -4,6 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System.IO;
+using System.Globalization;
 
 namespace BoostTestAdapter.Utility
 {
@@ -60,7 +61,29 @@ namespace BoostTestAdapter.Utility
                 file = "unknown location";
             }
 
-            return file + ((this.LineNumber > -1) ? (" line " + this.LineNumber) : string.Empty);
+            return file + ((this.LineNumber > -1) ? ("(" + this.LineNumber + ")") : string.Empty);
+        }
+
+        /// <summary>
+        /// Parses source file information
+        /// </summary>
+        /// <param name="value">The string representation of the source file information</param>
+        /// <returns>The SourceFileInfo structure or null if the value cannot be parsed correctly</returns>
+        public static SourceFileInfo Parse(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            int bracketIndex = value.IndexOf('(');
+
+            string filename = (bracketIndex > 0) ? value.Substring(0, bracketIndex) : value;
+            string linenumber = (bracketIndex > 0) ? value.Substring(bracketIndex + 1, (value.Length - filename.Length - 2)) : string.Empty;
+
+            int line = (string.IsNullOrEmpty(linenumber) ? -1 : int.Parse(linenumber, CultureInfo.InvariantCulture));
+
+            return new SourceFileInfo(filename, line);
         }
 
         #endregion object overrides

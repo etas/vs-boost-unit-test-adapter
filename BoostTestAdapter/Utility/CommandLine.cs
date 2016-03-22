@@ -9,10 +9,18 @@ using System.Linq;
 
 namespace BoostTestAdapter.Utility
 {
+    /// <summary>
+    /// Utility methods for CommandLine
+    /// </summary>
     static class CommandLineArgExtensions
     {
-        public static IEnumerable<string> Split(this string str,
-                                            Func<char, bool> controller)
+        /// <summary>
+        /// Splits a string based on the provided function
+        /// </summary>
+        /// <param name="str">The string to split</param>
+        /// <param name="controller">The function which determines when a split should occur</param>
+        /// <returns>An enumeration of string splits</returns>
+        public static IEnumerable<string> Split(this string str, Func<char, bool> controller)
         {
             int nextPiece = 0;
 
@@ -28,6 +36,12 @@ namespace BoostTestAdapter.Utility
             yield return str.Substring(nextPiece);
         }
 
+        /// <summary>
+        /// Removes the character 'quote' from the beginning and end of 'input'
+        /// </summary>
+        /// <param name="input">The input to un-quote</param>
+        /// <param name="quote">The quote character to remove</param>
+        /// <returns>'input' with the beginning and end 'quote' removed</returns>
         public static string TrimMatchingQuotes(this string input, char quote)
         {
             if ((input.Length >= 2) &&
@@ -37,6 +51,12 @@ namespace BoostTestAdapter.Utility
             return input;
         }
 
+        /// <summary>
+        /// Safely splits a command line string into its argument components.
+        /// </summary>
+        /// <param name="commandLine">The command line string to split</param>
+        /// <returns>A series of substrings, each of which represent a single command line argument component</returns>
+        /// <remarks>Properly handles string/character escaping</remarks>
         public static IEnumerable<string> SplitCommandLine(string commandLine)
         {
             bool inQuotes = false;
@@ -63,17 +83,31 @@ namespace BoostTestAdapter.Utility
     /// </summary>
     public class CommandLine
     {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public CommandLine() :
             this(string.Empty, string.Empty)
         {
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fileName">The file component of the command line</param>
+        /// <param name="args">The arguments component of the command line</param>
         public CommandLine(string fileName, string args)
         {
             FileName = fileName;
             Arguments = args;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fileName">The file component of the command line</param>
+        /// <param name="arguments">The arguments of the command line</param>
+        /// <remarks>Handles quoting in case of spaces</remarks>
         public CommandLine(string fileName, IEnumerable<string> arguments)
         {
             FileName = fileName;
@@ -96,6 +130,11 @@ namespace BoostTestAdapter.Utility
             return FileName + ' ' + Arguments;
         }
 
+        /// <summary>
+        /// Generates a CommandLine instance from the provided string
+        /// </summary>
+        /// <param name="cmdLine">Command line string</param>
+        /// <returns>The command line instance parsed from cmdLine</returns>
         public static CommandLine FromString(string cmdLine)
         {
             cmdLine = (cmdLine == null) ? string.Empty : cmdLine;

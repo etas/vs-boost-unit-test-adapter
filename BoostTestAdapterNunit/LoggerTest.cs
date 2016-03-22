@@ -18,24 +18,9 @@ namespace BoostTestAdapterNunit
     /// </summary>
     [TestFixture]
     class LoggerTest
-    {
-
-        #region Test Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-        }
-
-        #endregion
-        
+    {        
         /// <summary>
-        /// The scope of this test is to make sure that in case a message is sent to an initalized loggerInstance, the loggerInstance SendMessage methods are called
+        /// The scope of this test is to make sure that in case a message is sent to an initialized loggerInstance, the loggerInstance SendMessage methods are called
         /// with the right type of message severity and message text
         /// </summary>
         [Test]
@@ -72,70 +57,51 @@ namespace BoostTestAdapterNunit
             string resourceFileName = "BoostTestAdapter.dll.config";
             string logFileName = "BoostTestAdapter.dll.log";
 
-            string resourceFilePath = Path.Combine(Directory.GetCurrentDirectory(), resourceFileName);
-            string logFilePath = Path.Combine(Directory.GetCurrentDirectory(), logFileName);
-
-            #region cleanup from possible previous test executions
-            //deletion of the log4net config file
-            DeleteFileIfExists(resourceFilePath);
-            //deletion of the log4net log file
-            DeleteFileIfExists(logFilePath);
-            #endregion
-
-            /*the config file is copied over to the working directory of the assembly. To please note that in case of unit tests this path is different 
-             * from the executing assembly directory (due to the shadow copying) so that cannot be used. Additionally the executing assembly directory
-             * of the NUnit project will be different from the executing assembly directory of code/project under test
-             */
-
-            #region test setup
-            CopyLog4NetConfigFileFromAssemblyToWorkingDirectory(resourceFileName);
-            string path = Directory.GetCurrentDirectory();
-            Assert.That(File.Exists(resourceFilePath), Is.True);
-            #endregion
-
-            #region test
-            var messageLogger = A.Fake<IMessageLogger>();
-            Logger.Initialize(messageLogger);
-            Logger.SendMessage(TestMessageLevel.Informational, "This is an informational type test message");
-            Logger.SendMessage(TestMessageLevel.Warning, "This is a warning type test message");
-            Logger.SendMessage(TestMessageLevel.Error, "This is an error type test message");
-            Logger.Shutdown();
-            #endregion
-
-            #region results verification
-
-            Assert.That(File.Exists(logFilePath), Is.True);
-            string logFileContents = File.ReadAllText(logFilePath);
-            //check that the logger initialization message exists in file and is of type informational
-            if (
-                !Regex.IsMatch(logFileContents, @"INFO(.+)Logger initialized",
-                    RegexOptions.IgnoreCase))
+            using (TemporaryFile resourceFile = new TemporaryFile(CopyLog4NetConfigFileFromAssemblyToWorkingDirectory(resourceFileName)))
+            using (TemporaryFile logFile = new TemporaryFile(Path.Combine(Directory.GetCurrentDirectory(), logFileName)))
             {
-                Assert.Fail("Failed to find logger initialization message in log file");
-            }
-            //check that the informational test message exists and has the expected contents
-            if (
-                !Regex.IsMatch(logFileContents, @"INFO(.+)This is an informational type test message",
-                    RegexOptions.IgnoreCase))
-            {
-                Assert.Fail("Failed to find informational type test message in log file");
-            }
-            //check that the warning test message exists and has the expected contents
-            if (
-                !Regex.IsMatch(logFileContents, @"WARN(.+)This is a warning type test message",
-                    RegexOptions.IgnoreCase))
-            {
-                Assert.Fail("Failed to find warning type test message in log file");
-            }
-            //check that the error test message exists and has the expected contents
-            if (
-                !Regex.IsMatch(logFileContents, @"ERROR(.+)This is an error type test message",
-                    RegexOptions.IgnoreCase))
-            {
-                Assert.Fail("Failed to find error type test message in log file");
-            }
+                /*
+                 * The config file is copied over to the working directory of the assembly. To please note that in case of unit tests this path is different 
+                 * from the executing assembly directory (due to the shadow copying) so that cannot be used. Additionally the executing assembly directory
+                 * of the NUnit project will be different from the executing assembly directory of code/project under test
+                 */
 
-            #endregion
+                #region test setup
+                Assert.That(File.Exists(resourceFile.Path), Is.True);
+                #endregion
+
+                #region test
+
+                var messageLogger = A.Fake<IMessageLogger>();
+
+                Logger.Initialize(messageLogger);
+                Logger.SendMessage(TestMessageLevel.Informational, "This is an informational type test message");
+                Logger.SendMessage(TestMessageLevel.Warning, "This is a warning type test message");
+                Logger.SendMessage(TestMessageLevel.Error, "This is an error type test message");
+                Logger.Shutdown();
+
+                #endregion
+
+                #region results verification
+
+                Assert.That(File.Exists(logFile.Path), Is.True);
+
+                string logFileContents = File.ReadAllText(logFile.Path);
+
+                //check that the logger initialization message exists in file and is of type informational
+                Assert.That(Regex.IsMatch(logFileContents, @"INFO(.+)Logger initialized", RegexOptions.IgnoreCase), Is.True, "Failed to find logger initialization message in log file");
+                
+                //check that the informational test message exists and has the expected contents
+                Assert.That(Regex.IsMatch(logFileContents, @"INFO(.+)This is an informational type test message", RegexOptions.IgnoreCase), Is.True, "Failed to find informational type test message in log file");
+                
+                //check that the warning test message exists and has the expected contents
+                Assert.That(Regex.IsMatch(logFileContents, @"WARN(.+)This is a warning type test message", RegexOptions.IgnoreCase), Is.True, "Failed to find warning type test message in log file");
+                
+                //check that the error test message exists and has the expected contents
+                Assert.That(Regex.IsMatch(logFileContents, @"ERROR(.+)This is an error type test message", RegexOptions.IgnoreCase), Is.True, "Failed to find error type test message in log file");
+
+                #endregion
+            }
         }
 
         /// <summary>
@@ -143,29 +109,19 @@ namespace BoostTestAdapterNunit
         /// the working directory (and not the executing directory!) of the assembly
         /// </summary>
         /// <param name="resourceName">the filename of the embedded resource that needs to copied over</param>
-        static private void CopyLog4NetConfigFileFromAssemblyToWorkingDirectory(string resourceName)
+        /// <returns>The output file path</returns>
+        static private string CopyLog4NetConfigFileFromAssemblyToWorkingDirectory(string resourceName)
         {
+            string output = Path.Combine(Directory.GetCurrentDirectory(), resourceName);
+
             using (Stream stream = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.Log4NetConfigFile." + resourceName))
-            using (FileStream fileStream = new FileStream(Path.Combine(Directory.GetCurrentDirectory(), resourceName), FileMode.Create, FileAccess.Write))
+            using (FileStream fileStream = new FileStream(output, FileMode.Create, FileAccess.Write))
             {
-                if (stream == null)
-                {
-                    Assert.Fail("Failed to load the requested embedded resource. Please check that the resource exists and the fully qualified name is correct");
-                }
+                Assert.That(stream, Is.Not.Null, "Failed to load the requested embedded resource. Please check that the resource exists and the fully qualified name is correct");
                 stream.CopyTo(fileStream);
             }
-        }
 
-        /// <summary>
-        /// Helper method that deletes file if exists
-        /// </summary>
-        /// <param name="filePath">complete file path of the file to be deleted</param>
-        static private void DeleteFileIfExists(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
+            return output;
         }
     }
 }

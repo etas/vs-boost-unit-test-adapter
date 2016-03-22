@@ -29,6 +29,8 @@ namespace BoostTestAdapter.Settings
         {
             this.TestRunnerSettings = new BoostTestRunnerSettings();
 
+            this.DiscoveryTimeoutMilliseconds = 5000;
+
             this.CommandLineArgs = new BoostTestRunnerCommandLineArgs();
             
             this.FailTestOnMemoryLeak = false;
@@ -45,7 +47,9 @@ namespace BoostTestAdapter.Settings
 
             this.TestBatchStrategy = TestBatch.Strategy.TestCase;
 
-            this.UseListContent = false;
+            this.UseListContent = true;
+
+            this.ForceListContent = false;
 
             this.WorkingDirectory = null;
 
@@ -65,28 +69,17 @@ namespace BoostTestAdapter.Settings
         {
             get
             {
-                return this.TestRunnerSettings.RunnerTimeout;
+                return this.TestRunnerSettings.Timeout;
             }
 
             set
             {
-                this.TestRunnerSettings.RunnerTimeout = value;
+                this.TestRunnerSettings.Timeout = value;
             }
         }
 
         [DefaultValue(5000)]
-        public int DiscoveryTimeoutMilliseconds
-        {
-            get
-            {
-                return this.TestRunnerSettings.DiscovererTimeout;
-            }
-
-            set
-            {
-                this.TestRunnerSettings.DiscovererTimeout = value;
-            }
-        }
+        public int DiscoveryTimeoutMilliseconds { get; set; }
 
         [DefaultValue(false)]
         public bool FailTestOnMemoryLeak { get; set; }
@@ -130,8 +123,11 @@ namespace BoostTestAdapter.Settings
         [DefaultValue(TestBatch.Strategy.TestSuite)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
 
-        [DefaultValue(false)]
+        [DefaultValue(true)]
         public bool UseListContent { get; set; }
+
+        [DefaultValue(false)]
+        public bool ForceListContent { get; set; }
 
         [DefaultValue(null)]
         public string WorkingDirectory { get; set; }

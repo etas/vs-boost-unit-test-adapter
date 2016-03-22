@@ -35,6 +35,17 @@ namespace BoostTestAdapter.Utility.VisualStudio
         }
 
         /// <summary>
+        /// Label trait name
+        /// </summary>
+        public static string LabelTrait
+        {
+            get
+            {
+                return "Label";
+            }
+        }
+
+        /// <summary>
         /// TestSuite trait name
         /// </summary>
         public static string DisabledTestSuiteTrait
@@ -328,15 +339,7 @@ namespace BoostTestAdapter.Utility.VisualStudio
         /// <returns>sb</returns>
         private static StringBuilder AppendSourceInfo(SourceFileInfo info, StringBuilder sb)
         {
-            sb.Append((string.IsNullOrEmpty(info.File) ? "unknown location" : info.File));
-            if (info.LineNumber > -1)
-            {
-                sb.Append('(').Append(info.LineNumber).Append(')');
-            }
-
-            sb.Append(": ");
-
-            return sb;
+            return sb.Append(info).Append(": ");
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 ﻿<NUnitProject>
   <Settings activeconfig="Default" processModel="Default" domainUsage="Default" />
   <Config name="Default" binpathtype="Auto" binpath="bin\Debug\">
-    <assembly path="bin\Debug\BoostTestAdaptorNunit.dll" />
+    <assembly path="bin\Debug\BoostTestAdapterNunit.dll" />
   </Config>
 </NUnitProject>

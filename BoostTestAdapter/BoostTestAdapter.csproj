@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -55,17 +55,23 @@
     <ProgramFiles32 Condition=" '' == '$(ProgramFiles32)' ">$(ProgramFiles)</ProgramFiles32>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Antlr4.Runtime, Version=4.5.2.0, Culture=neutral, PublicKeyToken=e78b2c5abd1fcb3f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Antlr.DOT\lib\Antlr4.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
     </Reference>
     <Reference Include="NCalc">
       <HintPath>..\packages\ncalc.1.3.8\lib\NCalc.dll</HintPath>
     </Reference>
     <Reference Include="System">
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Management" />
@@ -109,6 +115,7 @@
     <Compile Include="Boost\Runner\IBoostTestRunnerFactory.cs" />
     <Compile Include="Boost\Test\ITestVisitable.cs" />
     <Compile Include="Boost\Test\ITestVisitor.cs" />
+    <Compile Include="Boost\Test\TestFrameworkDOTDeserialiser.cs" />
     <Compile Include="Boost\Test\TestCase.cs" />
     <Compile Include="Boost\Test\TestFramework.cs" />
     <Compile Include="Boost\Test\TestFrameworkBuilder.cs" />
@@ -118,12 +125,12 @@
     <Compile Include="Discoverers\SourceCodeDiscoverer.cs" />
     <Compile Include="Discoverers\ExternalDiscoverer.cs" />
     <Compile Include="Discoverers\TestCaseUtils.cs" />
+    <Compile Include="Discoverers\VSDiscoveryVisitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IBoostTestDiscoverer.cs" />
     <Compile Include="IBoostTestDiscovererFactory.cs" />
-    <Compile Include="IListContentHelper.cs" />
-    <Compile Include="ListContentHelper.cs" />
-    <Compile Include="ProjectInfo.cs" />
+    <Compile Include="Utility\BoostTestRunnerCommandLineArgsEx.cs" />
+    <Compile Include="Utility\VisualStudio\ProjectInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\BoostTestAdapterSettings.cs" />
     <Compile Include="Settings\BoostTestAdapterSettingsProvider.cs" />
@@ -155,7 +162,6 @@
     <Compile Include="Utility\CommandEvaluator.cs" />
     <Compile Include="Utility\CommandLine.cs" />
     <Compile Include="Utility\DebugHelperNative.cs" />
-    <Compile Include="Utility\IDebugHelper.cs" />
     <Compile Include="Utility\Logger.cs" />
     <Compile Include="Utility\NativeMethods.cs" />
     <Compile Include="Utility\ProcessStartInfoEx.cs" />
@@ -163,6 +169,7 @@
     <Compile Include="Utility\ROTException.cs" />
     <Compile Include="Utility\SourceFileInfo.cs" />
     <Compile Include="Utility\TemporaryFile.cs" />
+    <Compile Include="Utility\TestPathGenerator.cs" />
     <Compile Include="Utility\TestRun.cs" />
     <Compile Include="Utility\VisualStudio\DefaultDiscoverySink.cs" />
     <Compile Include="Utility\VisualStudio\DefaultVisualStudioInstanceProvider.cs" />
@@ -171,6 +178,10 @@
     <Compile Include="Utility\XmlReaderHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Antlr.DOT\Antlr.DOT.csproj">
+      <Project>{488ae1ce-107d-4f5b-9f1f-ed7905d5ce75}</Project>
+      <Name>Antlr.DOT</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
       <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
       <Name>VisualStudio2012Adapter</Name>

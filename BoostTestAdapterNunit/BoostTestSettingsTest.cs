@@ -53,7 +53,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
             Assert.That(settings.CatchSystemErrors, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
-            Assert.That(settings.UseListContent, Is.False);
+            Assert.That(settings.UseListContent, Is.True);
+            Assert.That(settings.ForceListContent, Is.False);
             Assert.That(settings.WorkingDirectory, Is.Null);
             Assert.That(settings.EnableStdOutRedirection, Is.True);
             Assert.That(settings.EnableStdErrRedirection, Is.True);
@@ -114,7 +115,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.FailTestOnMemoryLeak, Is.True);
 
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
-            Assert.That(settings.ExternalTestRunner.ExtensionType, Is.EqualTo(".dll"));
+            Assert.That(settings.ExternalTestRunner.ExtensionType.ToString(), Is.EqualTo(".dll"));
             Assert.That(settings.ExternalTestRunner.DiscoveryMethodType, Is.EqualTo(DiscoveryMethodType.DiscoveryCommandLine));
             Assert.That(settings.ExternalTestRunner.DiscoveryCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} --list-debug {out} "));
             Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
@@ -191,7 +192,6 @@ namespace BoostTestAdapterNunit
 
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings()
             {
-                ExtensionType = ".dll",
                 DiscoveryMethodType = DiscoveryMethodType.DiscoveryCommandLine,
                 DiscoveryCommandLine = new CommandLine("C:\\ExternalTestRunner.exe", "--test \"{source}\" --list-debug \"{out}\""),
                 ExecutionCommandLine = new CommandLine("C:\\ExternalTestRunner.exe", "--test \"{source}\"")
@@ -201,10 +201,10 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
-        /// Ensure that external test runner settings utilitsing a file map can be deserialised from a .runsettings Xml document.
+        /// Ensure that external test runner settings utilising a file map can be deserialised from a .runsettings Xml document.
         /// 
         /// Test aims:
-        ///     - Ensure that external test runner settings utilitsing a file map can be deserialised from a .runsettings Xml document.
+        ///     - Ensure that external test runner settings utilising a file map can be deserialised from a .runsettings Xml document.
         /// </summary>
         [Test]
         public void ParseExternalTestRunnerDiscoveryMapSettings()
@@ -218,7 +218,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.LogLevel, Is.EqualTo(LogLevel.TestSuite));
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
 
-            Assert.That(settings.ExternalTestRunner.ExtensionType, Is.EqualTo(".dll"));
+            Assert.That(settings.ExternalTestRunner.ExtensionType.ToString(), Is.EqualTo(".dll"));
             Assert.That(settings.ExternalTestRunner.DiscoveryMethodType, Is.EqualTo(DiscoveryMethodType.DiscoveryFileMap));
 
             IDictionary<string, string> fileMap = new Dictionary<string, string>
@@ -244,7 +244,6 @@ namespace BoostTestAdapterNunit
 
             settings.ExternalTestRunner = new ExternalBoostTestRunnerSettings
             {
-                ExtensionType = ".dll",
                 DiscoveryMethodType = DiscoveryMethodType.DiscoveryFileMap,
                 ExecutionCommandLine = new CommandLine("C:\\ExternalTestRunner.exe", "--test \"{source}\"")
             };

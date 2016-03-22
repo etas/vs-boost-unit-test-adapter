@@ -28,6 +28,19 @@ namespace BoostTestAdapterNunit.Utility
         public IVisualStudio Instance { get; private set; }
 
         #endregion IVisualStudioInstanceProvider
+
+        private static DummyVSProvider _default = new DummyVSProvider(null);
+
+        /// <summary>
+        /// Default DummyVSProvider which returns a null Visual Studio instance
+        /// </summary>
+        public static DummyVSProvider Default
+        {
+            get
+            {
+                return _default;
+            }
+        }
     }
 
 }
