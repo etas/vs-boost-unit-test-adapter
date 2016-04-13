@@ -39,7 +39,7 @@ namespace BoostTestAdapter.Utility.VisualStudio
 
                 DTEInstance dte = GetSolutionObject(parentProcessId);
 
-                if ((dte != null) && (dte.DTE != null))
+                if (dte?.DTE != null)
                 {
                     switch (dte.Version)
                     {

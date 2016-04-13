@@ -11,7 +11,7 @@ namespace BoostTestAdapter.Boost.Results
     /// <summary>
     /// Standard Error as emitted by Boost Test executables
     /// </summary>
-    public class BoostStandardError : BoostTestResultOutputBase
+    public class BoostStandardError : BoostConsoleOutputBase
     {
         /// <summary>
         /// Constructor accepting a path to the external file
@@ -30,33 +30,14 @@ namespace BoostTestAdapter.Boost.Results
             : base(stream)
         {
         }
+        
+        #region BoostConsoleOutputBase
 
-        #region BoostTestResultOutputBase
-
-        public override void Parse(TestResultCollection collection)
+        protected override LogEntry CreateLogEntry(string message)
         {
-            Utility.Code.Require(collection, "collection");
-
-            string err = null;
-
-            using (StreamReader reader = new StreamReader(this.InputStream))
-            {
-                err = reader.ReadToEnd();
-            }
-
-            if (!string.IsNullOrEmpty(err))
-            {
-                // Attach the stderr output to each TestCase result in the collection
-                // since we cannot distinguish to which TestCase (in case multiple TestCases are registered)
-                // the output is associated with.
-                foreach (TestResult result in collection)
-                {
-                    // Consider the whole standard error contents as 1 entry.
-                    result.LogEntries.Add(new LogEntryStandardErrorMessage(err));
-                }
-            }
+            return new LogEntryStandardErrorMessage(message);
         }
 
-        #endregion BoostTestResultOutputBase
+        #endregion BoostConsoleOutputBase        
     }
 }

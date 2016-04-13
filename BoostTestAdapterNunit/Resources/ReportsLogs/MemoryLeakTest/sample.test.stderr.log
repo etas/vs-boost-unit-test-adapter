@@ -1,0 +1,7 @@
+Detected memory leaks!
+Dumping objects ->
+{837} normal block at 0x00BD2D60, 8 bytes long.
+ Data: <        > 98 D5 D9 00 00 00 00 00 
+{836} normal block at 0x00D9D598, 32 bytes long.
+ Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD 
+Object dump complete.
