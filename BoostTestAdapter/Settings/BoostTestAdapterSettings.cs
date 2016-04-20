@@ -29,7 +29,7 @@ namespace BoostTestAdapter.Settings
         {
             this.TestRunnerSettings = new BoostTestRunnerSettings();
 
-            this.DiscoveryTimeoutMilliseconds = 5000;
+            this.DiscoveryTimeoutMilliseconds = 30000;
 
             this.CommandLineArgs = new BoostTestRunnerCommandLineArgs();
             
@@ -78,7 +78,7 @@ namespace BoostTestAdapter.Settings
             }
         }
 
-        [DefaultValue(5000)]
+        [DefaultValue(30000)]
         public int DiscoveryTimeoutMilliseconds { get; set; }
 
         [DefaultValue(false)]
@@ -120,7 +120,7 @@ namespace BoostTestAdapter.Settings
 
         public ExternalBoostTestRunnerSettings ExternalTestRunner { get; set; }
 
-        [DefaultValue(TestBatch.Strategy.TestSuite)]
+        [DefaultValue(TestBatch.Strategy.TestCase)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
 
         [DefaultValue(true)]

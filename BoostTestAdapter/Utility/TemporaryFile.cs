@@ -16,17 +16,25 @@ namespace BoostTestAdapter.Utility
         {
             this.Path = path;
         }
-        
+
         /// <summary>
         /// Tries to delete the temporary file
         /// </summary>
         /// <returns>true if deletion is successful; false otherwise</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private bool Delete()
         {
-            if (File.Exists(this.Path))
+            try
+            { 
+                if (File.Exists(this.Path))
+                {
+                    File.Delete(this.Path);
+                    return true;
+                }
+            }
+            catch (Exception ex)
             {
-                File.Delete(this.Path);
-                return true;
+                Logger.Exception(ex, "Exception caught while trying to delete temporary file [{0}]", this.Path);
             }
 
             return false;
