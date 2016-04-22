@@ -138,6 +138,7 @@ namespace BoostTestAdapter
 
             SetUp(frameworkHandle);
 
+            Logger.Debug("RunSettings: {0}", runContext.RunSettings.SettingsXml);
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
             foreach (string source in sources)
@@ -203,7 +204,8 @@ namespace BoostTestAdapter
             Code.Require(frameworkHandle, "frameworkHandle");
 
             SetUp(frameworkHandle);
-
+            
+            Logger.Debug("RunSettings: {0}", runContext.RunSettings.SettingsXml);
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
             // Batch tests into grouped runs based on test source and test suite so that we minimize symbol reloading
