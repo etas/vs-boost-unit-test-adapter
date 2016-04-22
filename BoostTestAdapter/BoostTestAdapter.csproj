@@ -86,6 +86,7 @@
     <Compile Include="BoostTestExecutor.cs" />
     <Compile Include="Boost\Results\BoostStandardError.cs" />
     <Compile Include="Boost\Results\BoostStandardOutput.cs" />
+    <Compile Include="Boost\Results\BoostConsoleOutputBase.cs" />
     <Compile Include="Boost\Results\BoostTestResultOutputBase.cs" />
     <Compile Include="Boost\Results\BoostTestResultXMLOutput.cs" />
     <Compile Include="Boost\Results\BoostXmlLog.cs" />

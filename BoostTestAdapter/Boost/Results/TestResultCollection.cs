@@ -101,7 +101,7 @@ namespace BoostTestAdapter.Boost.Results
                     GetReportParser(args),
                     GetLogParser(args),
                     GetStandardOutput(args, settings),
-                    GetStandardError(args)
+                    GetStandardError(args, settings)
                 };
 
                 Parse(parsers);
@@ -200,12 +200,16 @@ namespace BoostTestAdapter.Boost.Results
         /// Factory method which provides the standard error IBoostTestResultOutput based on the provided BoostTestRunnerCommandLineArgs and BoostTestAdapterSettings
         /// </summary>
         /// <param name="args">The command line args which were used to generate the test results</param>
+        /// <param name="settings">The run time settings which were used to generate the test results</param>
         /// <returns>An IBoostTestResultOutput or null if one cannot be identified from the provided arguments</returns>
-        private static IBoostTestResultOutput GetStandardError(BoostTestRunnerCommandLineArgs args)
+        private static IBoostTestResultOutput GetStandardError(BoostTestRunnerCommandLineArgs args, BoostTestAdapterSettings settings)
         {
             if ((!string.IsNullOrEmpty(args.StandardErrorFile)) && (File.Exists(args.StandardErrorFile)))
             {
-                return new BoostStandardError(args.StandardErrorFile);
+                return new BoostStandardError(args.StandardErrorFile)
+                {
+                    FailTestOnMemoryLeak = settings.FailTestOnMemoryLeak
+                };
             }
 
             return null;

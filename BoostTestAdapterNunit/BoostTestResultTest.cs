@@ -344,8 +344,8 @@ namespace BoostTestAdapterNunit
             {
                 ((report == null) ? null : new BoostXmlReport(report)),
                 ((log == null) ? null : new BoostXmlLog(log)),
-                ((stdout == null) ? null : new BoostStandardOutput(stdout) {FailTestOnMemoryLeak = true}),
-                ((stderr == null) ? null : new BoostStandardError(stderr))
+                ((stdout == null) ? null : new BoostStandardOutput(stdout) { FailTestOnMemoryLeak = true }),
+                ((stderr == null) ? null : new BoostStandardError(stderr) { FailTestOnMemoryLeak = true })
             });
         }
 
@@ -909,6 +909,45 @@ namespace BoostTestAdapterNunit
                         new SourceFileInfo("c:/exampleboostunittest/source.cpp", 19),
                         new string[] { "With optimization level 2", "With parameter i = 1", "With parameter j = 0" }
                     ),
+                });
+            }
+        }
+
+        /// <summary>
+        /// Tests the correct memory leak discovery is also applied on standard error
+        /// </summary>
+        [Test]
+        public void MemoryLeakStandardError()
+        {
+            using (Stream report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.MemoryLeakTest.sample.test.report.xml"))
+            using (Stream log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.MemoryLeakTest.sample.test.log.xml"))
+            using (Stream stdout = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.stdout.log"))
+            using (Stream stderr = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.MemoryLeakTest.sample.test.stderr.log"))
+            {
+                Parse(report, log, stdout, stderr);
+
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
+
+                // NOTE The values here do not match the Xml report file since the attributes:
+                //      'test_cases_passed', 'test_cases_failed', 'test_cases_skipped' and 'test_cases_aborted'
+                //      are computed in case test results are modified from the Xml output
+                //      (which in the case of memory leaks, passing tests may be changed to failed).
+                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+
+                BoostTestResult testSuiteResult = this.TestResultCollection["LeakingSuite"];
+                Assert.That(testSuiteResult, Is.Not.Null);
+
+                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+
+                BoostTestResult testCaseResult = this.TestResultCollection["LeakingSuite/LeakingTestCase"];
+                Assert.That(testCaseResult, Is.Not.Null);
+
+                AssertReportDetails(testCaseResult, testSuiteResult, "LeakingTestCase", TestResultType.Failed, 0, 0, 0);
+                AssertLogDetails(testCaseResult, 0, new LogEntry[] {
+                    new LogEntryMessage("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
+                    new LogEntryMemoryLeak(null, null, null, 8, 837, " Data: <        > 98 D5 D9 00 00 00 00 00 \n"),
+                    new LogEntryMemoryLeak(null, null, null, 32, 836, " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ")
                 });
             }
         }

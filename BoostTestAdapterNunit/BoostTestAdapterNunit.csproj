@@ -132,6 +132,7 @@
     <EmbeddedResource Include="Resources\ListContentDOT\sample.3.list.content.gv" />
     <EmbeddedResource Include="Resources\ListContentDOT\sample.list.content.gv" />
     <EmbeddedResource Include="Resources\ListContentDOT\sample.8.list.content.gv" />
+    <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.stderr.log" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestCase.cpp" />

@@ -262,6 +262,8 @@ namespace BoostTestAdapter.Boost.Test
             /// <returns>An enumeration of all key-value pairs present in the provided attr_list</returns>
             private static IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(DOTParser.Attr_listContext attr_list)
             {
+                // NOTE Refer to DOT grammar; an 'attr_list' is composed of an 'a_list', which is composed of multiple 'id's
+
                 if (attr_list != null)
                 {
                     var a_lists = attr_list.a_list();
@@ -273,6 +275,8 @@ namespace BoostTestAdapter.Boost.Test
 
                             int id = 0;
                             int idCount = a_list.id().Length;
+
+                            // Try to identify the id() list as a list of 'id' = 'id' tuples
 
                             while (id < idCount)
                             {
@@ -287,6 +291,7 @@ namespace BoostTestAdapter.Boost.Test
                                     yield return new KeyValuePair<string, string>(lhs.GetText(), a_list.id()[id + 1].GetText());
                                     id += 2;
                                 }
+                                // Else provide the identifier a single item
                                 else
                                 {
                                     yield return new KeyValuePair<string, string>(lhs.GetText(), null);
@@ -329,10 +334,15 @@ namespace BoostTestAdapter.Boost.Test
             /// <returns>unit</returns>
             private static T PopulateTestUnit<T>(TestUnitInfo info, T unit) where T : TestUnit
             {
-                if (!string.IsNullOrEmpty(info.id))
+                if ((!string.IsNullOrEmpty(info.id)) && (info.id.Length > 2))
                 {
                     // Remove the 'tu' prefix from the test unit string ID
-                    unit.Id = int.Parse(info.id.Substring(2), CultureInfo.InvariantCulture);
+
+                    int id = 0;
+                    if (int.TryParse(info.id.Substring(2), NumberStyles.Integer, CultureInfo.InvariantCulture, out id))
+                    {
+                        unit.Id = id;
+                    }
                 }
 
                 unit.Source = info.SourceInfo;
