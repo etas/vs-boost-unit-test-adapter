@@ -271,6 +271,9 @@ namespace BoostTestAdapterNunit
 
             VSTestCase testConditional = AssertTestDetails(tests, QualifiedNameBuilder.FromString("BoostUnitTestConditional"), source);
             AssertSourceDetails(testConditional, codeFilePath, 54);
+
+            VSTestCase testMultiline = AssertTestDetails(tests, QualifiedNameBuilder.FromString("some_test"), source);
+            AssertSourceDetails(testMultiline, codeFilePath, 72);
         }
 
         #endregion Helper Methods
@@ -382,7 +385,7 @@ namespace BoostTestAdapterNunit
             using (DummySolution solution = new DummySolution(Source, new string[] { BoostUnitTestSampleRequiringUseOfFilters }))
             {
                 IEnumerable<VSTestCase> vsTests = Discover(solution);
-                Assert.That(vsTests.Count(), Is.EqualTo(7));
+                Assert.That(vsTests.Count(), Is.EqualTo(8));
                 AssertBoostUnitTestSampleRequiringUseOfFilters(vsTests, solution);
             }
         }
@@ -404,7 +407,7 @@ namespace BoostTestAdapterNunit
 
                 IEnumerable<VSTestCase> vsTests = Discover(solution, context);
 
-                Assert.That(vsTests.Count(), Is.EqualTo(8));
+                Assert.That(vsTests.Count(), Is.EqualTo(9));
                 AssertBoostUnitTestSampleRequiringUseOfFilters(vsTests, solution);
 
                 VSTestCase testConditional = AssertTestDetails(vsTests, QualifiedNameBuilder.FromString("BoostUnitTestShouldNotAppear3"), Source);

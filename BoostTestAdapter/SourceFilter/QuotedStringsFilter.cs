@@ -10,7 +10,7 @@ using VisualStudioAdapter;
 namespace BoostTestAdapter.SourceFilter
 {
     /// <summary>
-    /// Filters any quoted strings from the sourcecode. This filtering process is required so as to simplyfy the subsequent filtering operations
+    /// Filters any quoted strings from the source code. This filtering process is required so as to simplify the subsequent filtering operations
     /// </summary>
     public class QuotedStringsFilter : ISourceFilter
     {
@@ -46,6 +46,7 @@ namespace BoostTestAdapter.SourceFilter
         //            Match any character that is NOT a “"” «[^"]»
         //      Match the character “"” literally «"»
 
+        // Reference: http://stackoverflow.com/questions/3219014/what-is-a-cross-platform-regex-for-removal-of-line-breaks
         private static readonly Regex lineBreakRegex = new Regex(@"\r\n?|\n", RegexOptions.Singleline | RegexOptions.Multiline);
         
         //Options: Case insensitive; Exact spacing; Dot matches line breaks; ^$ don't match at line breaks; Numbered capture
@@ -82,21 +83,16 @@ namespace BoostTestAdapter.SourceFilter
         /// <returns>the replacement string</returns>
         private string ComputeReplacement(Match m)
         {
-            if (m.Groups.Count > 1 && m.Groups[1].Success)
+            StringBuilder replacementString = new StringBuilder();
+
+            Match matchLineBreak = lineBreakRegex.Match(m.Value);
+            while (matchLineBreak.Success)
             {
-                StringBuilder replacementString = new StringBuilder();
-
-                Match matchLineBreak = lineBreakRegex.Match(m.Groups[1].Value);
-                while (matchLineBreak.Success)
-                {
-                    replacementString.Append(matchLineBreak.Value); //line break types are preserved
-                    matchLineBreak = matchLineBreak.NextMatch();
-                }
-
-                return replacementString.ToString();
+                replacementString.Append(matchLineBreak.Value); //line break types are preserved
+                matchLineBreak = matchLineBreak.NextMatch();
             }
 
-            return string.Empty;
+            return replacementString.ToString();
         }
     }
 }
