@@ -202,6 +202,7 @@ namespace BoostTestAdapter.Boost.Results
         /// <param name="args">The command line args which were used to generate the test results</param>
         /// <param name="settings">The run time settings which were used to generate the test results</param>
         /// <returns>An IBoostTestResultOutput or null if one cannot be identified from the provided arguments</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
         private static IBoostTestResultOutput GetStandardError(BoostTestRunnerCommandLineArgs args, BoostTestAdapterSettings settings)
         {
             if ((!string.IsNullOrEmpty(args.StandardErrorFile)) && (File.Exists(args.StandardErrorFile)))
