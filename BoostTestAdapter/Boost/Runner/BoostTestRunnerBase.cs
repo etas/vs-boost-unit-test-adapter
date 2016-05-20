@@ -12,7 +12,6 @@ using System.Management;
 using BoostTestAdapter.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using System.ComponentModel;
-using System.Collections.Specialized;
 
 namespace BoostTestAdapter.Boost.Runner
 {
@@ -75,6 +74,8 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
+                bool supported = false;
+
                 // Try to locate the list_content function debug symbol. If this is not available, this implies that:
                 // - Debug symbols are not available for the requested source
                 // - Debug symbols are available but the source is not a Boost Unit Test version >= 3 module
@@ -83,15 +84,19 @@ namespace BoostTestAdapter.Boost.Runner
                     // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
                     using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
                     {
-                        return dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::list_content");
+                        supported =
+                            dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::list_content") || // Boost 1.59
+                            dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::LIST_CONTENT");   // Boost 1.60/1.61
                     }
                 }
                 catch (Win32Exception ex)
                 {
                     Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
                 }
+                
+                Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceListContent>' via a .runsettings file.", this.TestRunnerExecutable);
 
-                return false;
+                return supported;
             }
         }
 
