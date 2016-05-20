@@ -64,3 +64,12 @@ BOOST_AUTO_TEST_CASE( BoostUnitTestShouldNotAppear4 )
 BOOST_WARN( sizeof(int) == sizeof(short) );
 }
 */
+
+const char * const s = "Hello, \
+world!"
+
+/// test line number should not be offset
+BOOST_AUTO_TEST_CASE(some_test)
+{
+    BOOST_CHECK(true)
+}

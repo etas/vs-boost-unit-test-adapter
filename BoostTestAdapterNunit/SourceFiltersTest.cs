@@ -24,6 +24,7 @@ namespace BoostTestAdapterNunit
         [TestCase("BOOST_MESSAGE(\"This is a test\\\"\");", Result = "BOOST_MESSAGE();")]
         [TestCase("BOOST_MESSAGE(\"This is a just a\\\" test\");", Result = "BOOST_MESSAGE();")]
         [TestCase("#include \"stdafx.h\"", Result = "#include ")]
+        [TestCase("const char* const cikku = \"Hello /\r\nWorld\"", Result = "const char* const cikku = \r\n")]
         public string FilterQuotedString(string input)
         {
             ISourceFilter filter = new QuotedStringsFilter();

@@ -13,3 +13,5 @@ const wchar_t* newline = LR"(hello
 goodbye)";
 char str[] = "12" "34";
 const wchar_t* raw_wide = LR"(An unescaped " character)" + R"(An unescaped " character)";
+const char* const multiline = "Hello \
+                                World";

@@ -13,3 +13,5 @@ const wchar_t* newline =
 ;
 char str[] =  ;
 const wchar_t* raw_wide =  + ;
+const char* const multiline = 
+;
