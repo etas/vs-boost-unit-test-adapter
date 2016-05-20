@@ -41,7 +41,7 @@ namespace BoostTestAdapter.Boost.Results
         #region Properties
 
         /// <summary>
-        /// Determines wheter or not a test should fail if a memory leak is detected within the output
+        /// Determines whether or not a test should fail if a memory leak is detected within the output
         /// </summary>
         public bool FailTestOnMemoryLeak { get; set; }
 
@@ -55,24 +55,22 @@ namespace BoostTestAdapter.Boost.Results
         /// <param name="collection">test result collection where the leak information data will be inserted at</param>
         public override void Parse(TestResultCollection collection)
         {
-            using (StreamReader reader = new StreamReader(this.InputStream))
+            // NOTE Disposing is handled by parent class
+            string strConsoleOutput = new StreamReader(this.InputStream).ReadToEnd();
+
+            //the below regex is intended to only to "detect" if any memory leaks are present. Note that any console output printed by the test generally appears before the memory leaks dump.
+            Regex regexObj = new Regex(@"Detected\smemory\sleaks!\nDumping objects\s->\n(.*)Object dump complete.", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline);
+            Match outputMatch = regexObj.Match(strConsoleOutput);
+
+            //leak has been detected
+            if (outputMatch.Success)
             {
-                string strConsoleOutput = reader.ReadToEnd();
-
-                //the below regex is intended to only to "detect" if any memory leaks are present. Note that any console output printed by the test generally appears before the memory leaks dump.
-                Regex regexObj = new Regex(@"Detected\smemory\sleaks!\nDumping objects\s->\n(.*)Object dump complete.", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline);
-                Match outputMatch = regexObj.Match(strConsoleOutput);
-
-                //leak has been detected
-                if (outputMatch.Success)
-                {
-                    RegisterMemoryLeak(outputMatch.Groups[1].Value, collection);
-                }
-
-                // Extract non-memory leak output
-                string output = strConsoleOutput.Substring(0, ((outputMatch.Success) ? outputMatch.Index : strConsoleOutput.Length));
-                RegisterMessages(output, collection);
+                RegisterMemoryLeak(outputMatch.Groups[1].Value, collection);
             }
+
+            // Extract non-memory leak output
+            string output = strConsoleOutput.Substring(0, ((outputMatch.Success) ? outputMatch.Index : strConsoleOutput.Length));
+            RegisterMessages(output, collection);
         }
 
         #endregion IBoostOutputParser

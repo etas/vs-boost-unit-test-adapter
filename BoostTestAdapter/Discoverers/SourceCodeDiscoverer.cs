@@ -153,13 +153,7 @@ namespace BoostTestAdapter.Discoverers
                                     // Filter out any false positives and quickly reject files which do not contain any Boost Unit Test eye-catchers
                                     if ( ShouldConsiderSourceFile(cppSourceFile.SourceCode) )
                                     {
-                                        /*
-                                         * it is important that the pre-processor defines at project level are not modified
-                                         * because every source file in the project has to have the same starting point.
-                                         */
-
-                                        //call to cpy ctor
-                                        Defines definitions = new Defines(projectInfo.DefinesHandler);
+                                        Defines definitions = GetDefines(projectInfo);
 
                                         ApplySourceFilter(cppSourceFile, definitions);
                                         DiscoverBoostTests(cppSourceFile, source, discoverySink);
@@ -244,6 +238,34 @@ namespace BoostTestAdapter.Discoverers
             }
 
             return lineNumber;
+        }
+
+
+        /// <summary>
+        /// Acquires the pre-processor definitions used by the project
+        /// </summary>
+        /// <param name="projectInfo">The Visual Studio project</param>
+        /// <returns>The pre-processor definitions specified within the project</returns>
+        private static Defines GetDefines(ProjectInfo projectInfo)
+        {
+            /*
+             * it is important that the pre-processor defines at project level are not modified
+             * because every source file in the project has to have the same starting point.
+             */
+
+            //call to cpy ctor
+            Defines defines = new Defines(projectInfo.DefinesHandler);
+
+            // Additional Boost definitions
+
+            // NOTE These definitions are generally assumed to be available since
+            //      we are operating in a BOOST Test context
+            if (!defines.IsDefined("BOOST_VERSION"))
+            {
+                defines.Define("BOOST_VERSION", "0");
+            }
+
+            return defines;
         }
 
         /// <summary>
