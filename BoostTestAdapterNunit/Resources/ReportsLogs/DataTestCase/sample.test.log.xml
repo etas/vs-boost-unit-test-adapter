@@ -1,0 +1,27 @@
+<TestLog>
+	<TestSuite name="MultipleTests">
+		<TestCase name="test_case_arity1_implicit">
+			<TestingTime>1000</TestingTime>
+		</TestCase>
+		<TestCase name="test_case_arity1_implicit">
+			<TestingTime>0</TestingTime>
+		</TestCase>
+		<TestCase name="test_case_arity1_implicit">
+			<TestingTime>1000</TestingTime>
+		</TestCase>
+		<TestCase name="test_case_arity1_implicit">
+			<Error file="c:/users/brian/documents/projects/boost unit test adapter/sample/boostunittest/misc/boosttestdata.cpp" line="9">
+				<![CDATA[check sample != 3 has failed [3 == 3]]]>
+				<Context>
+					<Frame>
+						<![CDATA[sample = 3; ]]>
+					</Frame>
+				</Context>
+			</Error>
+			<TestingTime>1000</TestingTime>
+		</TestCase>
+		<TestCase name="test_case_arity1_implicit">
+			<TestingTime>1000</TestingTime>
+		</TestCase>
+	</TestSuite>
+</TestLog>

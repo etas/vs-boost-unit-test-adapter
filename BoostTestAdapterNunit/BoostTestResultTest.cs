@@ -951,5 +951,35 @@ namespace BoostTestAdapterNunit
                 });
             }
         }
+
+        /// <summary>
+        /// Assert that multiple test reports for the same test are aggregated under the same result
+        /// </summary>
+        [Test]
+        public void DataTestCaseResultAggregation()
+        {
+            using (Stream report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.DataTestCase.sample.test.report.xml"))
+            using (Stream log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.DataTestCase.sample.test.log.xml"))
+            using (Stream stdout = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.stdout.log"))
+            using (Stream stderr = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.stderr.log"))
+            {
+                Parse(report, log, stdout, stderr);
+
+                BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
+                Assert.That(masterSuiteResult, Is.Not.Null);
+
+
+                // NOTE The values here do not match the Xml report file since the results are aggregated as one.
+                //      All tests are considered as failed since they share the same result.
+                AssertReportDetails(masterSuiteResult, null, "MultipleTests", TestResultType.Failed, 4, 1, 0, 0, 1, 0, 0);
+                
+                BoostTestResult testCaseResult = this.TestResultCollection["test_case_arity1_implicit"];
+                Assert.That(testCaseResult, Is.Not.Null);
+
+                AssertReportDetails(testCaseResult, masterSuiteResult, "test_case_arity1_implicit", TestResultType.Failed, 4, 1, 0);
+
+                Assert.That(testCaseResult.Duration, Is.EqualTo(4000));
+            }
+        }
     }
 }

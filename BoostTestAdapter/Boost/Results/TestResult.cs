@@ -13,12 +13,12 @@ namespace BoostTestAdapter.Boost.Results
     /// <summary>
     /// Test result enumeration.
     /// </summary>
-    public enum TestResultType
+    public enum TestResultType : int
     {
-        Passed,
-        Skipped,
-        Aborted,
-        Failed
+        Passed = 0,
+        Skipped = 1,
+        Aborted = 2,
+        Failed = 3
     }
 
     /// <summary>
@@ -42,6 +42,7 @@ namespace BoostTestAdapter.Boost.Results
         {
             this.Collection = collection;
             this.LogEntries = new List<LogEntry>();
+            this.Duration = 0;
         }
 
         /// <summary>
