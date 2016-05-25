@@ -94,7 +94,10 @@ namespace BoostTestAdapter.Boost.Runner
                     Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
                 }
                 
-                Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceListContent>' via a .runsettings file.", this.TestRunnerExecutable);
+                if (!supported)
+                {
+                    Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceListContent>' via a .runsettings file.", this.TestRunnerExecutable);
+                }
 
                 return supported;
             }

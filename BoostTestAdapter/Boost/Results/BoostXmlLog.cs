@@ -157,7 +157,7 @@ namespace BoostTestAdapter.Boost.Results
             if (testingTime != null)
             {
                 // Boost test testing time is listed in microseconds
-                result.Duration = ulong.Parse(testingTime.InnerText, CultureInfo.InvariantCulture);
+                result.Duration += ulong.Parse(testingTime.InnerText, CultureInfo.InvariantCulture);
             }
 
             ParseTestCaseLogEntries(node.ChildNodes, result);

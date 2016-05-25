@@ -3,10 +3,12 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System;
 using System.Globalization;
 using System.IO;
 using System.Xml.XPath;
 using BoostTestAdapter.Boost.Test;
+using BoostTestAdapter.Utility;
 
 namespace BoostTestAdapter.Boost.Results
 {
@@ -113,8 +115,57 @@ namespace BoostTestAdapter.Boost.Results
         /// <param name="collection">The TestResultCollection which will host the result.</param>
         private static void ParseTestCaseReport(XPathNavigator node, TestSuite parent, TestResultCollection collection)
         {
-            TestCase testCase = new TestCase(node.GetAttribute(Xml.Name, string.Empty), parent);
-            collection[testCase] = ParseTestResult(node, testCase, collection);
+            QualifiedNameBuilder fullname = new QualifiedNameBuilder(parent);
+            fullname.Push(node.GetAttribute(Xml.Name, string.Empty));
+
+            TestCase testCase = null;
+
+            // If the test is already available, reuse it
+            TestResult current = collection[fullname.ToString()];
+            if (current != null)
+            {
+                testCase = current.Unit as TestCase;
+            }
+
+            // Else construct and add it to the appropriate parent
+            if (testCase == null)
+            {
+                testCase = new TestCase(fullname.Peek(), parent);
+            }
+
+            TestResult result = ParseTestResult(node, testCase, collection);
+
+            // Aggregate results. Common use-case in BOOST_DATA_TEST_CASE.
+            collection[fullname.ToString()] = Aggregate(result, current);
+        }
+
+        /// <summary>
+        /// Aggregates the two results as one result structure if compatible.
+        /// </summary>
+        /// <param name="lhs">The left-hand side result to aggregate</param>
+        /// <param name="rhs">The right-hand side result to aggregate</param>
+        /// <returns>A TestResult instance consisting of both results as one or lhs in case of incompatibilities</returns>
+        private static TestResult Aggregate(TestResult lhs, TestResult rhs)
+        {
+            // If lhs and rhs are incompatible, return the first non-null argument
+            if ((lhs == null) || (rhs == null) || (lhs.Collection != rhs.Collection) || (lhs.Unit.FullyQualifiedName != rhs.Unit.FullyQualifiedName))
+            {
+                return ((lhs != null) ? lhs : rhs);
+            }
+
+            TestResult rvalue = new TestResult(lhs.Collection);
+            rvalue.Unit = lhs.Unit;
+
+            // Select the worst of the result types
+            int result = Math.Max((int) lhs.Result, (int) rhs.Result);
+            rvalue.Result = (TestResultType) result;
+
+            // Sum up totals
+            rvalue.AssertionsPassed = lhs.AssertionsPassed + rhs.AssertionsPassed;
+            rvalue.AssertionsFailed = lhs.AssertionsFailed + rhs.AssertionsFailed;
+            rvalue.ExpectedFailures = lhs.ExpectedFailures + rhs.ExpectedFailures;
+
+            return rvalue;
         }
 
         /// <summary>

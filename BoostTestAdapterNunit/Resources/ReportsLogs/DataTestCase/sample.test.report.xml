@@ -1,0 +1,9 @@
+<TestResult>
+	<TestSuite name="MultipleTests" result="failed" assertions_passed="4" assertions_failed="1" warnings_failed="0" expected_failures="0" test_cases_passed="4" test_cases_passed_with_warnings="0" test_cases_failed="1" test_cases_skipped="0" test_cases_aborted="0">
+		<TestCase name="test_case_arity1_implicit" result="passed" assertions_passed="1" assertions_failed="0" warnings_failed="0" expected_failures="0"/>
+		<TestCase name="test_case_arity1_implicit" result="passed" assertions_passed="1" assertions_failed="0" warnings_failed="0" expected_failures="0"/>
+		<TestCase name="test_case_arity1_implicit" result="passed" assertions_passed="1" assertions_failed="0" warnings_failed="0" expected_failures="0"/>
+		<TestCase name="test_case_arity1_implicit" result="failed" assertions_passed="0" assertions_failed="1" warnings_failed="0" expected_failures="0"/>
+		<TestCase name="test_case_arity1_implicit" result="passed" assertions_passed="1" assertions_failed="0" warnings_failed="0" expected_failures="0"/>
+	</TestSuite>
+</TestResult>
