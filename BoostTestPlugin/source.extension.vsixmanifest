@@ -22,7 +22,7 @@ In case of any issues please file an issue at https://github.com/etas/vs-boost-u
         <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Enterprise" />
     </Installation>
     <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,]" />
     </Dependencies>
     <Assets>
         <Asset d:Source="Project" d:ProjectName="BoostTestAdapter" Type="Microsoft.VisualStudio.MefComponent" Path="|BoostTestAdapter|" />
