@@ -263,6 +263,24 @@ namespace BoostTestAdapterNunit
             }
         }
 
+        /// <summary>
+        /// Tests the discovery of BOOST_DATA_TEST_CASE and BOOST_DATA_TEST_CASE_F test cases
+        /// </summary>
+        [Test]
+        public void BOOST_DATA_TEST_CASEDiscovery()
+        {
+            using (DummySolution solution = new DummySolution(DefaultSource, "BoostDataTestCase.cpp"))
+            {
+                IList<TestCase> testList = DiscoverTests(solution);
+
+                Assert.That(testList.Count, Is.EqualTo(3));
+
+                AssertTestDetails(testList[0], QualifiedNameBuilder.FromString("data_test_suite/data_1"));
+                AssertTestDetails(testList[1], QualifiedNameBuilder.FromString("data_test_suite/data_2"));
+                AssertTestDetails(testList[2], QualifiedNameBuilder.FromString("data_3"));
+            }
+        }
+
         #endregion GetBoostTestsCase
     }
 }

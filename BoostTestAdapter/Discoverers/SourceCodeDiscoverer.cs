@@ -39,6 +39,8 @@ namespace BoostTestAdapter.Discoverers
             public const string FixtureTestSuiteIdentifier = "BOOST_FIXTURE_TEST_SUITE";
             public const string AutoTestSuiteEndIdentifier = "BOOST_AUTO_TEST_SUITE_END";
             public const string TestCaseTemplateIdentifier = "BOOST_AUTO_TEST_CASE_TEMPLATE";
+            public const string DataTestCaseIdentifier = "BOOST_DATA_TEST_CASE";
+            public const string FixtureDataTestCaseIdentifier = "BOOST_DATA_TEST_CASE_F";
         }
 
         #endregion Constants
@@ -274,6 +276,7 @@ namespace BoostTestAdapter.Discoverers
         /// <param name="cppSourceFile">The C++ source file to scan for Boost Tests</param>
         /// <param name="source">The associated test source EXE</param>
         /// <param name="discoverySink">The discoverySink to which identified tests will be notified to</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private static void DiscoverBoostTests(CppSourceFile cppSourceFile, string source, ITestCaseDiscoverySink discoverySink)
         {
             string[] code = cppSourceFile.SourceCode.TrimEnd(new[] { ' ', '\n', '\r' }).Split('\n');
@@ -327,8 +330,17 @@ namespace BoostTestAdapter.Discoverers
 
                     case Constants.FixtureTestCaseIdentifier:
                     case Constants.AutoTestCaseIdentifier:
+                    case Constants.DataTestCaseIdentifier:
                         {
                             string testCaseName = ParseTestCase(splitMacro, sourceInfo, code, ref line);
+                            var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseName);
+                            TestCaseUtils.AddTestCase(testCase, discoverySink);
+                            break;
+                        }
+
+                    case Constants.FixtureDataTestCaseIdentifier:
+                        {
+                            string testCaseName = ParseDataTestCaseF(splitMacro, sourceInfo, code, ref line);
                             var testCase = TestCaseUtils.CreateTestCase(source, sourceInfo, suite, testCaseName);
                             TestCaseUtils.AddTestCase(testCase, discoverySink);
                             break;
@@ -356,13 +368,7 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>A tuple consisting of the test case name and the list of defined templated types</returns>
         private static KeyValuePair<string, IEnumerable<string>> ParseTemplateTestCase(string[] splitMacro, Dictionary<string, IEnumerable<string>> definedTemplates, SourceFileInfo sourceInfo, string[] code, ref string line)
         {
-            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
-            if (sourceInfo.LineNumber != newLineNumber)
-            {
-                // recalc splitMacro
-                splitMacro = SplitMacro(line);
-                sourceInfo.LineNumber = newLineNumber;
-            }
+            splitMacro = ParseTestDeclaration(splitMacro, sourceInfo, code, ref line);
 
             //third parameter is the corresponding boost::mpl::list name
             string listName = splitMacro[3].Trim();
@@ -388,15 +394,22 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>The name of the test case</returns>
         private static string ParseTestCase(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
         {
-            int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
-            if (sourceInfo.LineNumber != newLineNumber)
-            {
-                // recalc splitMacro
-                splitMacro = SplitMacro(line);
-                sourceInfo.LineNumber = newLineNumber;
-            }
-
+            splitMacro = ParseTestDeclaration(splitMacro, sourceInfo, code, ref line);
             return splitMacro[1].Trim();
+        }
+
+        /// <summary>
+        /// Parses the beginning declaration of a BOOST_DATA_TEST_CASE_F
+        /// </summary>
+        /// <param name="splitMacro">The current source line split into tokens</param>
+        /// <param name="sourceInfo">Source file and line information/param>
+        /// <param name="code">The entire code split by line</param>
+        /// <param name="line">The current source code line which is being evaluated</param>
+        /// <returns>The name of the test case</returns>
+        private static string ParseDataTestCaseF(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
+        {
+            splitMacro = ParseTestDeclaration(splitMacro, sourceInfo, code, ref line);
+            return splitMacro[2].Trim();
         }
 
         /// <summary>
@@ -406,8 +419,22 @@ namespace BoostTestAdapter.Discoverers
         /// <param name="sourceInfo">Source file and line information/param>
         /// <param name="code">The entire code split by line</param>
         /// <param name="line">The current source code line which is being evaluated</param>
-        /// <returns>The name of the test sute</returns>
+        /// <returns>The name of the test suite</returns>
         private static string ParseBeginTestSuite(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
+        {
+            splitMacro = ParseTestDeclaration(splitMacro, sourceInfo, code, ref line);
+            return splitMacro[1].Trim();
+        }
+
+        /// <summary>
+        /// Parses the <em>entire</em> test case/suite declaration
+        /// </summary>
+        /// <param name="splitMacro">The current source line split into tokens</param>
+        /// <param name="sourceInfo">Source file and line information/param>
+        /// <param name="code">The entire code split by line</param>
+        /// <param name="line">The current source code line which is being evaluated</param>
+        /// <returns>An array of string components which are of interest for test component evaluation</returns>
+        private static string[] ParseTestDeclaration(string[] splitMacro, SourceFileInfo sourceInfo, string[] code, ref string line)
         {
             int newLineNumber = ScrollLines(sourceInfo.LineNumber, code, ref line);
             if (sourceInfo.LineNumber != newLineNumber)
@@ -417,7 +444,7 @@ namespace BoostTestAdapter.Discoverers
                 sourceInfo.LineNumber = newLineNumber;
             }
 
-            return splitMacro[1].Trim();
+            return splitMacro;
         }
         
         /// <summary>
