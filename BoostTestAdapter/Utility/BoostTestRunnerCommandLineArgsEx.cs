@@ -73,6 +73,8 @@ namespace BoostTestAdapter.Utility
                     args.SetEnvironment(vsConfiguration.Environment);
                 }
             }
+            // Enforce windows style backward slashes
+            args.WorkingDirectory = args.WorkingDirectory.Replace('/', '\\');
         }
 
         /// <summary>
