@@ -48,6 +48,8 @@
         <!-- Test case-sensitivity -->
         <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
 
+		
+		<RunDisabledTests>true</RunDisabledTests>
 
         <Filters>
             <Exclude>

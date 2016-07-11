@@ -1,0 +1,25 @@
+digraph G {rankdir=LR;
+tu1[shape=ellipse,peripheries=2,fontname=Helvetica,color=green,label="Sample"];
+{
+tu2[shape=Mrecord,fontname=Helvetica,color=green,label="Suite1|c:\boostunittest\boostunittestsample.cpp(11)"];
+tu1 -> tu2;
+{
+tu65536[shape=Mrecord,fontname=Helvetica,color=green,label="MyBoost_Test1|c:\boostunittest\boostunittestsample.cpp(12)"];
+tu2 -> tu65536;
+tu65537[shape=Mrecord,fontname=Helvetica,color=yellow,label="MyBoost_Test2|c:\boostunittest\boostunittestsample.cpp(16)"];
+tu2 -> tu65537;
+tu65538[shape=Mrecord,fontname=Helvetica,color=green,label="MyBoost_Test3|c:\boostunittest\boostunittestsample.cpp(20)"];
+tu2 -> tu65538;
+tu65539[shape=Mrecord,fontname=Helvetica,color=yellow,label="MyBoost_Test4|c:\boostunittest\boostunittestsample.cpp(24)"];
+tu2 -> tu65539;
+}
+tu65540[shape=Mrecord,fontname=Helvetica,color=green,label="MyBoost_Test5|c:\boostunittest\boostunittestsample.cpp(30)"];
+tu1 -> tu65540;
+tu65541[shape=Mrecord,fontname=Helvetica,color=yellow,label="MyBoost_Test6|c:\boostunittest\boostunittestsample.cpp(34)"];
+tu1 -> tu65541;
+tu65542[shape=Mrecord,fontname=Helvetica,color=green,label="MyBoost_Test7|c:\boostunittest\boostunittestsample.cpp(38)"];
+tu1 -> tu65542;
+tu65543[shape=Mrecord,fontname=Helvetica,color=yellow,label="MyBoost_Test8|c:\boostunittest\boostunittestsample.cpp(42)"];
+tu1 -> tu65543;
+}
+}

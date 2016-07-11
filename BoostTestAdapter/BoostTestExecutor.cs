@@ -119,6 +119,35 @@ namespace BoostTestAdapter
             Logger.Shutdown();
         }
 
+        /// <summary>
+        /// Filters out any tests which are not intended to run
+        /// </summary>
+        /// <param name="settings">Adapter settings which determines test filtering</param>
+        /// <param name="tests">The entire test corpus</param>
+        /// <returns>A test corpus which contains only the test which are intended to run</returns>
+        private static IEnumerable<TestCase> GetTestsToRun(BoostTestAdapterSettings settings, IEnumerable<TestCase> tests)
+        {
+            IEnumerable<TestCase> testsToRun = tests;
+
+            if (!settings.RunDisabledTests)
+            {
+                testsToRun = tests.Where((test) =>
+                {
+                    foreach (var trait in test.Traits)
+                    {
+                        if ((trait.Name == VSTestModel.StatusTrait) && (trait.Value == VSTestModel.TestEnabled))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+            }
+
+            return testsToRun;
+        }
+
         #region ITestExecutor
 
         /// <summary>
@@ -163,11 +192,16 @@ namespace BoostTestAdapter
                         // and have a list of tests over which we can generate test results for.
                         discoverer.DiscoverTests(new[] { source }, runContext, sink);
 
+
+                        //The following ensures that only test cases that are not disabled are run when the user presses "Run all"
+                        //This, however, can be overwritten by the .runsettings file supplied
+                        IEnumerable<TestCase> testsToRun = GetTestsToRun(settings, sink.Tests);
+
                         // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
                         // Batching by source since this overload is called when 'Run All...' or equivalent is triggered
                         // NOTE For code-coverage speed is given preference over adapter responsiveness.
                         TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.Source : settings.TestBatchStrategy);
-
+                        
                         ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
                         if (batchStrategy == null)
                         {
@@ -175,7 +209,7 @@ namespace BoostTestAdapter
                             continue;
                         }
 
-                        IEnumerable<TestRun> batches = batchStrategy.BatchTests(sink.Tests);
+                        IEnumerable<TestRun> batches = batchStrategy.BatchTests(testsToRun);
 
                         // Delegate to the RunBoostTests overload which takes an enumeration of test batches
                         RunBoostTests(batches, runContext, frameworkHandle);

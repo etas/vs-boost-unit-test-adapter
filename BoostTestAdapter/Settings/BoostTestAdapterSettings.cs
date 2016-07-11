@@ -54,6 +54,8 @@ namespace BoostTestAdapter.Settings
             this.EnableStdErrRedirection = true;
 
             this.Filters = TestSourceFilter.Empty;
+
+            this.RunDisabledTests = false;
         }
 
         #region Properties
@@ -137,7 +139,10 @@ namespace BoostTestAdapter.Settings
 
         [XmlIgnore]
         public BoostTestRunnerCommandLineArgs CommandLineArgs { get; private set; }
-        
+
+        [DefaultValue(false)]
+        public bool RunDisabledTests { get; set; }
+
         #endregion Properties
 
         #region TestRunSettings
