@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestOutcome = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestOutcome;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+using System.Globalization;
 
 namespace BoostTestAdapter.Utility.VisualStudio
 {
@@ -55,6 +56,19 @@ namespace BoostTestAdapter.Utility.VisualStudio
                 return "Disabled";
             }
         }
+
+        /// <summary>
+        /// Converts forward slashes in a file path to backward slashes.
+        /// </summary>
+        /// <param name="path_in"> The input path</param>
+        /// <returns>The output path, modified with backward slashes </returns>
+       
+        private static string ConvertSlashes(string path_in)
+        {
+            return path_in.Replace('/', '\\');
+        }
+
+
 
         /// <summary>
         /// Converts a Boost.Test.Result.TestResult model into an equivalent
@@ -100,7 +114,13 @@ namespace BoostTestAdapter.Utility.VisualStudio
                     if (error != null)
                     {
                         vsResult.ErrorMessage = GetErrorMessage(result);
-                        vsResult.ErrorStackTrace = ((error.Source == null) ? null : error.Source.ToString());
+                        
+                        if (error.Source != null)
+                        {
+                            //String format for a hyper linkable Stack Trace
+                            //Reference: NUnit3 Test Adapter.
+                            vsResult.ErrorStackTrace = string.Format(CultureInfo.InvariantCulture, "at {0}() in {1}:line {2}", vsResult.TestCase.DisplayName, ConvertSlashes(error.Source.File), error.Source.LineNumber);
+                        }
                     }
                 }
             }
