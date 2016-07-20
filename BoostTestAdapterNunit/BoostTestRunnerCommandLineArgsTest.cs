@@ -117,7 +117,6 @@ namespace BoostTestAdapterNunit
             Assert.That(args.BuildInfo, Is.EqualTo(clone.BuildInfo));
             Assert.That(args.AutoStartDebug, Is.EqualTo(clone.AutoStartDebug));
             Assert.That(args.CatchSystemErrors, Is.EqualTo(clone.CatchSystemErrors));
-            Assert.That(args.BreakExecPath, Is.EqualTo(clone.BreakExecPath));
             Assert.That(args.ColorOutput, Is.EqualTo(clone.ColorOutput));
             Assert.That(args.ResultCode, Is.EqualTo(clone.ResultCode));
             Assert.That(args.Random, Is.EqualTo(clone.Random));

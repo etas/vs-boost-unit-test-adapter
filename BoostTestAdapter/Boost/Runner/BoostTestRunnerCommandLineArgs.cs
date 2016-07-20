@@ -110,7 +110,6 @@ namespace BoostTestAdapter.Boost.Runner
         internal const string BuildInfoArg = "--build_info";
         internal const string AutoStartDebugArg = "--auto_start_dbg";
         internal const string CatchSystemErrorsArg = "--catch_system_errors";
-        internal const string BreakExecPathArg = "--break_exec_path";
         internal const string ColorOutputArg = "--color_output";
         internal const string ResultCodeArg = "--result_code";
         internal const string RandomArg = "--random";
@@ -164,7 +163,6 @@ namespace BoostTestAdapter.Boost.Runner
             this.BuildInfo = false;
             this.AutoStartDebug = "no";
             this.CatchSystemErrors = true;
-            this.BreakExecPath = new List<ExecutionPath>();
             this.ColorOutput = false;
             this.ResultCode = true;
             this.Random = 0;
@@ -271,12 +269,6 @@ namespace BoostTestAdapter.Boost.Runner
         /// Determines whether system errors should be caught.
         /// </summary>
         public bool CatchSystemErrors { get; set; }
-
-        /// <summary>
-        /// Identify execution paths for certain tests in which execution should break.
-        /// </summary>
-        /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
-        public IList<ExecutionPath> BreakExecPath { get; private set; }
 
         /// <summary>
         /// States whether standard output text is colour coded.
@@ -407,12 +399,6 @@ namespace BoostTestAdapter.Boost.Runner
             if (!this.CatchSystemErrors)
             {
                 AddArgument(CatchSystemErrorsArg, No, args);
-            }
-
-            // --break_exec_path=Test1:14 Test2:15
-            if (this.BreakExecPath.Count > 0)
-            {
-                AddArgument(BreakExecPathArg, string.Join(" ", this.BreakExecPath), args);
             }
 
             // --color_output=yes
@@ -685,9 +671,6 @@ namespace BoostTestAdapter.Boost.Runner
             clone.BuildInfo = this.BuildInfo;
             clone.AutoStartDebug = this.AutoStartDebug;
             clone.CatchSystemErrors = this.CatchSystemErrors;
-
-            // Shallow copy
-            clone.BreakExecPath = new List<ExecutionPath>(this.BreakExecPath);
 
             clone.ColorOutput = this.ColorOutput;
             clone.ResultCode = this.ResultCode;

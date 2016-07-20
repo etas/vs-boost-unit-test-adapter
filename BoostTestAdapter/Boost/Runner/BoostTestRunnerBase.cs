@@ -85,7 +85,6 @@ namespace BoostTestAdapter.Boost.Runner
                     using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
                     {
                         supported =
-                            dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::list_content") || // Boost 1.59
                             dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::LIST_CONTENT");   // Boost 1.60/1.61
                     }
                 }
