@@ -141,18 +141,6 @@
       <Project>{bc4b3bed-9241-4dd6-8070-a9b66dfc08c1}</Project>
       <Name>BoostTestAdapter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
-      <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
-      <Name>VisualStudio2012Adapter</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualStudio2013Adapter\VisualStudio2013Adapter.csproj">
-      <Project>{82df0aeb-582a-4b38-96fc-aaee773beafe}</Project>
-      <Name>VisualStudio2013Adapter</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
     <ProjectReference Include="..\VisualStudio2015Adapter\VisualStudio2015Adapter.csproj">
       <Project>{eb0051e3-1dda-418c-abaf-c1da5339114c}</Project>
       <Name>VisualStudio2015Adapter</Name>

@@ -62,9 +62,8 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
+      <HintPath>$(ProgramFiles32)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System">
@@ -159,14 +158,6 @@
     <ProjectReference Include="..\Antlr.DOT\Antlr.DOT.csproj">
       <Project>{488ae1ce-107d-4f5b-9f1f-ed7905d5ce75}</Project>
       <Name>Antlr.DOT</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualStudio2012Adapter\VisualStudio2012Adapter.csproj">
-      <Project>{30ecc867-ce89-425f-b452-7a8a320f727d}</Project>
-      <Name>VisualStudio2012Adapter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualStudio2013Adapter\VisualStudio2013Adapter.csproj">
-      <Project>{82df0aeb-582a-4b38-96fc-aaee773beafe}</Project>
-      <Name>VisualStudio2013Adapter</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualStudio2015Adapter\VisualStudio2015Adapter.csproj">
       <Project>{eb0051e3-1dda-418c-abaf-c1da5339114c}</Project>
