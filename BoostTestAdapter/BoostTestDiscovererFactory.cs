@@ -108,7 +108,7 @@ namespace BoostTestAdapter
                 if (extension != BoostTestDiscoverer.ExeExtension)
                     continue;
 
-                if ((settings.UseListContent) && ((settings.ForceListContent) || IsListContentSupported(source, settings)))
+                if (((settings.ForceListContent) || IsListContentSupported(source, settings)))
                 {
                     listContentDiscovererSources.Add(source);
                 }
@@ -133,14 +133,7 @@ namespace BoostTestAdapter
                     Discoverer = new ListContentDiscoverer(),
                     Sources = listContentDiscovererSources
                 });
-
-            if (sourceCodeDiscovererSources.Any())
-                discoverers.Add(new FactoryResult()
-                {
-                    Discoverer = new SourceCodeDiscoverer(),
-                    Sources = sourceCodeDiscovererSources
-                });
-
+     
             return discoverers;
         }
 

@@ -10,7 +10,6 @@ using System.Xml.Serialization;
 using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Utility;
 using BoostTestAdapterNunit.Utility;
-using BoostTestAdapterNunit.Utility.Xml;
 using NUnit.Framework;
 
 namespace BoostTestAdapterNunit
@@ -239,90 +238,6 @@ namespace BoostTestAdapterNunit
 
             TestUnit suiteSuiteTest = Lookup(framework.MasterTestSuite, "suite/suite/test");
             AssertTestCase(suiteSuiteTest, 5, null, suiteSuite);
-        }
-
-        /// <summary>
-        /// TestFramework instances can be deserialised from Xml listings.
-        /// 
-        /// Test aims:
-        ///     - Given a valid Xml fragment, a TestFramework can be deserialised from the contained information.
-        /// </summary>
-        [Test]
-        public void ParseTestList()
-        {
-            const string sourceFile = "test_runner_test.cpp";
-
-            TestFramework expected = new TestFrameworkBuilder(Source, "Test runner test", 1).
-                TestCase("test1", 65536, new SourceFileInfo(sourceFile, 26)).
-                TestCase("test2", 65537, new SourceFileInfo(sourceFile, 35)).
-                TestSuite("SampleSuite", 2).
-                    TestSuite("SampleNestedSuite", 3).
-                        TestCase("test3", 65538, new SourceFileInfo(sourceFile, 48)).
-                    EndSuite().
-                EndSuite().
-                TestSuite("TemplateSuite", 4).
-                    TestCase("TemplateSuite/my_test<char>", 65539, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("TemplateSuite/my_test<int>", 65540, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("TemplateSuite/my_test<float>", 65541, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("TemplateSuite/my_test<double>", 65542, new SourceFileInfo(sourceFile, 79)).
-                EndSuite().
-            Build();
-
-            TestFramework framework = Deserialize("BoostTestAdapterNunit.Resources.TestLists.sample.test.list.xml");
-
-            FrameworkEqualityVisitor.IsEqualTo(framework, expected);
-        }
-
-        /// <summary>
-        /// TestFramework instances can be deserialised from semantically empty Xml listings.
-        /// 
-        /// Test aims:
-        ///     - Given a valid Xml fragment describing an empty framework, a TestFramework can be deserialised from the contained information.
-        /// </summary>
-        [Test]
-        public void ParseEmptyTestList()
-        {
-            TestFramework expected = new TestFrameworkBuilder("", "Master Test Suite", 1).Build();
-            TestFramework framework = Deserialize("BoostTestAdapterNunit.Resources.TestLists.empty.test.list.xml");
-
-            FrameworkEqualityVisitor.IsEqualTo(framework, expected);
-        }
-
-        /// <summary>
-        /// TestFramework can be serialized as an Xml listing.
-        /// 
-        /// Test aims:
-        ///     - A TestFramework can be serialized to Xml successfully.
-        /// </summary>
-        [Test]
-        public void SerializeTestFramework()
-        {
-            const string sourceFile = "test_runner_test.cpp";
-
-            TestFramework framework = new TestFrameworkBuilder(Source, "Test runner test", 1).
-                TestCase("test1", 65536, new SourceFileInfo(sourceFile, 26)).
-                TestCase("test2", 65537, new SourceFileInfo(sourceFile, 35)).
-                TestSuite("SampleSuite", 2).
-                    TestSuite("SampleNestedSuite", 3).
-                        TestCase("test3", 65538, new SourceFileInfo(sourceFile, 48)).
-                    EndSuite().
-                EndSuite().
-                TestSuite("TemplateSuite", 4).
-                    TestCase("my_test<char>", 65539, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("my_test<int>", 65540, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("my_test<float>", 65541, new SourceFileInfo(sourceFile, 79)).
-                    TestCase("my_test<double>", 65542, new SourceFileInfo(sourceFile, 79)).
-                EndSuite().
-                Build();
-
-            using (Stream stream = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.TestLists.sample.test.list.xml"))
-            {
-                XmlDocument baseXml = new XmlDocument();
-                baseXml.Load(stream);
-
-                XmlComparer comparer = new XmlComparer();
-                comparer.CompareXML(baseXml, Serialize(framework), XmlNodeTypeFilter.DefaultFilter);
-            }
         }
 
         #endregion Tests

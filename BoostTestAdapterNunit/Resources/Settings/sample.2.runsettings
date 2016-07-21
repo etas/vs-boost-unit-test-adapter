@@ -48,7 +48,6 @@
         <!-- Test case-sensitivity -->
         <DetectFloatingPointExceptions>1</DetectFloatingPointExceptions>
 
-        <UseListContent>true</UseListContent>
 
         <Filters>
             <Exclude>

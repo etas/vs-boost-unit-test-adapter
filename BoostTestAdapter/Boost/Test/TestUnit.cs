@@ -120,69 +120,7 @@ namespace BoostTestAdapter.Boost.Test
         {
             throw new InvalidOperationException();
         }
-
-        #region IXmlSerializable Helpers
-
-        /// <summary>
-        /// Xml Tag/Attribute Constants
-        /// </summary>
-        private static class Xml
-        {
-            public const string Id = "id";
-            public const string Name = "name";
-            public const string File = "file";
-            public const string Line = "line";
-        }
-
-        /// <summary>
-        /// Reads common Xml attributes from a TestUnit Xml node.
-        /// </summary>
-        /// <param name="reader">XmlReader</param>
-        protected void ReadXmlAttributes(XmlReader reader)
-        {
-            Utility.Code.Require(reader, "reader");
-
-            this.Name = reader.GetAttribute(Xml.Name);
-
-            string id = reader.GetAttribute(Xml.Id);
-            if (!string.IsNullOrEmpty(id))
-            {
-                this.Id = int.Parse(id, CultureInfo.InvariantCulture);
-            }
-
-            string file = reader.GetAttribute(Xml.File);
-
-            if (!string.IsNullOrEmpty(file))
-            {
-                this.Source = new SourceFileInfo(file);
-                this.Source.LineNumber = int.Parse(reader.GetAttribute(Xml.Line), CultureInfo.InvariantCulture);
-            }
-        }
-
-        /// <summary>
-        /// Writes common Xml attributes from a TestUnit Xml node.
-        /// </summary>
-        /// <param name="writer">XmlWriter</param>
-        protected void WriteXmlAttributes(XmlWriter writer)
-        {
-            Utility.Code.Require(writer, "writer");
-
-            if (this.Id.HasValue)
-            {
-                writer.WriteAttributeString(Xml.Id, this.Id.Value.ToString(CultureInfo.InvariantCulture));
-            }
-
-            writer.WriteAttributeString(Xml.Name, this.Name);
-
-            if (this.Source != null)
-            {
-                writer.WriteAttributeString(Xml.File, this.Source.File);
-                writer.WriteAttributeString(Xml.Line, this.Source.LineNumber.ToString(CultureInfo.InvariantCulture));
-            }
-        }
-
-        #endregion IXmlSerializable Helpers
-
+        
         #region ITestVisitable
 
         public abstract void Apply(ITestVisitor visitor);

@@ -5,10 +5,6 @@
     <!-- BoostTest adapter -->
     <BoostTest>
         <ExternalTestRunner type=".dll">
-            <DiscoveryFileMap>
-                <File source="test_1.dll">C:\tests\test_1.xml</File>
-                <File source="test_2.dll">C:\tests\test_2.xml</File>
-            </DiscoveryFileMap>
             <ExecutionCommandLine>C:\ExternalTestRunner.exe --test "{source}"</ExecutionCommandLine>
         </ExternalTestRunner>
         <Filters />

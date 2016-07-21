@@ -61,41 +61,27 @@
     <Compile Include="BoostTestDiscovererFactoryTest.cs" />
     <Compile Include="BoostTestDiscovererTest.cs" />
     <Compile Include="BoostTestExecutorTest.cs" />
-    <Compile Include="BoostTestSourceDiscovererTest.cs" />
     <Compile Include="BoostTestResultTest.cs" />
     <Compile Include="BoostTestRunnerCommandLineArgsTest.cs" />
     <Compile Include="BoostTestSettingsTest.cs" />
     <Compile Include="BoostTestTest.cs" />
     <Compile Include="CommandEvaluatorTest.cs" />
-    <Compile Include="ConditionalInclusionsFilterTest.cs" />
     <Compile Include="CorrectReferencedAssembliesTest.cs" />
     <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />
     <Compile Include="DefaultTestDiscovererFactoryTest.cs" />
     <Compile Include="ListContentDiscovererTest.cs" />
     <Compile Include="DOTDeserialisationTest.cs" />
-    <Compile Include="ExternalBoostTestDiscovererTest.cs" />
-    <Compile Include="ExternalDiscovererTest.cs" />
     <Compile Include="Fakes\ConsoleMessageLogger.cs" />
     <Compile Include="Fakes\DefaultTestContext.cs" />
     <Compile Include="Fakes\StubBoostTestRunnerFactory.cs" />
     <Compile Include="LoggerTest.cs" />
-    <Compile Include="MultiLineCommentFilterTest.cs" />
-    <Compile Include="QuotedStringsFilterTest.cs" />
-    <Compile Include="SingleLineCommentFilterTest.cs" />
-    <Compile Include="SourceFiltersTest.cs" />
-    <Compile Include="SourceCodeDiscovererNunit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ExpressionEvaluationTest.cs" />
-    <Compile Include="TestDiscovererNunit.cs" />
     <Compile Include="TestSourceFilterTest.cs" />
     <Compile Include="Fakes\DummySolution.cs" />
-    <Compile Include="Fakes\DummySourceFile.cs" />
     <Compile Include="Fakes\DummyVSProvider.cs" />
     <Compile Include="Utility\FrameworkEqualityVisitor.cs" />
-    <Compile Include="Utility\SourceFilterTestBase.cs" />
     <Compile Include="Utility\TestHelper.cs" />
     <Compile Include="Utility\VisualStudioInstanceBuilders.cs" />
-    <Compile Include="Utility\Xml\XmlComparison.cs" />
     <Compile Include="VSTestModelTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -119,7 +105,6 @@
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.SourceFileAndLineNumbersAvailable.test.stdout.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.stderr.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.stdout.log" />
-    <EmbeddedResource Include="Resources\Settings\conditionalIncludesDisabled.runsettings" />
     <EmbeddedResource Include="Resources\Settings\default.runsettings" />
     <EmbeddedResource Include="Resources\Settings\empty.runsettings" />
     <EmbeddedResource Include="Resources\Settings\sample.2.runsettings" />
@@ -135,10 +120,6 @@
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.stderr.log" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestCase.cpp" />
-    <EmbeddedResource Include="Resources\CppSources\BoostFixtureTestSuite.cpp" />
-    <EmbeddedResource Include="Resources\CppSources\BoostUnitTestSample.cpp" />
-    <EmbeddedResource Include="Resources\CppSources\BoostUnitTestSampleRequiringUseOfFilters.cpp" />
     <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.log.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.report.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\BoostFailTest\sample.test.log.xml" />
@@ -156,23 +137,6 @@
     <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.report.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\PassedTest\sample.test.log.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\PassedTest\sample.test.report.xml" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsBadSourceFileNesting.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationFail.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationSuccess_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsComplexEvaluationSuccess_UnfilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfdefTests_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfdefTests_UnFilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfTests_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\ConditionalInclusionsIfTests_UnFilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\MultiLineCommentTest_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\MultiLineCommentTest_UnFilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\QuotedStringsFilterTest_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\QuotedStringsFilterTest_UnFilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_FilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\SourceFiltering\SingleLineCommentFilterTest_UnFilteredSourceCode.cpp" />
-    <EmbeddedResource Include="Resources\TestLists\empty.test.list.xml" />
-    <EmbeddedResource Include="Resources\TestLists\invalid.test.list.xml" />
-    <EmbeddedResource Include="Resources\TestLists\sample.test.list.xml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.log.xml" />
@@ -184,9 +148,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\CppSources\BoostMultiLineDefinitions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\InvalidXmlLog\test_hlp.exe.test.log.xml" />
@@ -207,9 +168,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\DataTestCase\sample.test.report.xml" />
     <EmbeddedResource Include="Resources\ReportsLogs\DataTestCase\sample.test.log.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\CppSources\BoostDataTestCase.cpp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

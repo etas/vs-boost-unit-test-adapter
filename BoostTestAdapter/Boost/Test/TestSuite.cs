@@ -11,8 +11,7 @@ using BoostTestAdapter.Utility;
 
 namespace BoostTestAdapter.Boost.Test
 {
-    [XmlRoot(Xml.TestSuite)]
-    public class TestSuite : TestUnit, IXmlSerializable
+    public class TestSuite : TestUnit
     {
         #region Members
 
@@ -69,90 +68,7 @@ namespace BoostTestAdapter.Boost.Test
             this._children.Add(unit);
         }
 
-        #region IXmlSerializable
-
-        /// <summary>
-        /// Xml Tag/Attribute Constants
-        /// </summary>
-        internal static class Xml
-        {
-            public const string TestSuite = "TestSuite";
-        }
-
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-
-        public void ReadXml(XmlReader reader)
-        {
-            base.ReadXmlAttributes(reader);
-
-            reader.MoveToElement();
-            bool empty = reader.IsEmptyElement;
-            reader.ReadStartElement(Xml.TestSuite);
-
-            if (!empty)
-            {
-                reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-
-                while (reader.NodeType == XmlNodeType.Element)
-                {
-                    if (reader.Name == Xml.TestSuite)
-                    {
-                        new TestSuite(null, this).ReadXml(reader);
-                    }
-                    else if (reader.Name == TestCase.Xml.TestCase)
-                    {
-                        new TestCase(null, this).ReadXml(reader);
-                    }
-
-                    reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-                }
-
-                reader.ReadEndElement();
-            }
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            base.WriteXmlAttributes(writer);
-
-            foreach (TestUnit child in this.Children)
-            {
-                child.Apply(new BoostTestXmlVisitor(writer));
-            }
-        }
-
-        private class BoostTestXmlVisitor : ITestVisitor
-        {
-            private XmlSerializer SuiteSerializer { get; set; }
-
-            private XmlSerializer CaseSerializer { get; set; }
-
-            private XmlWriter Writer { get; set; }
-
-            public BoostTestXmlVisitor(XmlWriter writer)
-            {
-                this.SuiteSerializer = new XmlSerializer(typeof(TestSuite));
-                this.CaseSerializer = new XmlSerializer(typeof(TestCase));
-
-                this.Writer = writer;
-            }
-
-            public void Visit(TestCase testCase)
-            {
-                this.CaseSerializer.Serialize(this.Writer, testCase);
-            }
-
-            public void Visit(TestSuite testSuite)
-            {
-                this.SuiteSerializer.Serialize(this.Writer, testSuite);
-            }
-        }
-
-        #endregion IXmlSerializable
-
+ 
         #region ITestVisitable
 
         public override void Apply(ITestVisitor visitor)

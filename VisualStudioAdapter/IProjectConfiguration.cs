@@ -16,12 +16,6 @@ namespace VisualStudioAdapter
         string PrimaryOutput { get; }
 
         /// <summary>
-        /// C++ compiler options. If this project is not a C++ project, this property returns null.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cpp")]
-        IVCppCompilerOptions CppCompilerOptions { get; }
-
-        /// <summary>
         /// Visual Studio Configuration.
         /// </summary>        
         IVSDebugConfiguration VSDebugConfiguration { get; }

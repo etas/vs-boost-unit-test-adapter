@@ -34,8 +34,6 @@ namespace BoostTestAdapterNunit
             var sources = new[]
             {
                 "ListContentSupport" + BoostTestDiscoverer.ExeExtension,
-                "ParseSources1" + BoostTestDiscoverer.ExeExtension,
-                "ParseSources2" + BoostTestDiscoverer.ExeExtension,
                 "DllProject1" + BoostTestDiscoverer.DllExtension,
                 "DllProject2" + BoostTestDiscoverer.DllExtension,
             };
@@ -56,13 +54,7 @@ namespace BoostTestAdapterNunit
 
             // tests are found in the using the fake debughelper
             Assert.That(sink.Tests.Count(x => x.Source == "ListContentSupport" + BoostTestDiscoverer.ExeExtension), Is.EqualTo(8));
-
-            // tests are found in the fake solution 
-            Assert.That(sink.Tests.Count(x => x.Source == "ParseSources1" + BoostTestDiscoverer.ExeExtension), Is.EqualTo(6));
-
-            // no (fake) solution code is found for this project
-            Assert.That(sink.Tests.Any(x => x.Source == "ParseSources2" + BoostTestDiscoverer.ExeExtension), Is.False);
-            
+          
             // the external runner does NOT support the two dll projects
             Assert.That(sink.Tests.Any(x => x.Source == "DllProject1" + BoostTestDiscoverer.DllExtension), Is.False);
             Assert.That(sink.Tests.Any(x => x.Source == "DllProject2" + BoostTestDiscoverer.DllExtension), Is.False);
@@ -117,21 +109,7 @@ namespace BoostTestAdapterNunit
 
                 tmpSources.RemoveAll(s => listContentSources.Contains(s));
             }
-
-
-            // sources that NOT support the list-content parameter
-            var sourceCodeSources = tmpSources
-                .Where(s => Path.GetExtension(s) == BoostTestDiscoverer.ExeExtension)
-                .ToList();
-
-            if (sourceCodeSources.Count > 0)
-            {
-                discoverers.Add(new FactoryResult()
-                {
-                    Discoverer = new SourceCodeDiscoverer(_dummySolution.Provider),
-                    Sources = sourceCodeSources
-                });
-            }
+  
             return discoverers;
 
         }
