@@ -217,7 +217,6 @@ namespace BoostTestAdapterNunit
         private void AssertVsTestModelError(VSTestResult result, LogEntry entry)
         {
             Assert.That(result.ErrorMessage, Is.EqualTo(entry.Detail));
-            Assert.That(result.ErrorStackTrace, Is.EqualTo(entry.Source.ToString()));
         }
 
         /// <summary>
