@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 using TestCase = BoostTestAdapter.Boost.Test.TestCase;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using System.IO;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -33,12 +34,18 @@ namespace BoostTestAdapter.Discoverers
         {
             this.Source = source;
             this.DiscoverySink = sink;
+            this.OutputLog = true;
         }
 
         /// <summary>
         /// The test module source file path
         /// </summary>
         public string Source { get; private set; }
+
+        /// <summary>
+        /// Whether the module should outut to the logger regarding relative paths
+        /// </summary>
+        public bool OutputLog { get; private set; }
 
         /// <summary>
         /// The Visual Studio DiscoverySink which is used to notify test discovery
@@ -87,9 +94,15 @@ namespace BoostTestAdapter.Discoverers
             );
 
             test.DisplayName = testCase.Name;
-
+            
             if (testCase.Source != null)
             {
+                if (!Path.IsPathRooted(testCase.Source.File) && this.OutputLog)
+                {
+                    Logger.Info("Relative Paths are being used. Please note that test navigation from the Test Explorer window will not be available. To enable such functionality, the Use Full Paths setting under C++ -> Advanced in the project's Property Page must be set to Yes (/FC).");
+                    this.OutputLog = false;
+                }
+
                 test.CodeFilePath = testCase.Source.File;
                 test.LineNumber = testCase.Source.LineNumber;
             }
