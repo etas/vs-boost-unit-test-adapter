@@ -68,6 +68,9 @@ namespace BoostTestAdapterNunit
         [TestCase("test.exe", ListContentUse.ForceUse, ".exe", Result = typeof(ExternalDiscoverer))]
         [TestCase("test.listcontent.exe", ListContentUse.Use, ".exe", Result = typeof(ExternalDiscoverer))]
         [TestCase("test.listcontent.exe", ListContentUse.ForceUse, ".exe", Result = typeof(ExternalDiscoverer))]
+        // .test.boostd.exe
+        [TestCase("test.test.boostd.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
+        [TestCase("test.test.boostd.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
         // Dll types
         [TestCase("test.dll", ListContentUse.Use, null, Result = null)]
         [TestCase("test.dll", ListContentUse.Use, ".dll", Result = typeof(ExternalDiscoverer))]
