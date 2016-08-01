@@ -87,50 +87,6 @@ namespace VisualStudioAdapter.Shared
             }
         }
 
-        /// <summary>
-        /// Enumerates all source files that need to be parsed in the solution
-        /// </summary>
-        /// <returns>An enumeration of all sources files within the project</returns>
-        public IEnumerable<string> SourceFiles
-        {
-            /*
-             * https://msdn.microsoft.com/en-us/library/microsoft.visualstudio.vcprojectengine.vcfileconfiguration.excludedfrombuild(v=vs.90).aspx
-             * has been used as reference.
-             */
-            get
-            {
-                var activeConfiguration = ActiveConfigurationName;
-
-                // NOTE If this cast fails, it will throw an InvalidCastException.
-                //      This is expected behaviour.
-                var vcProject = (VCProject) this._project.Object;
-                IVCCollection filesCollection = (IVCCollection) vcProject.Files;
-
-                foreach (var vcFile in filesCollection.Cast<VCFile>())
-                {
-                    switch (vcFile.FileType)
-                    {
-                        case VsFileType.eFileTypeCppClass:
-                        case VsFileType.eFileTypeCppCode:
-                        case VsFileType.eFileTypeCppHeader:
-                            var vcCollection = vcFile.FileConfigurations as IVCCollection;
-                            if (vcCollection != null)
-                            {
-                                foreach (var fileConfiguration in vcCollection.Cast<VCFileConfiguration>())
-                                {
-                                    if (fileConfiguration.Name == activeConfiguration &&
-                                        !fileConfiguration.ExcludedFromBuild)
-                                    {
-                                        yield return vcFile.FullPath;
-                                    }
-                                }
-                            }
-                            break;
-                    }
-                }
-            }
-        } 
-
         #region Object Overrides
 
         public override string ToString()

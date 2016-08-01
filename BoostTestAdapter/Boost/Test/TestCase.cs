@@ -11,8 +11,7 @@ using BoostTestAdapter.Utility;
 
 namespace BoostTestAdapter.Boost.Test
 {
-    [XmlRoot(Xml.TestCase)]
-    public class TestCase : TestUnit, IXmlSerializable
+    public class TestCase : TestUnit
     {
         #region Constructors
 
@@ -35,42 +34,6 @@ namespace BoostTestAdapter.Boost.Test
         }
 
         #endregion Constructors
-
-        #region IXmlSerializable
-
-        /// <summary>
-        /// Xml Tag/Attribute Constants
-        /// </summary>
-        internal static class Xml
-        {
-            public const string TestCase = "TestCase";
-        }
-
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-
-        public void ReadXml(XmlReader reader)
-        {
-            base.ReadXmlAttributes(reader);
-
-            reader.MoveToElement();
-            bool empty = reader.IsEmptyElement;
-            reader.ReadStartElement(Xml.TestCase);
-
-            if (!empty)
-            {
-                reader.ReadEndElement();
-            }
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            base.WriteXmlAttributes(writer);
-        }
-
-        #endregion IXmlSerializable
 
         #region ITestVisitable
 

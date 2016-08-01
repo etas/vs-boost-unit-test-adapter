@@ -16,7 +16,6 @@ namespace VisualStudioAdapter.Shared
     public class ProjectConfiguration : IProjectConfiguration
     {
         private VSDebugConfiguration _configuration = null;
-        private VCppCompilerOptions _cppCompiler = null;
 
         /// <summary>
         /// Constructor
@@ -34,28 +33,7 @@ namespace VisualStudioAdapter.Shared
         #region IProjectConfiguration
 
         public string PrimaryOutput { get; private set; }
-
-        public IVCppCompilerOptions CppCompilerOptions
-        {
-            get
-            {
-                if (this._cppCompiler == null)
-                {
-                    IVCCollection tools = this._configuration.VCConfiguration.Tools as IVCCollection;
-                    if (tools != null)
-                    {
-                        VCCLCompilerTool compiler = tools.OfType<VCCLCompilerTool>().FirstOrDefault();
-                        if (compiler != null)
-                        {
-                            this._cppCompiler = new VCppCompilerOptions(this._configuration, compiler);
-                        }
-                    }
-                }
-
-                return this._cppCompiler;
-            }
-        }
-
+       
         public IVSDebugConfiguration VSDebugConfiguration
         {
             get

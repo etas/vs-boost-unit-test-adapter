@@ -115,7 +115,6 @@ namespace BoostTestAdapterNunit.Utility
         private string _name = string.Empty;
         private string _primaryOutput = string.Empty;
         private IList<string> _sourcesFullFilePath = new List<string>(); 
-        private Defines _definitions = new Defines();
         private string _workingDirectory = string.Empty;
         private string _environment = string.Empty;
 
@@ -164,28 +163,6 @@ namespace BoostTestAdapterNunit.Utility
         }
 
         /// <summary>
-        /// Identifies the project's configured preprocessor definitions
-        /// </summary>
-        /// <param name="definitions">The preprocessor definitions in use by this project</param>
-        /// <returns>this</returns>
-        public FakeProjectBuilder Defines(Defines definitions)
-        {
-            this._definitions = definitions;
-            return this;
-        }
-
-        /// <summary>
-        /// Assigns the projects resources (source files, filters etc.)
-        /// </summary>
-        /// <param name="sourcesFullFilePath">The sources which are to be registered with this fake project instance</param>
-        /// <returns>this</returns>
-        public FakeProjectBuilder Sources(IList<string> sourcesFullFilePath)
-        {
-            this._sourcesFullFilePath = sourcesFullFilePath;
-            return this;
-        }
-
-        /// <summary>
         /// Commits any pending changes and builds a fake IProject instance.
         /// </summary>
         /// <returns>A fake IProject instance consisting of the previously registered output, definitions and sources</returns>
@@ -197,14 +174,8 @@ namespace BoostTestAdapterNunit.Utility
 
             IProjectConfiguration fakeConfiguration = A.Fake<IProjectConfiguration>();
             A.CallTo(() => fakeConfiguration.PrimaryOutput).Returns(this._primaryOutput);
-
-            IVCppCompilerOptions fakeCompilerOptions = A.Fake<IVCppCompilerOptions>();
-            A.CallTo(() => fakeCompilerOptions.PreprocessorDefinitions).Returns(this._definitions);
-
-            A.CallTo(() => fakeConfiguration.CppCompilerOptions).Returns(fakeCompilerOptions);
-
+           
             A.CallTo(() => fake.ActiveConfiguration).Returns(fakeConfiguration);
-            A.CallTo(() => fake.SourceFiles).Returns(this._sourcesFullFilePath);
 
             IVSDebugConfiguration fakeVSConfiguration = A.Fake<IVSDebugConfiguration>();
             A.CallTo(() => fakeVSConfiguration.WorkingDirectory).Returns(this._workingDirectory);

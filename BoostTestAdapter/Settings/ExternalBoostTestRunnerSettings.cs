@@ -17,9 +17,7 @@ namespace BoostTestAdapter.Settings
     public enum DiscoveryMethodType
     {
         DiscoveryListContent,           // Use the list_content or source code internal parsing mechanisms
-        DiscoveryCommandLine,           // Execute the designated command line and extract information from a TestFramework XML representation
-        DiscoveryFileMap,               // Discover tests from a static list of TestFramework XML representation files
-
+      
         Default = DiscoveryListContent
     }
 
@@ -48,9 +46,6 @@ namespace BoostTestAdapter.Settings
 
             this.DiscoveryMethodType = DiscoveryMethodType.Default;
 
-            this.DiscoveryFileMap = new Dictionary<string, string>();
-
-            this.DiscoveryCommandLine = new CommandLine();
             this.ExecutionCommandLine = new CommandLine();
         }
 
@@ -67,14 +62,7 @@ namespace BoostTestAdapter.Settings
         /// Specifies the discovery method i.e. either via a file map or via an external command
         /// </summary>
         public DiscoveryMethodType DiscoveryMethodType { get; set; }
-
-        /// <summary>
-        /// Maps a source to a test discover Xml file path
-        /// </summary>
-        public IDictionary<string, string> DiscoveryFileMap { get; private set; }
-
-        public CommandLine DiscoveryCommandLine { get; set; }
-
+        
         public CommandLine ExecutionCommandLine { get; set; }
 
         #endregion Properties
@@ -85,13 +73,7 @@ namespace BoostTestAdapter.Settings
         {
             public const string ExternalTestRunner = "ExternalTestRunner";
             public const string Type = "type";
-
-            public const string DiscoveryCommandLine = "DiscoveryCommandLine";
-
-            public const string DiscoveryFileMap = "DiscoveryFileMap";
-            public const string DiscoveryFileMapEntry = "File";
-            public const string DiscoveryFileMapSource = "source";
-
+            
             public const string ExecutionCommandLine = "ExecutionCommandLine";
         }
 
@@ -113,49 +95,6 @@ namespace BoostTestAdapter.Settings
             reader.ReadStartElement();
 
             reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-
-            string name = reader.Name;
-            if ((name == Xml.DiscoveryCommandLine) || (name == Xml.DiscoveryFileMap))
-            {
-                this.DiscoveryMethodType = (DiscoveryMethodType)Enum.Parse(typeof(DiscoveryMethodType), name);
-
-                bool empty = reader.IsEmptyElement;
-
-                reader.ReadStartElement();
-                if (name == Xml.DiscoveryCommandLine)
-                {
-                    empty = false;
-                    this.DiscoveryCommandLine = CommandLine.FromString(reader.ReadString());
-                }
-                else if (name == Xml.DiscoveryFileMap)
-                {
-                    reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-                    while (reader.NodeType == XmlNodeType.Element)
-                    {
-                        string key = reader.GetAttribute(Xml.DiscoveryFileMapSource);
-
-                        reader.MoveToElement();
-                        empty = reader.IsEmptyElement;
-                        reader.ReadStartElement();
-
-                        this.DiscoveryFileMap[key] = (empty) ? string.Empty : reader.ReadString();
-
-                        if (!empty)
-                        {
-                            reader.ReadEndElement();
-                        }
-
-                        reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-                    }
-                }
-
-                if (!empty)
-                {
-                    reader.ReadEndElement();
-                }
-
-                reader.ConsumeUntilFirst(XmlReaderHelper.ElementFilter);
-            }
             
             this.ExecutionCommandLine = CommandLine.FromString(reader.ReadElementString(Xml.ExecutionCommandLine));
 
@@ -167,31 +106,7 @@ namespace BoostTestAdapter.Settings
             Utility.Code.Require(writer, "writer");
             
             writer.WriteAttributeString(Xml.Type, this.ExtensionType.ToString());
-
-            if (DiscoveryMethodType == DiscoveryMethodType.DiscoveryCommandLine)
-            {
-                writer.WriteElementString(Xml.DiscoveryCommandLine, this.DiscoveryCommandLine.ToString());
-            }
-            else if (DiscoveryMethodType == DiscoveryMethodType.DiscoveryFileMap)
-            {
-                if (this.DiscoveryFileMap.Count > 0)
-                {
-                    writer.WriteStartElement(Xml.DiscoveryFileMap);
-
-                    foreach (KeyValuePair<string, string> entry in this.DiscoveryFileMap)
-                    {
-                        writer.WriteStartElement(Xml.DiscoveryFileMapEntry);
-
-                        writer.WriteAttributeString(Xml.DiscoveryFileMapSource, entry.Key);
-                        writer.WriteString(entry.Value);
-
-                        writer.WriteEndElement();
-                    }
-
-                    writer.WriteEndElement();
-                }
-            }
-
+            
             writer.WriteElementString(Xml.ExecutionCommandLine, this.ExecutionCommandLine.ToString());
         }
 

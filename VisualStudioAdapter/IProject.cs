@@ -22,9 +22,5 @@ namespace VisualStudioAdapter
         /// </summary>
         IProjectConfiguration ActiveConfiguration { get; }
 
-        /// <summary>
-        /// Enumeration of source files to be parsed.
-        /// </summary>
-        IEnumerable<string> SourceFiles { get; }
     }
 }

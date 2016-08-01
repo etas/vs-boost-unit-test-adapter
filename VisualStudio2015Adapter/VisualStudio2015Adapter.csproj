@@ -55,9 +55,6 @@
     <Compile Include="..\VisualStudioAdapterShared\Solution.cs">
       <Link>Solution.cs</Link>
     </Compile>
-    <Compile Include="..\VisualStudioAdapterShared\VCppCompilerOptions.cs">
-      <Link>VCppCompilerOptions.cs</Link>
-    </Compile>
     <Compile Include="..\VisualStudioAdapterShared\VisualStudio.cs">
       <Link>VisualStudio.cs</Link>
     </Compile>

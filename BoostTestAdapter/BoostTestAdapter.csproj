@@ -67,9 +67,6 @@
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
     </Reference>
-    <Reference Include="NCalc">
-      <HintPath>..\packages\ncalc.1.3.8\lib\NCalc.dll</HintPath>
-    </Reference>
     <Reference Include="System">
       <Private>False</Private>
     </Reference>
@@ -82,7 +79,6 @@
   <ItemGroup>
     <Compile Include="BoostTestDiscoverer.cs" />
     <Compile Include="BoostTestDiscovererFactory.cs" />
-    <Compile Include="BoostTestDiscovererFactoryOptions.cs" />
     <Compile Include="BoostTestExecutor.cs" />
     <Compile Include="Boost\Results\BoostStandardError.cs" />
     <Compile Include="Boost\Results\BoostStandardOutput.cs" />
@@ -123,7 +119,6 @@
     <Compile Include="Boost\Test\TestSuite.cs" />
     <Compile Include="Boost\Test\TestUnit.cs" />
     <Compile Include="Discoverers\ListContentDiscoverer.cs" />
-    <Compile Include="Discoverers\SourceCodeDiscoverer.cs" />
     <Compile Include="Discoverers\ExternalDiscoverer.cs" />
     <Compile Include="Discoverers\TestCaseUtils.cs" />
     <Compile Include="Discoverers\VSDiscoveryVisitor.cs" />
@@ -131,29 +126,11 @@
     <Compile Include="IBoostTestDiscoverer.cs" />
     <Compile Include="IBoostTestDiscovererFactory.cs" />
     <Compile Include="Utility\BoostTestRunnerCommandLineArgsEx.cs" />
-    <Compile Include="Utility\VisualStudio\ProjectInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\BoostTestAdapterSettings.cs" />
     <Compile Include="Settings\BoostTestAdapterSettingsProvider.cs" />
     <Compile Include="Settings\ExternalBoostTestRunnerSettings.cs" />
     <Compile Include="Settings\TestSourceFilter.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusionsFilter.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\ConditionalInclusionsMachine.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToFailedIf.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToMultilineDefine.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\DiscardingDueToSuccessfullIf.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\IConditionalInclusionsState.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\IncludingDueToIf.cs" />
-    <Compile Include="SourceFilter\ConditionalInclusions\NormalState.cs" />
-    <Compile Include="SourceFilter\CppSourceFile.cs" />
-    <Compile Include="SourceFilter\ExpressionEvaluation.cs" />
-    <Compile Include="SourceFilter\IEvaluation.cs" />
-    <Compile Include="SourceFilter\ISourceFilter.cs" />
-    <Compile Include="SourceFilter\MultilineCommentFilter.cs" />
-    <Compile Include="SourceFilter\QuotedStringsFilter.cs" />
-    <Compile Include="SourceFilter\SingleLineCommentFilter.cs" />
-    <Compile Include="SourceFilter\SourceDiscoveryException.cs" />
-    <Compile Include="SourceFilter\SourceFilterFactory.cs" />
     <Compile Include="TestBatch\IndividualTestBatchStrategy.cs" />
     <Compile Include="TestBatch\ITestBatchingStrategy.cs" />
     <Compile Include="TestBatch\SourceTestBatchStrategy.cs" />

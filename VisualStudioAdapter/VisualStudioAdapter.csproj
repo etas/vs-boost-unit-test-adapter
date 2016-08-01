@@ -36,14 +36,12 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Defines.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IVSDebugConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IProject.cs" />
     <Compile Include="IProjectConfiguration.cs" />
     <Compile Include="ISolution.cs" />
-    <Compile Include="IVCppCompilerOptions.cs" />
     <Compile Include="IVisualStudio.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

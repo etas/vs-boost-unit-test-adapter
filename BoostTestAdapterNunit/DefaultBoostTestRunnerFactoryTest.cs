@@ -59,7 +59,6 @@ namespace BoostTestAdapterNunit
                 options.ExternalTestRunnerSettings = new ExternalBoostTestRunnerSettings
                 {
                     ExtensionType = new Regex(externalExtension),
-                    DiscoveryCommandLine = new CommandLine(),
                     ExecutionCommandLine = new CommandLine()
                 };
             }

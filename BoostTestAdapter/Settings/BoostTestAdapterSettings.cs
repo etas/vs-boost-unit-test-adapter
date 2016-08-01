@@ -35,8 +35,6 @@ namespace BoostTestAdapter.Settings
             
             this.FailTestOnMemoryLeak = false;
 
-            this.ConditionalInclusionsFilteringEnabled = true;
-
             this.LogLevel = LogLevel.TestSuite;
 
             this.ExternalTestRunner = null;
@@ -46,8 +44,6 @@ namespace BoostTestAdapter.Settings
             this.DetectFloatingPointExceptions = false;
 
             this.TestBatchStrategy = TestBatch.Strategy.TestCase;
-
-            this.UseListContent = true;
 
             this.ForceListContent = false;
 
@@ -84,9 +80,6 @@ namespace BoostTestAdapter.Settings
         [DefaultValue(false)]
         public bool FailTestOnMemoryLeak { get; set; }
 
-        [DefaultValue(true)]
-        public bool ConditionalInclusionsFilteringEnabled { get; set; }
-
         [DefaultValue(LogLevel.TestSuite)]
         public LogLevel LogLevel { get; set; }
 
@@ -122,9 +115,6 @@ namespace BoostTestAdapter.Settings
 
         [DefaultValue(TestBatch.Strategy.TestCase)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
-
-        [DefaultValue(true)]
-        public bool UseListContent { get; set; }
 
         [DefaultValue(false)]
         public bool ForceListContent { get; set; }
