@@ -56,6 +56,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.EnableStdOutRedirection, Is.True);
             Assert.That(settings.EnableStdErrRedirection, Is.True);
             Assert.That(settings.Filters, Is.EqualTo(TestSourceFilter.Empty));
+            Assert.That(settings.RunDisabledTests, Is.False);
         }
 
 
@@ -139,6 +140,8 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.CatchSystemErrors, Is.False);
             Assert.That(settings.DetectFloatingPointExceptions, Is.True);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestSuite));
+
+            Assert.That(settings.RunDisabledTests, Is.True);
 
             Assert.That(settings.Filters, Is.Not.Null);
             Assert.That(settings.Filters.Include, Is.Not.Empty);

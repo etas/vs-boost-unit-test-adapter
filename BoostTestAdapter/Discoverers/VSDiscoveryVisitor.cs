@@ -85,6 +85,7 @@ namespace BoostTestAdapter.Discoverers
         /// </summary>
         /// <param name="testCase">The Boost.Test.TestCase to convert.</param>
         /// <returns>An equivalent Visual Studio TestCase structure to the one provided.</returns>
+       
         private VSTestCase GenerateTestCase(TestCase testCase)
         {
             VSTestCase test = new VSTestCase(
@@ -109,6 +110,9 @@ namespace BoostTestAdapter.Discoverers
 
             // Register the test suite as a trait
             test.Traits.Add(new Trait(VSTestModel.TestSuiteTrait, GetParentFullyQualifiedName(testCase)));
+            
+            // Register enabled and disabled as traits
+            test.Traits.Add(new Trait(VSTestModel.StatusTrait, (testCase.DefaultEnabled ? VSTestModel.TestEnabled : VSTestModel.TestDisabled)));
 
             TestUnit unit = testCase;
             while (unit != null)
@@ -116,9 +120,9 @@ namespace BoostTestAdapter.Discoverers
                 foreach (string label in unit.Labels)
                 {
                     // Register each and every label as an individual trait
-                    test.Traits.Add(new Trait(VSTestModel.LabelTrait, ('@' + label)));
-                }
-                
+                    test.Traits.Add(new Trait(VSTestModel.LabelTrait, ("@" + label)));
+                }             
+
                 // Test cases inherit the labels of parent test units
                 // Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/tests_organization/tests_grouping.html
                 unit = unit.Parent;

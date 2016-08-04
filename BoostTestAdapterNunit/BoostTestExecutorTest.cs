@@ -476,6 +476,23 @@ namespace BoostTestAdapterNunit
             VSTestCase test = new VSTestCase(fullyQualifiedName, BoostTestExecutor.ExecutorUri, source);
 
             test.Traits.Add(VSTestModel.TestSuiteTrait, QualifiedNameBuilder.FromString(fullyQualifiedName).Pop().ToString());
+            test.Traits.Add(VSTestModel.StatusTrait, VSTestModel.TestEnabled);
+
+            return test;
+        }
+        private VSTestCase CreateTestCase(string fullyQualifiedName, string source, bool Enabled)
+        {
+            VSTestCase test = new VSTestCase(fullyQualifiedName, BoostTestExecutor.ExecutorUri, source);
+
+            test.Traits.Add(VSTestModel.TestSuiteTrait, QualifiedNameBuilder.FromString(fullyQualifiedName).Pop().ToString());
+            if(Enabled)
+            {
+                test.Traits.Add(VSTestModel.StatusTrait, VSTestModel.TestEnabled);
+            }
+            else
+            {
+                test.Traits.Add(VSTestModel.StatusTrait, VSTestModel.TestDisabled);
+            }
 
             return test;
         }
@@ -943,10 +960,10 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
-        /// Given a .runsettings which specifies 'BatchTestRuns', test suites should execute in one go rather than having each individual test executed on its own.
+        /// Given a .runsettings which specifies 'TestBatchStrategy', test suites should execute in one go rather than having each individual test executed on its own.
         /// 
         /// Test aims:
-        ///     - Ensure that test suites are executed in groups if 'BatchTestRuns' is true
+        ///     - Ensure that test suites are executed in groups if 'TestBatchStrategy' is TestSuite
         /// </summary>
         [Test]
         public void TestTestSuiteBatchedRuns()
@@ -983,6 +1000,159 @@ namespace BoostTestAdapterNunit
             }
 
             Assert.That(expectedBatches, Is.Empty);
+        }
+
+
+        /// <summary>
+        /// Given a scenario where disabled tests should not run when pressing "Run all..." they should be skipped
+        /// 
+        /// Test aims:
+        ///     - Ensure that test cases that are disabled are not run when "Run all..." is pressed
+        /// </summary>
+        [Test]
+        public void TestDisabledTestsRunAll()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><RunDisabledTests>false</RunDisabledTests></BoostTest></RunSettings>");
+
+            string MySource = "MySource";
+
+
+            this.TestCaseProvider = (string source) =>
+            {
+                VSTestCase[] testCases = new VSTestCase[]
+                {
+                    CreateTestCase("A/1", MySource, false), CreateTestCase("A/2", MySource),
+                    CreateTestCase("B/1", MySource), CreateTestCase("B/2", MySource, false), CreateTestCase("B/3", MySource, false)
+                };
+                return testCases;
+            };
+
+            this.Executor.RunTests(
+               new string[] { MySource },
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+           
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                // One runner per source is provisioned for the available source
+                Assert.That(this.RunnerFactory.ProvisionedRunners.Count, Is.EqualTo(1));
+
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                //Ensure that the source is that specified
+                Assert.That(testRunner.Source, Is.EqualTo(MySource));
+
+                // The same runner is run for every test that will be executed, in this case 2
+                Assert.That(testRunner.RunCount, Is.EqualTo(2));
+
+                // Check that only the enabled tests are run
+                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/2"));
+                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("B/1"));
+            }
+
+        }
+
+        /// <summary>
+        /// When pressing "Run all...", if given a .runsettings file where RunDisabledTests is set to True, all tests should be executed
+        /// 
+        /// Test aims:
+        ///     - Ensure that test cases that are disabled are run when "Run all..." is pressed
+        /// </summary>
+        [Test]
+        public void TestDisabledTestsRunAllSettings()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+            this.RunContext.LoadSettings("<RunSettings><BoostTest><RunDisabledTests>true</RunDisabledTests></BoostTest></RunSettings>");
+
+            string MySource = "MySource";
+
+
+            this.TestCaseProvider = (string source) =>
+            {
+                VSTestCase[] testCases = new VSTestCase[]
+                {
+                    CreateTestCase("A/1", MySource, false), CreateTestCase("A/2", MySource),
+                    CreateTestCase("B/1", MySource), CreateTestCase("B/2", MySource, false), CreateTestCase("B/3", MySource, false)
+                };
+                return testCases;
+            };
+
+            this.Executor.RunTests(
+               new string[] { MySource },
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                // One runner per source is provisioned for the available source
+                Assert.That(this.RunnerFactory.ProvisionedRunners.Count, Is.EqualTo(1));
+
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                //Ensure that the source is that specified
+                Assert.That(testRunner.Source, Is.EqualTo(MySource));
+
+                // The same runner is run for every test that will be executed, in this case 5
+                Assert.That(testRunner.RunCount, Is.EqualTo(5));
+
+                // Check that only the enabled tests are run
+                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/1"));
+                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("A/2"));
+                Assert.That(testRunner.Args[2].Tests[0], Is.EqualTo("B/1"));
+                Assert.That(testRunner.Args[3].Tests[0], Is.EqualTo("B/2"));
+                Assert.That(testRunner.Args[4].Tests[0], Is.EqualTo("B/3"));
+            }
+
+        }
+
+
+
+        /// <summary>
+        /// When running selected tests, all tests should run, regardless of whether they were disabled or not
+        /// 
+        /// Test aims:
+        ///     - Ensure that test cases that are disabled are run when specifically selected
+        /// </summary>
+        [Test]
+        public void TestDisabledTestsRunSelectedTest()
+        {
+            this.RunContext.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, new BoostTestAdapterSettingsProvider());
+
+            string MySource = "MySource";
+
+            this.Executor.RunTests(
+                 new VSTestCase[] { CreateTestCase("A/1", MySource, false), CreateTestCase("A/2", MySource) },
+                 this.RunContext,
+                 this.FrameworkHandle
+             );
+
+
+            foreach (IBoostTestRunner runner in this.RunnerFactory.ProvisionedRunners)
+            {
+                // One runner per source is provisioned for the available source
+                Assert.That(this.RunnerFactory.ProvisionedRunners.Count, Is.EqualTo(1));
+
+                Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
+                MockBoostTestRunner testRunner = (MockBoostTestRunner)runner;
+
+                //Ensure that the source is that specified
+                Assert.That(testRunner.Source, Is.EqualTo(MySource));
+
+                // The same runner is run for every test that will be executed, in this case 2
+                Assert.That(testRunner.RunCount, Is.EqualTo(2));
+
+                // Check that both tests are run, since both were selected
+                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/1"));
+                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("A/2"));
+            }
+
         }
 
         /// <summary>

@@ -49,11 +49,11 @@ namespace BoostTestAdapter.Utility.VisualStudio
         /// <summary>
         /// TestSuite trait name
         /// </summary>
-        public static string DisabledTestSuiteTrait
+        public static string StatusTrait
         {
             get
             {
-                return "Disabled";
+                return "Status";
             }
         }
 
@@ -68,7 +68,27 @@ namespace BoostTestAdapter.Utility.VisualStudio
             return path_in.Replace('/', '\\');
         }
 
+        /// <summary>
+        /// Constant Used to indicate that the test is Enabled
+        /// </summary>
+        public static string TestEnabled
+        {
+            get
+            {
+                return "Enabled";
+            }
+        }
 
+        /// <summary>
+        /// Constant Used to indicate that the test is Disabled
+        /// </summary>
+        public static string TestDisabled
+        {
+            get
+            {
+                return "Disabled";
+            }
+        }
 
         /// <summary>
         /// Converts a Boost.Test.Result.TestResult model into an equivalent

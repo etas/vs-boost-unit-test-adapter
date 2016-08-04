@@ -9,6 +9,7 @@ using BoostTestAdapter.Utility;
 using BoostTestAdapter.Boost.Test;
 
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace BoostTestAdapterNunit.Utility
 {
@@ -21,9 +22,10 @@ namespace BoostTestAdapterNunit.Utility
         /// Constructor
         /// </summary>
         /// <param name="expected">The expected root test unit hierarchy which is to be compared against</param>
-        private FrameworkEqualityVisitor(TestUnit expected)
+        private FrameworkEqualityVisitor(TestUnit expected, bool respectOrder = true)
         {
             this.ExpectedUnit = expected;
+            this.OrderRespected = respectOrder;
         }
 
         /// <summary>
@@ -36,6 +38,11 @@ namespace BoostTestAdapterNunit.Utility
         /// </summary>
         private TestUnit ExpectedUnit { get; set; }
 
+        /// <summary>
+        /// States if test unit ordering is respected
+        /// </summary>
+        public bool OrderRespected { get; private set; }
+
         #region ITestVisitor
 
         public void Visit(TestSuite testSuite)
@@ -45,14 +52,15 @@ namespace BoostTestAdapterNunit.Utility
 
             VerifyTestUnit(testSuite, this.ExpectedUnit);
 
-            foreach (TestUnit child in testSuite.Children)
-            {
-                this.ExpectedUnit = child;
-                child.Apply(this);
-                this.ExpectedUnit = child.Parent;
-            }
+            var expectedChild = Sort(this.ExpectedUnit.Children).GetEnumerator();
 
-            this.ExpectedUnit = this.ExpectedUnit.Parent;
+            foreach (TestUnit child in Sort(testSuite.Children))
+            {
+                expectedChild.MoveNext();
+                this.ExpectedUnit = expectedChild.Current;
+                child.Apply(this);
+                this.ExpectedUnit = this.ExpectedUnit.Parent;
+            }
         }
 
         public void Visit(TestCase testCase)
@@ -64,6 +72,11 @@ namespace BoostTestAdapterNunit.Utility
         }
 
         #endregion ITestVisitor
+
+        private IEnumerable<TestUnit> Sort(IEnumerable<TestUnit> tests)
+        {
+            return (this.OrderRespected) ? tests : tests.OrderBy(unit => unit.Id);
+        }
 
         /// <summary>
         /// Verifies that both test units are equal
@@ -102,7 +115,7 @@ namespace BoostTestAdapterNunit.Utility
         /// </summary>
         /// <param name="actual">The actual TestFramework to be compared against</param>
         /// <param name="expected">The expected TestFramework 'actual' should match</param>
-        public static void IsEqualTo(TestFramework actual, TestFramework expected)
+        public static void IsEqualTo(TestFramework actual, TestFramework expected, bool respectOrder = true)
         {
             Assert.That(actual.Source, Is.EqualTo(expected.Source));
 
@@ -112,7 +125,7 @@ namespace BoostTestAdapterNunit.Utility
             }
             else
             {
-                actual.MasterTestSuite.Apply(new FrameworkEqualityVisitor(expected.MasterTestSuite));
+                actual.MasterTestSuite.Apply(new FrameworkEqualityVisitor(expected.MasterTestSuite, respectOrder));
             }
         }
     }

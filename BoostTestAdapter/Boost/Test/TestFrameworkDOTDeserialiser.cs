@@ -206,7 +206,7 @@ namespace BoostTestAdapter.Boost.Test
                 };
 
                 this.Context.TestUnits.Push(info);
-
+           
                 return base.VisitNode_stmt(context);
             }
 
@@ -348,6 +348,8 @@ namespace BoostTestAdapter.Boost.Test
                 unit.Source = info.SourceInfo;
                 unit.Labels = info.Labels;
 
+                unit.DefaultEnabled = info.DefaultEnabled;   
+
                 // Default Enabled
                 // Timeout
                 // Expected Failures
@@ -386,9 +388,11 @@ namespace BoostTestAdapter.Boost.Test
                     this.Timeout = 0;
                     this.ExpectedFailures = 0;
                     this.Labels = Enumerable.Empty<string>();
-
+                    
                     this.Parents = new List<string>();
                     this.Dependencies = new List<string>();
+
+                    this.DefaultEnabled = true;
                 }
 
                 /// <summary>
@@ -445,7 +449,7 @@ namespace BoostTestAdapter.Boost.Test
                 public TestUnitInfo Parse(string value)
                 {
                     TestUnitInfo info = new TestUnitInfo(this.id);
-
+                    info.DefaultEnabled = this.DefaultEnabled;
                     string[] properties = value.Split('|');
 
                     if (properties.Length > 0)

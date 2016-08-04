@@ -64,7 +64,7 @@ namespace BoostTestAdapter.Discoverers
             }
             else
             {
-                testCase.Traits.Add(VSTestModel.DisabledTestSuiteTrait, traitName);
+                testCase.Traits.Add(VSTestModel.StatusTrait, traitName);
             };
         }
 

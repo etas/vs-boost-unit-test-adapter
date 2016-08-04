@@ -30,7 +30,9 @@ namespace BoostTestAdapter.Boost.Test
             this.Name = name;
             this.Parent = parent;
             this.Labels = Enumerable.Empty<string>();
-            
+
+            this.DefaultEnabled = true;
+
             if (parent != null)
             {
                 parent.AddChild(this);
@@ -77,6 +79,8 @@ namespace BoostTestAdapter.Boost.Test
         /// </summary>
         public IEnumerable<string> Labels { get; set; }
 
+
+
         /// <summary>
         /// Cached version of the fully qualified name builder
         /// </summary>
@@ -109,6 +113,12 @@ namespace BoostTestAdapter.Boost.Test
                 return FullyQualifiedNameBuilder.ToString();
             }
         }
+
+        /// <summary>
+        ///  Identifies whether the test is explicitly disabled by setting this value to false
+        /// </summary>
+
+        public bool DefaultEnabled { get; set; }
 
         #endregion Properties
 
