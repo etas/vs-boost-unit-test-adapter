@@ -68,7 +68,11 @@ namespace BoostTestAdapter.Boost.Runner
         {
             ProcessStartInfo info = base.GetStartInfo(args, settings);
 
-            CommandEvaluator evaluator = BuildEvaluator(this.Source, args, settings);
+            BoostTestRunnerCommandLineArgs tmpArgs = args.Clone();
+            tmpArgs.StandardErrorFile = null;
+            tmpArgs.StandardOutFile = null;
+
+            CommandEvaluator evaluator = BuildEvaluator(this.Source, tmpArgs, settings);
             CommandEvaluationResult result = evaluator.Evaluate(this.Settings.ExecutionCommandLine.Arguments);
             
             string cmdLineArgs = result.Result;
@@ -77,6 +81,13 @@ namespace BoostTestAdapter.Boost.Runner
                 cmdLineArgs = result.Result + (result.Result.EndsWith(" ", StringComparison.Ordinal) ? string.Empty : " ") + args.ToString();
             }
 
+            BoostTestRunnerCommandLineArgs redirection = new BoostTestRunnerCommandLineArgs
+            {
+                StandardOutFile = args.StandardOutFile,
+                StandardErrorFile = args.StandardErrorFile
+            };
+            cmdLineArgs += redirection.ToString();
+           
             info.FileName = this.Settings.ExecutionCommandLine.FileName;
             info.Arguments = cmdLineArgs;
 

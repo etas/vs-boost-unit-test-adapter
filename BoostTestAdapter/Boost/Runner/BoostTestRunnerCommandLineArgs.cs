@@ -359,7 +359,7 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(HelpArg, args);
 
                 // return immediately since Boost UTF should ignore the rest of the arguments
-                return AppendRedirection(args).ToString();
+                return AppendRedirection(args).ToString().TrimEnd();
             }
 
             // --list_content
@@ -368,7 +368,7 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(ListContentArg, ListContentFormatToString(this.ListContent.Value), args);
 
                 // return immediately since Boost UTF should ignore the rest of the arguments
-                return AppendRedirection(args).ToString();
+                return AppendRedirection(args).ToString().TrimEnd();
             }
 
             // --run_test=a,b,c
@@ -498,7 +498,6 @@ namespace BoostTestAdapter.Boost.Runner
 
             return args;
         }
-
 
         /// <summary>
         /// Returns a rooted path for the provided one.
