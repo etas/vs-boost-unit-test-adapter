@@ -9,11 +9,18 @@ using System.Linq;
 using BoostTestAdapter.Discoverers;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
+using System;
 
 namespace BoostTestAdapter
 {
     class BoostTestDiscovererFactory : IBoostTestDiscovererFactory
     {
+        #region Constants
+
+        private static string ForceListContentExtension { get { return ".test.boostd.exe"; } }
+
+        #endregion 
+
         #region Constructors
 
         /// <summary>
@@ -153,7 +160,9 @@ namespace BoostTestAdapter
             };
 
             IBoostTestRunner runner = _factory.GetRunner(source, options);
-            return (runner != null) && runner.ListContentSupported;
+
+            // Convention over configuration. Assume test runners utilising such an extension
+            return (runner != null) && (runner.Source.EndsWith(ForceListContentExtension, StringComparison.OrdinalIgnoreCase) || runner.ListContentSupported);
         }
 
     }
