@@ -74,7 +74,13 @@ namespace BoostTestAdapter.Discoverers
             if (ShouldVisit(testCase))
             {
                 VSTestCase test = GenerateTestCase(testCase);
-                TestCaseUtils.AddTestCase(test, this.DiscoverySink);
+
+                //send to discovery sink
+                if (null != this.DiscoverySink)
+                {
+                    Logger.Info("Found test: {0}", test.FullyQualifiedName);
+                    this.DiscoverySink.SendTestCase(test);
+                }
             }
         }
 
@@ -98,6 +104,7 @@ namespace BoostTestAdapter.Discoverers
             
             if (testCase.Source != null)
             {
+                // NOTE As of Boost 1.61, this warning might be triggered when BOOST_DATA_TEST_CASEs are used due to irregular DOT output
                 if (!Path.IsPathRooted(testCase.Source.File) && this.OutputLog)
                 {
                     Logger.Info("Relative Paths are being used. Please note that test navigation from the Test Explorer window will not be available. To enable such functionality, the Use Full Paths setting under C++ -> Advanced in the project's Property Page must be set to Yes (/FC).");

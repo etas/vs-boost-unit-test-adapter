@@ -4,11 +4,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.Utility;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter.Boost.Runner
 {
@@ -52,21 +52,21 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get { return this._source; }
         }
-        
+
         #endregion IBoostTestRunner
 
         #region BoostTestRunnerBase
 
         /// <summary>
-        /// Provides a ProcessStartInfo structure containing the necessary information to launch the test process.
+        /// Provides a ProcessExecutionContextArgs structure containing the necessary information to launch the test process.
         /// Aggregates the BoostTestRunnerCommandLineArgs structure with the command-line arguments specified at configuration stage.
         /// </summary>
         /// <param name="args">The Boost Test Framework command line arguments</param>
         /// <param name="settings">The Boost Test Runner settings</param>
-        /// <returns>A valid ProcessStartInfo structure to launch the test executable</returns>
-        protected override ProcessStartInfo GetStartInfo(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
+        /// <returns>A valid ProcessExecutionContextArgs structure to launch the test executable</returns>
+        protected override ProcessExecutionContextArgs GetExecutionContextArgs(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
         {
-            ProcessStartInfo info = base.GetStartInfo(args, settings);
+            ProcessExecutionContextArgs info = base.GetExecutionContextArgs(args, settings);
 
             BoostTestRunnerCommandLineArgs tmpArgs = args.Clone();
             tmpArgs.StandardErrorFile = null;
@@ -88,7 +88,7 @@ namespace BoostTestAdapter.Boost.Runner
             };
             cmdLineArgs += redirection.ToString();
            
-            info.FileName = this.Settings.ExecutionCommandLine.FileName;
+            info.FilePath = this.Settings.ExecutionCommandLine.FileName;
             info.Arguments = cmdLineArgs;
 
             return info;

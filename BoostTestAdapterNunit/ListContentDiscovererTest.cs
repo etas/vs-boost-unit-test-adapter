@@ -20,6 +20,7 @@ using FakeItEasy;
 using NUnit.Framework;
 
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapterNunit
 {
@@ -77,7 +78,7 @@ namespace BoostTestAdapterNunit
             string output = null;
 
             A.CallTo(() => runner.ListContentSupported).Returns(true);
-            A.CallTo(() => runner.Run(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._)).Invokes((call) =>
+            A.CallTo(() => runner.Execute(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IProcessExecutionContext>._)).Invokes((call) =>
             {
                 BoostTestRunnerCommandLineArgs args = (BoostTestRunnerCommandLineArgs) call.Arguments.First();
                 if ((args.ListContent.HasValue) && (args.ListContent.Value == ListContentFormat.DOT))
@@ -98,7 +99,7 @@ namespace BoostTestAdapterNunit
             Assert.That(factory.ProvisionedRunners.Count, Is.EqualTo(1));
             foreach (IBoostTestRunner provisioned in factory.ProvisionedRunners.Select(provision => provision.Item3))
             {
-                A.CallTo(() => provisioned.Run(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._)).
+                A.CallTo(() => provisioned.Execute(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IProcessExecutionContext>._)).
                     WhenArgumentsMatch((arguments) =>
                     {
                         BoostTestRunnerCommandLineArgs args = (BoostTestRunnerCommandLineArgs) arguments.First();

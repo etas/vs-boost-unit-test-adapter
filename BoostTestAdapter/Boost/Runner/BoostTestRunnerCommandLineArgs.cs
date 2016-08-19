@@ -73,18 +73,6 @@ namespace BoostTestAdapter.Boost.Runner
         Default = HRF
     }
 
-    public class ExecutionPath
-    {
-        public string TestName { get; set; }
-        public uint PathNumber { get; set; }
-
-        public override string ToString()
-        {
-            return this.TestName + ':' + this.PathNumber;
-        }
-    }
-
-
     /// <summary>
     /// Aggregates all possible command line options made available by the Boost Test framework.
     /// Reference: http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html
@@ -183,7 +171,7 @@ namespace BoostTestAdapter.Boost.Runner
         public string WorkingDirectory { get; set; }
 
         /// <summary>
-        /// Specifies the process's environment
+        /// Specifies the process's environment (variables)
         /// </summary>
         public IDictionary<string, string> Environment { get; private set; }
 
@@ -524,7 +512,7 @@ namespace BoostTestAdapter.Boost.Runner
         private static string OutputFormatToString(OutputFormat value)
         {
             // serge: boost 1.60 requires uppercase input
-            return value.ToString();    //.ToLowerInvariant();
+            return value.ToString();
         }
 
         /// <summary>

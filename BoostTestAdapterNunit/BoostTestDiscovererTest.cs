@@ -3,7 +3,6 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +15,7 @@ using BoostTestAdapterNunit.Utility;
 using NUnit.Framework;
 using BoostTestAdapter.Boost.Runner;
 using FakeItEasy;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapterNunit
 {
@@ -61,15 +60,10 @@ namespace BoostTestAdapterNunit
         }
     }
 
-    internal class StubBoostTestDiscovererFactory : IBoostTestDiscovererFactory, IDisposable
+    internal class StubBoostTestDiscovererFactory : IBoostTestDiscovererFactory
     {
         private readonly DummySolution _dummySolution = new DummySolution("ParseSources1" + BoostTestDiscoverer.ExeExtension, "BoostUnitTestSample.cpp");
-
-        public IBoostTestDiscoverer GetDiscoverer(string source, BoostTestAdapterSettings settings)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public IEnumerable<FactoryResult> GetDiscoverers(IReadOnlyCollection<string> sources, BoostTestAdapterSettings settings)
         {
             var tmpSources = new List<string>(sources);
@@ -113,11 +107,6 @@ namespace BoostTestAdapterNunit
             return discoverers;
 
         }
-
-        public void Dispose()
-        {
-            ((IDisposable)_dummySolution).Dispose();
-        }
     }
 
     internal class StubListContentRunner : IBoostTestRunner
@@ -137,12 +126,7 @@ namespace BoostTestAdapterNunit
 
         public string Source { get; private set; }
 
-        public void Debug(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IFrameworkHandle framework)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Run(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
+        public void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
         {
             Copy("BoostTestAdapterNunit.Resources.ListContentDOT.sample.8.list.content.gv", args.StandardErrorFile);
         }

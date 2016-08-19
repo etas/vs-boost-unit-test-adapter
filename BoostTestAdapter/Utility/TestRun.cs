@@ -5,8 +5,8 @@
 
 using System.Collections.Generic;
 using BoostTestAdapter.Boost.Runner;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter.Utility
 {
@@ -47,18 +47,10 @@ namespace BoostTestAdapter.Utility
         /// <summary>
         /// Executes the contained IBoostTestRunner with the contained arguments and settings
         /// </summary>
-        public void Run()
+        /// <param name="context">The execution context of spawned sub-processes</param>
+        public void Execute(IProcessExecutionContext context)
         {
-            this.Runner.Run(this.Arguments, this.Settings);
-        }
-
-        /// <summary>
-        /// Executes the contained IBoostTestRunner in debug mode with the contained arguments and settings
-        /// </summary>
-        /// <param name="frameworkHandle">The Visual Studio framework handle which allows for program attaching</param>
-        public void Debug(IFrameworkHandle frameworkHandle)
-        {
-            this.Runner.Debug(this.Arguments, this.Settings, frameworkHandle);
+            this.Runner.Execute(this.Arguments, this.Settings, context);
         }
     }
 }
