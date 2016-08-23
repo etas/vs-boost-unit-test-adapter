@@ -42,35 +42,13 @@ namespace BoostTestAdapter
 
         #endregion
 
-
         #region Members
 
         private readonly IBoostTestRunnerFactory _factory;
 
         #endregion
 
-
         #region IBoostTestDiscovererFactory
-
-        /// <summary>
-        /// Returns an IBoostTestDiscoverer based on the provided source.
-        /// </summary>
-        /// <param name="source">Source to be associated.</param>
-        /// <param name="settings">A structure which states particular features of interest in the manufactured product.</param>
-        /// <returns>An IBoostTestDiscoverer instance or null if one cannot be provided.</returns>
-        public IBoostTestDiscoverer GetDiscoverer(string source, Settings.BoostTestAdapterSettings settings)
-        {
-            var list = new[] { source };
-            var results = GetDiscoverers(list, settings);
-            if (results != null)
-            {
-                var result = results.FirstOrDefault(x => x.Sources.Contains(source));
-                if (result != null)
-                    return result.Discoverer;
-            }
-
-            return null;
-        }
 
         /// <summary>
         /// Associates each source with the correct IBoostTestDiscoverer implementation.

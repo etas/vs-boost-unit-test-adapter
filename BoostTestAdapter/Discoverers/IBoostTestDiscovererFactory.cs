@@ -14,26 +14,27 @@ namespace BoostTestAdapter
     public interface IBoostTestDiscovererFactory
     {
         /// <summary>
-        /// Returns an IBoostTestDiscoverer based on the provided source.
-        /// </summary>
-        /// <param name="source">Source to be associated.</param>
-        /// <param name="settings">A structure which states particular features of interest in the manufactured product.</param>
-        /// <returns>An IBoostTestDiscoverer instance or null if one cannot be provided.</returns>
-        IBoostTestDiscoverer GetDiscoverer(string source, BoostTestAdapterSettings settings);
-
-        /// <summary>
         /// Associates each source with the correct IBoostTestDiscoverer implementation.
         /// </summary>
         /// <param name="sources">List of the sources to be associated.</param>
         /// <param name="settings">A structure which states particular features of interest in the manufactured product.</param>
         /// <returns>A dictionary that has an instance of IBoostTestDiscoverer as key. Each value is a list of sources that should be analyzed with the relative discoverer.</returns>
-        IEnumerable<FactoryResult> GetDiscoverers(IReadOnlyCollection<string> sources,
-            BoostTestAdapterSettings settings);
+        IEnumerable<FactoryResult> GetDiscoverers(IReadOnlyCollection<string> sources, BoostTestAdapterSettings settings);
     }
 
+    /// <summary>
+    /// Resultant output of IBoostTestDiscovererFactory.GetDiscoverers
+    /// </summary>
     public class FactoryResult
     {
+        /// <summary>
+        /// The discoverer to be used for the enclosed sources
+        /// </summary>
         public IBoostTestDiscoverer Discoverer { get; set; }
+
+        /// <summary>
+        /// A collection of sources which are related to the enclosed discoverer
+        /// </summary>
         public IReadOnlyCollection<string> Sources { get; set; }
     }
 }

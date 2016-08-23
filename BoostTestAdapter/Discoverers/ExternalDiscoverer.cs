@@ -4,16 +4,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System;
-using System.IO;
-using System.Xml.Serialization;
-using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.Utility;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Utility.VisualStudio;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -57,7 +53,7 @@ namespace BoostTestAdapter.Discoverers
         /// Visual Studio Instance Provider
         /// </summary>
         public IVisualStudioInstanceProvider VSProvider { get; private set; }
-
+        
         #region IBoostTestDiscoverer
 
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)

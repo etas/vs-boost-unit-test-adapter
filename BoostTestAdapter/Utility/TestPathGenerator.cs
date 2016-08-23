@@ -18,9 +18,19 @@ namespace BoostTestAdapter.Utility
         /// Generates a temporary file path based on the test source. Guaranteed to be unique across multiple executions of the same test source.
         /// </summary>
         /// <param name="source">The test source to execute</param>
-        /// <param name="extension">An optional file extension</param>
         /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
-        public static string Generate(string source, string extension = "")
+        public static string Generate(string source)
+        {
+            return Generate(source, string.Empty);
+        }
+
+        /// <summary>
+        /// Generates a temporary file path based on the test source. Guaranteed to be unique across multiple executions of the same test source.
+        /// </summary>
+        /// <param name="source">The test source to execute</param>
+        /// <param name="extension">The file extension</param>
+        /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
+        public static string Generate(string source, string extension)
         {
             return Path.Combine(Path.GetTempPath(), GenerateFileName(source, extension));
         }
@@ -29,9 +39,19 @@ namespace BoostTestAdapter.Utility
         /// Generates a temporary file name based on the test source. Guaranteed to be unique across multiple executions of the same test source.
         /// </summary>
         /// <param name="source">The test source to execute</param>
-        /// <param name="extension">An optional file extension</param>
         /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
-        public static string GenerateFileName(string source, string extension = "")
+        public static string GenerateFileName(string source)
+        {
+            return GenerateFileName(source, string.Empty);
+        }
+
+        /// <summary>
+        /// Generates a temporary file name based on the test source. Guaranteed to be unique across multiple executions of the same test source.
+        /// </summary>
+        /// <param name="source">The test source to execute</param>
+        /// <param name="extension">The file extension</param>
+        /// <returns>A file name suitable for generating log, report, stdout and stderr output paths</returns>
+        public static string GenerateFileName(string source, string extension)
         {
             return Sanitize(Path.GetFileName(source)) + '.' + Process.GetCurrentProcess().Id + '.' + Thread.CurrentThread.ManagedThreadId + Sanitize(extension);
         }

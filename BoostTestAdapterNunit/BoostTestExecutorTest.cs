@@ -21,6 +21,7 @@ using NUnit.Framework;
 using TimeoutException = BoostTestAdapter.Boost.Runner.TimeoutException;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapterNunit
 {
@@ -168,12 +169,7 @@ namespace BoostTestAdapterNunit
             }
 
             #region ITestDiscovererFactory
-
-            public IBoostTestDiscoverer GetDiscoverer(string source, BoostTestAdapterSettings settings)
-            {
-                return new StubBoostTestDiscoverer(this.Parent);
-            }
-
+            
             public IEnumerable<FactoryResult> GetDiscoverers(IReadOnlyCollection<string> sources, BoostTestAdapterSettings settings)
             {
                 return new List<FactoryResult>()
@@ -247,8 +243,7 @@ namespace BoostTestAdapterNunit
                         {
                             IBoostTestRunner timeoutRunner = A.Fake<IBoostTestRunner>();
                             A.CallTo(() => timeoutRunner.Source).Returns(identifier);
-                            A.CallTo(() => timeoutRunner.Run(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._)).Throws(new TimeoutException(Timeout));
-                            A.CallTo(() => timeoutRunner.Debug(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IFrameworkHandle>._)).Throws(new TimeoutException(Timeout));
+                            A.CallTo(() => timeoutRunner.Execute(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IProcessExecutionContext>._)).Throws(new TimeoutException(Timeout));
 
                             return Provision(timeoutRunner);
                         }
@@ -266,6 +261,13 @@ namespace BoostTestAdapterNunit
             }
         }
 
+        public class MockBoostTestRunnerExecutionArgs
+        {
+            public BoostTestRunnerCommandLineArgs Arguments { get; set; }
+            public BoostTestRunnerSettings Settings { get; set; }
+            public IProcessExecutionContext Context { get; set; }
+        }
+
         /// <summary>
         /// Mock IBoostTestRunner implementation.
         /// 
@@ -280,52 +282,34 @@ namespace BoostTestAdapterNunit
                 base(parent)
             {
                 this.Source = source;
-                this.DebugExecution = false;
                 this.ListContentSupported = false;
 
-                this.Args = new List<BoostTestRunnerCommandLineArgs>();
-                this.Settings = new List<BoostTestRunnerSettings>();
+                this.ExecutionArgs = new List<MockBoostTestRunnerExecutionArgs>();
             }
 
             #endregion Constructors
 
             #region Properties
 
-            public bool DebugExecution { get; private set; }
-            public IList<BoostTestRunnerCommandLineArgs> Args { get; private set; }
-            public IList<BoostTestRunnerSettings> Settings { get; private set; }
+            public IList<MockBoostTestRunnerExecutionArgs> ExecutionArgs { get; private set; }
 
             public int RunCount
             {
-                get { return this.Args.Count; }
+                get { return this.ExecutionArgs.Count; }
             }
 
             #endregion Properties
 
             #region IBoostTestRunner
-
-            public void Debug(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IFrameworkHandle framework)
+            
+            public void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
             {
-                this.DebugExecution = true;
-
-                Execute(args, settings);
-            }
-
-            public void Run(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
-            {
-                Execute(args, settings);
-            }
-
-            public string Source { get; private set; }
-
-            public bool ListContentSupported { get; private set; }
-
-            #endregion IBoostTestRunner
-
-            private void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
-            {
-                this.Args.Add(args);
-                this.Settings.Add(settings);
+                this.ExecutionArgs.Add(new MockBoostTestRunnerExecutionArgs()
+                {
+                    Arguments = args,
+                    Settings = settings,
+                    Context = context
+                });
 
                 Assert.That(args.ReportFile, Is.Not.Null);
                 Assert.That(args.ReportFormat, Is.EqualTo(OutputFormat.XML));
@@ -347,9 +331,9 @@ namespace BoostTestAdapterNunit
                 {
                     Assert.That(Path.GetDirectoryName(args.StandardErrorFile), Is.EqualTo(temp));
                 }
-                
+
                 // Create empty result files just in case we are running via the source batching strategy
-                
+
                 Copy("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.log.xml", args.LogFile);
                 Copy("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.report.xml", args.ReportFile);
 
@@ -363,6 +347,13 @@ namespace BoostTestAdapterNunit
                     Copy(resources.LogFilePath, args.LogFile);
                 }
             }
+
+            public string Source { get; private set; }
+
+            public bool ListContentSupported { get; private set; }
+
+            #endregion IBoostTestRunner
+
 
             private void Copy(string embeddedResource, string path)
             {
@@ -612,7 +603,7 @@ namespace BoostTestAdapterNunit
             MockBoostTestRunner runner = this.RunnerFactory.LastTestRunner as MockBoostTestRunner;
 
             Assert.That(runner, Is.Not.Null);
-            Assert.That(runner.DebugExecution, Is.True);
+            Assert.That(runner.ExecutionArgs.First().Context, Is.TypeOf<DebugFrameworkExecutionContext>());
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
         }
@@ -642,7 +633,7 @@ namespace BoostTestAdapterNunit
             Assert.That(runner, Is.Not.Null);
 
             Assert.That(runner.RunCount, Is.EqualTo(1));
-            Assert.That(runner.Settings.First().Timeout, Is.EqualTo(600000));
+            Assert.That(runner.ExecutionArgs.First().Settings.Timeout, Is.EqualTo(600000));
         }
 
         /// <summary>
@@ -804,7 +795,7 @@ namespace BoostTestAdapterNunit
             Assert.That(testRunner, Is.Not.Null);
 
             // All tests are executed
-            Assert.That(testRunner.Args.First().Tests, Is.Empty);
+            Assert.That(testRunner.ExecutionArgs.First().Arguments.Tests, Is.Empty);
         }
 
         /// <summary>
@@ -833,7 +824,7 @@ namespace BoostTestAdapterNunit
             Assert.That(testRunner, Is.Not.Null);
 
             // All selected tests are executed
-            Assert.That(testRunner.Args.First().Tests.Count, Is.EqualTo(2));
+            Assert.That(testRunner.ExecutionArgs.First().Arguments.Tests.Count, Is.EqualTo(2));
         }
 
         /// <summary>
@@ -875,11 +866,11 @@ namespace BoostTestAdapterNunit
                 
                 Assert.That(runner.Source, Is.EqualTo(DefaultSource));
 
-                foreach (BoostTestRunnerCommandLineArgs args in testRunner.Args)
+                foreach (var args in testRunner.ExecutionArgs)
                 {
                     // One test at a time should be invoked
-                    Assert.That(args.Tests.Count, Is.EqualTo(1));
-                    Assert.That(testIdentifiers.Remove(args.Tests[0]), Is.True);
+                    Assert.That(args.Arguments.Tests.Count, Is.EqualTo(1));
+                    Assert.That(testIdentifiers.Remove(args.Arguments.Tests[0]), Is.True);
                 }
             }
 
@@ -953,7 +944,7 @@ namespace BoostTestAdapterNunit
                 Assert.That(sources.Remove(runner.Source), Is.True);
 
                 // No tests should be specified on the command line implying all tests are to be executed
-                Assert.That(testRunner.Args.First().Tests.Count, Is.EqualTo(0));
+                Assert.That(testRunner.ExecutionArgs.First().Arguments.Tests.Count, Is.EqualTo(0));
             }
 
             Assert.That(sources, Is.Empty);
@@ -994,8 +985,8 @@ namespace BoostTestAdapterNunit
 
                 for (int i = 0; i < testRunner.RunCount; ++i)
                 {
-                    KeyValuePair<string, IList<string>> run = new KeyValuePair<string, IList<string>>(testRunner.Source, testRunner.Args[i].Tests);
-                    Assert.That(expectedBatches.RemoveAll(batch => (batch.Key == testRunner.Source) && (!batch.Value.Except(testRunner.Args[i].Tests).Any())), Is.EqualTo(1));
+                    KeyValuePair<string, IList<string>> run = new KeyValuePair<string, IList<string>>(testRunner.Source, testRunner.ExecutionArgs[i].Arguments.Tests);
+                    Assert.That(expectedBatches.RemoveAll(batch => (batch.Key == testRunner.Source) && (!batch.Value.Except(testRunner.ExecutionArgs[i].Arguments.Tests).Any())), Is.EqualTo(1));
                 }
             }
 
@@ -1050,8 +1041,8 @@ namespace BoostTestAdapterNunit
                 Assert.That(testRunner.RunCount, Is.EqualTo(2));
 
                 // Check that only the enabled tests are run
-                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/2"));
-                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("B/1"));
+                Assert.That(testRunner.ExecutionArgs[0].Arguments.Tests[0], Is.EqualTo("A/2"));
+                Assert.That(testRunner.ExecutionArgs[1].Arguments.Tests[0], Is.EqualTo("B/1"));
             }
 
         }
@@ -1103,11 +1094,11 @@ namespace BoostTestAdapterNunit
                 Assert.That(testRunner.RunCount, Is.EqualTo(5));
 
                 // Check that only the enabled tests are run
-                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/1"));
-                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("A/2"));
-                Assert.That(testRunner.Args[2].Tests[0], Is.EqualTo("B/1"));
-                Assert.That(testRunner.Args[3].Tests[0], Is.EqualTo("B/2"));
-                Assert.That(testRunner.Args[4].Tests[0], Is.EqualTo("B/3"));
+                Assert.That(testRunner.ExecutionArgs[0].Arguments.Tests[0], Is.EqualTo("A/1"));
+                Assert.That(testRunner.ExecutionArgs[1].Arguments.Tests[0], Is.EqualTo("A/2"));
+                Assert.That(testRunner.ExecutionArgs[2].Arguments.Tests[0], Is.EqualTo("B/1"));
+                Assert.That(testRunner.ExecutionArgs[3].Arguments.Tests[0], Is.EqualTo("B/2"));
+                Assert.That(testRunner.ExecutionArgs[4].Arguments.Tests[0], Is.EqualTo("B/3"));
             }
 
         }
@@ -1149,8 +1140,8 @@ namespace BoostTestAdapterNunit
                 Assert.That(testRunner.RunCount, Is.EqualTo(2));
 
                 // Check that both tests are run, since both were selected
-                Assert.That(testRunner.Args[0].Tests[0], Is.EqualTo("A/1"));
-                Assert.That(testRunner.Args[1].Tests[0], Is.EqualTo("A/2"));
+                Assert.That(testRunner.ExecutionArgs[0].Arguments.Tests[0], Is.EqualTo("A/1"));
+                Assert.That(testRunner.ExecutionArgs[1].Arguments.Tests[0], Is.EqualTo("A/2"));
             }
 
         }
@@ -1180,10 +1171,10 @@ namespace BoostTestAdapterNunit
                 Assert.That(runner, Is.TypeOf<MockBoostTestRunner>());
                 MockBoostTestRunner testRunner = (MockBoostTestRunner) runner;
 
-                foreach (BoostTestRunnerCommandLineArgs args in testRunner.Args)
+                foreach (var args in testRunner.ExecutionArgs)
                 {
-                    Assert.That(args.StandardOutFile, Is.Null);
-                    Assert.That(args.StandardErrorFile, Is.Null);
+                    Assert.That(args.Arguments.StandardOutFile, Is.Null);
+                    Assert.That(args.Arguments.StandardErrorFile, Is.Null);
                 }
             }
         }

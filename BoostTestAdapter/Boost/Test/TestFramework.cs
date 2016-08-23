@@ -3,14 +3,9 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
-
 namespace BoostTestAdapter.Boost.Test
 {
-    [XmlRoot(Xml.BoostTestFramework)]
-    public class TestFramework : IXmlSerializable
+    public class TestFramework
     {
         #region Constructors
 
@@ -40,56 +35,5 @@ namespace BoostTestAdapter.Boost.Test
         public TestSuite MasterTestSuite { get; private set; }
 
         #endregion Properties
-
-        #region IXmlSerializable
-
-        /// <summary>
-        /// Xml Tag/Attribute Constants
-        /// </summary>
-        private static class Xml
-        {
-            public const string BoostTestFramework = "BoostTestFramework";
-            public const string Source = "source";
-        }
-
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-
-        public void ReadXml(XmlReader reader)
-        {
-            Utility.Code.Require(reader, "reader");
-
-            reader.MoveToElement();
-
-            this.Source = reader.GetAttribute(Xml.Source);
-
-            bool empty = reader.IsEmptyElement;
-            reader.ReadStartElement(Xml.BoostTestFramework);
-
-            if (!empty)
-            {
-                XmlSerializer deserialiser = new XmlSerializer(typeof(TestSuite));
-                this.MasterTestSuite = deserialiser.Deserialize(reader) as TestSuite;
-
-                reader.ReadEndElement();
-            }
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            Utility.Code.Require(writer, "writer");
-
-            writer.WriteAttributeString(Xml.Source, this.Source);
-
-            if (this.MasterTestSuite != null)
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(TestSuite));
-                serializer.Serialize(writer, this.MasterTestSuite);
-            }
-        }
-
-        #endregion IXmlSerializable
     }
 }

@@ -17,6 +17,7 @@ using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Utility.VisualStudio;
 
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -58,6 +59,7 @@ namespace BoostTestAdapter.Discoverers
 
         #region IBoostTestDiscoverer
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink)
         {
@@ -103,7 +105,10 @@ namespace BoostTestAdapter.Discoverers
                         args.StandardErrorFile = output.Path;
                         Logger.Debug("list_content file: {0}", args.StandardErrorFile);
 
-                        runner.Run(args, runnerSettings);
+                        using (var context = new DefaultProcessExecutionContext())
+                        { 
+                            runner.Execute(args, runnerSettings, context);
+                        }
 
                         // Parse --list_content=DOT output
                         using (FileStream stream = File.OpenRead(args.StandardErrorFile))

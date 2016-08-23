@@ -20,6 +20,7 @@ using BoostTestAdapter.Utility.VisualStudio;
 using System.Runtime.InteropServices;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter
 {
@@ -83,8 +84,19 @@ namespace BoostTestAdapter
         
         #region Member variables
 
+        /// <summary>
+        /// Cancel flag
+        /// </summary>
         private volatile bool _cancelled;
+
+        /// <summary>
+        /// Boost Test Discoverer Factory - provisions test discoverers
+        /// </summary>
         private readonly IBoostTestDiscovererFactory _boostTestDiscovererFactory;
+
+        /// <summary>
+        /// Boost Test Runner Factory - provisions test runners
+        /// </summary>
         private readonly IBoostTestRunnerFactory _testRunnerFactory;
 
         /// <summary>
@@ -92,11 +104,8 @@ namespace BoostTestAdapter
         /// </summary>
         private readonly IVisualStudioInstanceProvider _vsProvider;
 
-
         #endregion Member variables
         
-        /// <summary>
-
         /// <summary>
         /// Initialization routine for running tests
         /// </summary>
@@ -167,7 +176,9 @@ namespace BoostTestAdapter
 
             SetUp(frameworkHandle);
 
-            Logger.Debug("RunSettings: {0}", runContext.RunSettings.SettingsXml);
+            Logger.Debug("IRunContext.IsDataCollectionEnabled: {0}", runContext.IsDataCollectionEnabled);
+            Logger.Debug("IRunContext.RunSettings.SettingsXml: {0}", runContext.RunSettings.SettingsXml);
+
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
             foreach (string source in sources)
@@ -191,8 +202,7 @@ namespace BoostTestAdapter
                         // This is necessary since we need to run tests one by one in order to have the test adapter remain responsive
                         // and have a list of tests over which we can generate test results for.
                         discoverer.DiscoverTests(new[] { source }, runContext, sink);
-
-
+                        
                         //The following ensures that only test cases that are not disabled are run when the user presses "Run all"
                         //This, however, can be overwritten by the .runsettings file supplied
                         IEnumerable<TestCase> testsToRun = GetTestsToRun(settings, sink.Tests);
@@ -201,7 +211,7 @@ namespace BoostTestAdapter
                         // Batching by source since this overload is called when 'Run All...' or equivalent is triggered
                         // NOTE For code-coverage speed is given preference over adapter responsiveness.
                         TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.Source : settings.TestBatchStrategy);
-                        
+
                         ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
                         if (batchStrategy == null)
                         {
@@ -238,8 +248,10 @@ namespace BoostTestAdapter
             Code.Require(frameworkHandle, "frameworkHandle");
 
             SetUp(frameworkHandle);
-            
-            Logger.Debug("RunSettings: {0}", runContext.RunSettings.SettingsXml);
+
+            Logger.Debug("IRunContext.IsDataCollectionEnabled: {0}", runContext.IsDataCollectionEnabled);
+            Logger.Debug("IRunContext.RunSettings.SettingsXml: {0}", runContext.RunSettings.SettingsXml);
+
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
 
             // Batch tests into grouped runs based on test source and test suite so that we minimize symbol reloading
@@ -383,13 +395,9 @@ namespace BoostTestAdapter
         {
             if (run.Runner != null)
             {
-                if (runContext.IsBeingDebugged)
-                {
-                    run.Debug(frameworkHandle);
-                }
-                else
-                {
-                    run.Run();
+                using (var context = CreateExecutionContext(runContext, frameworkHandle))
+                { 
+                    run.Execute(context);
                 }
             }
             else
@@ -606,6 +614,24 @@ namespace BoostTestAdapter
             }
 
             return TestNotFound;
+        }
+
+        /// <summary>
+        /// Generates an execution context. Debug executions are handled via Visual Studio's
+        /// debug mechanisms and regular executions guarantee managed sub-processes
+        /// (i.e. sub-processes are implicitly killed when parent is killed).
+        /// </summary>
+        /// <param name="context">The test execution run context</param>
+        /// <param name="framework">IFrameworkHandle possessing debug capabilities</param>
+        /// <returns>An IProcessExecutionContext capable of spawning sub-processes</returns>
+        private static IProcessExecutionContext CreateExecutionContext(IRunContext context, IFrameworkHandle framework)
+        {
+            if ((context != null) && (context.IsBeingDebugged) && (framework != null))
+            {
+                return new DebugFrameworkExecutionContext(framework);
+            }
+
+            return new DefaultProcessExecutionContext();
         }
 
         #endregion Helper methods

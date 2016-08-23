@@ -77,7 +77,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoostTestDiscoverer.cs" />
-    <Compile Include="BoostTestDiscovererFactory.cs" />
+    <Compile Include="Discoverers\BoostTestDiscovererUtility.cs" />
+    <Compile Include="Discoverers\BoostTestDiscovererFactory.cs" />
     <Compile Include="BoostTestExecutor.cs" />
     <Compile Include="Boost\Results\BoostStandardError.cs" />
     <Compile Include="Boost\Results\BoostStandardOutput.cs" />
@@ -119,11 +120,10 @@
     <Compile Include="Boost\Test\TestUnit.cs" />
     <Compile Include="Discoverers\ListContentDiscoverer.cs" />
     <Compile Include="Discoverers\ExternalDiscoverer.cs" />
-    <Compile Include="Discoverers\TestCaseUtils.cs" />
     <Compile Include="Discoverers\VSDiscoveryVisitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="IBoostTestDiscoverer.cs" />
-    <Compile Include="IBoostTestDiscovererFactory.cs" />
+    <Compile Include="Discoverers\IBoostTestDiscoverer.cs" />
+    <Compile Include="Discoverers\IBoostTestDiscovererFactory.cs" />
     <Compile Include="Utility\BoostTestRunnerCommandLineArgsEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\BoostTestAdapterSettings.cs" />
@@ -139,9 +139,12 @@
     <Compile Include="Utility\CommandEvaluator.cs" />
     <Compile Include="Utility\CommandLine.cs" />
     <Compile Include="Utility\DebugHelperNative.cs" />
+    <Compile Include="Utility\ExecutionContext\DebugFrameworkExecutionContext.cs" />
+    <Compile Include="Utility\ExecutionContext\DefaultProcessExecutionContext.cs" />
+    <Compile Include="Utility\ExecutionContext\IProcessExecutionContext.cs" />
+    <Compile Include="Utility\NativeJobManagement.cs" />
     <Compile Include="Utility\Logger.cs" />
     <Compile Include="Utility\NativeMethods.cs" />
-    <Compile Include="Utility\ProcessStartInfoEx.cs" />
     <Compile Include="Utility\QualifiedNameBuilder.cs" />
     <Compile Include="Utility\ROTException.cs" />
     <Compile Include="Utility\SourceFileInfo.cs" />
