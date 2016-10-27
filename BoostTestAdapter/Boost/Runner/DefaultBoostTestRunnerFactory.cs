@@ -38,6 +38,12 @@ namespace BoostTestAdapter.Boost.Runner
                 runner = GetInternalTestRunner(identifier);
             }
 
+            // Apply Boost 1.62 workaround
+            if ((runner != null) && (options != null) && (options.UseBoost162Workaround))
+            {
+                runner = new BoostTest162Runner(runner);
+            }
+
             return runner;
         }
 

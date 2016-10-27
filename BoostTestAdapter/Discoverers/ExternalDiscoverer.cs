@@ -18,12 +18,6 @@ namespace BoostTestAdapter.Discoverers
     /// </summary>
     internal class ExternalDiscoverer : IBoostTestDiscoverer
     {
-        #region Constants
-
-        private const string ListFileSuffix = ".test.list.xml";
-
-        #endregion Constants
-
         /// <summary>
         /// Constructor.
         /// </summary>

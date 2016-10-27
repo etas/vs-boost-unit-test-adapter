@@ -12,6 +12,14 @@ namespace BoostTestAdapter.Boost.Runner
     /// </summary>
     public class BoostTestRunnerFactoryOptions
     {
+        /// <summary>
+        /// Flag determining if Boost Test available in Boost 1.62 is in use
+        /// </summary>
+        public bool UseBoost162Workaround { get; set; } = false;
+
+        /// <summary>
+        /// Settings for external test runner use
+        /// </summary>
         public ExternalBoostTestRunnerSettings ExternalTestRunnerSettings { get; set; }
     }
 }

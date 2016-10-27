@@ -3,15 +3,10 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
-using BoostTestAdapter.Utility;
 using BoostTestAdapter.TestBatch;
 using BoostTestAdapterNunit.Fakes;
-using BoostTestAdapterNunit.Utility;
 using NUnit.Framework;
 
 namespace BoostTestAdapterNunit
@@ -20,19 +15,35 @@ namespace BoostTestAdapterNunit
     class BoostTestSettingsTest
     {
         #region Helper Methods
-
+        
         /// <summary>
         /// Deserialises a BoostTestAdapterSettings instance from the provided embedded resource.
         /// </summary>
         /// <param name="path">Fully qualified path to a .runsettings Xml embedded resource</param>
         /// <returns>The deserialised BoostTestAdapterSettings</returns>
-        private BoostTestAdapterSettings Parse(string path)
+        private BoostTestAdapterSettings ParseEmbeddedResource(string path)
         {
             BoostTestAdapterSettingsProvider provider = new BoostTestAdapterSettingsProvider();
 
             DefaultTestContext context = new DefaultTestContext();
             context.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, provider);
             context.LoadEmbeddedSettings(path);
+            
+            return provider.Settings;
+        }
+
+        /// <summary>
+        /// Deserialises a BoostTestAdapterSettings instance from the provided XML content.
+        /// </summary>
+        /// <param name="settingsXml">The settings XML content</param>
+        /// <returns>The deserialised BoostTestAdapterSettings</returns>
+        private BoostTestAdapterSettings ParseXml(string settingsXml)
+        {
+            BoostTestAdapterSettingsProvider provider = new BoostTestAdapterSettingsProvider();
+
+            DefaultTestContext context = new DefaultTestContext();
+            context.RegisterSettingProvider(BoostTestAdapterSettings.XmlRootName, provider);
+            context.LoadSettings(settingsXml);
 
             return provider.Settings;
         }
@@ -57,10 +68,9 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.EnableStdErrRedirection, Is.True);
             Assert.That(settings.Filters, Is.EqualTo(TestSourceFilter.Empty));
             Assert.That(settings.RunDisabledTests, Is.False);
+            Assert.That(settings.UseBoost162Workaround, Is.False);
         }
-
-
-
+        
         #endregion Helper Methods
 
         #region Tests
@@ -87,7 +97,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseSampleSettings()
         {
-            BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.sample.runsettings");
+            BoostTestAdapterSettings settings = ParseEmbeddedResource("BoostTestAdapterNunit.Resources.Settings.sample.runsettings");
 
             Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(600000));
             Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(600000));
@@ -107,7 +117,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseEmptySettings()
         {
-            BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.empty.runsettings");
+            BoostTestAdapterSettings settings = ParseEmbeddedResource("BoostTestAdapterNunit.Resources.Settings.empty.runsettings");
             AssertDefaultSettings(settings);
         }
 
@@ -120,7 +130,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseDefaultSettings()
         {
-            BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.default.runsettings");
+            BoostTestAdapterSettings settings = ParseEmbeddedResource("BoostTestAdapterNunit.Resources.Settings.default.runsettings");
             AssertDefaultSettings(settings);
         }
 
@@ -133,7 +143,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseComplexSettings()
         {
-            BoostTestAdapterSettings settings = Parse("BoostTestAdapterNunit.Resources.Settings.sample.2.runsettings");
+            BoostTestAdapterSettings settings = ParseEmbeddedResource("BoostTestAdapterNunit.Resources.Settings.sample.2.runsettings");
             Assert.That(settings.ExecutionTimeoutMilliseconds, Is.EqualTo(100));
             Assert.That(settings.DiscoveryTimeoutMilliseconds, Is.EqualTo(100));
 
@@ -150,9 +160,21 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.Filters.Exclude, Is.Not.Empty);
             Assert.That(settings.Filters.Exclude, Is.EquivalentTo(new[] { "test.exe$" }));
         }
-
         
-   
+        /// <summary>
+        /// The Boost 1.62 workaround option can be parsed
+        /// 
+        /// Test aims:
+        ///     - Assert that: the Boost 1.62 workaround option can be parsed
+        /// </summary>
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>true</UseBoost162Workaround></BoostTest></RunSettings>", Result = true)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>false</UseBoost162Workaround></BoostTest></RunSettings>", Result = false)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest /></RunSettings>", Result = false)]
+        public bool ParseWorkaroundOption(string settingsXml)
+        {
+            BoostTestAdapterSettings settings = ParseXml(settingsXml);
+            return settings.UseBoost162Workaround;
+        }
 
         #endregion Tests
     }

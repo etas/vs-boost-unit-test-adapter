@@ -41,7 +41,7 @@ namespace BoostTestAdapter
         /// <summary>
         /// Static class aggregating constant file extensions.
         /// </summary>
-        private static class FileExtensions
+        internal static class FileExtensions
         {
             public const string LogFile = ".test.log.xml";
             public const string ReportFile = ".test.report.xml";
@@ -356,6 +356,8 @@ namespace BoostTestAdapter
                         Logger.Debug("StdOut file      : {0}", batch.Arguments.StandardOutFile ?? "(null)");
                         Logger.Debug("StdErr file      : {0}", batch.Arguments.StandardErrorFile ?? "(null)");
 
+                        Logger.Debug("CmdLine arguments: {0}", batch.Arguments.ToString() ?? "(null)");
+
                         // Execute the tests
                         if (ExecuteTests(batch, runContext, frameworkHandle))
                         {
@@ -396,7 +398,7 @@ namespace BoostTestAdapter
             if (run.Runner != null)
             {
                 using (var context = CreateExecutionContext(runContext, frameworkHandle))
-                { 
+                {
                     run.Execute(context);
                 }
             }

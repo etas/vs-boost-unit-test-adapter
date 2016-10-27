@@ -90,6 +90,24 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
+        /// --log_sink and --report_sink can be specified to standard out and standard error
+        /// 
+        /// Test aims:
+        ///     - Assert that: it is possible to specify standard output/error for sink arguments
+        /// </summary>
+        [Test]
+        public void StdOutStdErrSink()
+        {
+            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs()
+            {
+                Log = Sink.StandardError,
+                Report = Sink.StandardOutput
+            };
+
+            Assert.That(args.ToString(), Is.EqualTo("\"--log_sink=stderr\" \"--report_sink=stdout\""));
+        }
+
+        /// <summary>
         /// Verifies that cloning a command-line args structure is possible and correct.
         /// 
         /// Test aims:
