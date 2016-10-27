@@ -121,6 +121,9 @@ namespace BoostTestAdapter.Utility
             internal static extern SetErrorFlags SetErrorMode(SetErrorFlags flags);
 
             [DllImport("DbgHelp.dll", SetLastError = true)]
+            internal static extern Options SymGetOptions();
+
+            [DllImport("DbgHelp.dll", SetLastError = true)]
             internal static extern uint SymSetOptions(Options options);
 
             [DllImport("DbgHelp.dll", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
@@ -137,17 +140,14 @@ namespace BoostTestAdapter.Utility
             [DllImport("DbgHelp.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public extern static bool SymUnloadModule64(IntPtr hProcess, ulong baseOfDll);
-            
-            [DllImport("DbgHelp", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+
+            [DllImport("DbgHelp.dll", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public extern static bool SymFromName(IntPtr hProcess, string name, ref SYMBOL_INFO symInfo);
+            public extern static bool SymFromName(IntPtr hProcess, string SymName, ref SYMBOL_INFO symInfo);
 
             #endregion
 
         }
-
-        private const string _fileNameNoSource = null;
-        private const int _noLineNumber = -1;
 
         private IntPtr _libHandle;
         private ulong _dllBase;
@@ -165,7 +165,10 @@ namespace BoostTestAdapter.Utility
             IntPtr handle = Process.GetCurrentProcess().Handle;
             NativeMethods.SetErrorMode(NativeMethods.SetErrorFlags.SEM_FAILCRITICALERRORS | NativeMethods.SetErrorFlags.SEM_NOOPENFILEERRORBOX);
 
-            NativeMethods.SymSetOptions(NativeMethods.Options.SYMOPT_DEFERRED_LOADS | NativeMethods.Options.SYMOPT_DEBUG);
+            NativeMethods.Options options = NativeMethods.SymGetOptions();
+            options |= NativeMethods.Options.SYMOPT_DEFERRED_LOADS;
+            options |= NativeMethods.Options.SYMOPT_DEBUG;
+            NativeMethods.SymSetOptions(options);
 
             if (!NativeMethods.SymInitialize(handle, null, false))
             {
