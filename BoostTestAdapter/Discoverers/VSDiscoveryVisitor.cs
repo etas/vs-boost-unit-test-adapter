@@ -43,7 +43,7 @@ namespace BoostTestAdapter.Discoverers
         public string Source { get; private set; }
 
         /// <summary>
-        /// Whether the module should outut to the logger regarding relative paths
+        /// Whether the module should output to the logger regarding relative paths
         /// </summary>
         public bool OutputLog { get; private set; }
 
@@ -127,7 +127,7 @@ namespace BoostTestAdapter.Discoverers
                 foreach (string label in unit.Labels)
                 {
                     // Register each and every label as an individual trait
-                    test.Traits.Add(new Trait(VSTestModel.LabelTrait, ("@" + label)));
+                    test.Traits.Add(new Trait(label, ""));
                 }             
 
                 // Test cases inherit the labels of parent test units

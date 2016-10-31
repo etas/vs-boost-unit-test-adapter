@@ -15,6 +15,6 @@ tu65511[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_6|d:\sample.bo
 tu1 -> tu65511;
 tu65512[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_7|d:\sample.boostunittest\file_1.cpp(62)"];
 tu1 -> tu65512;
-tu65513[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_8|d:\sample.boostunittest\file_1.cpp(62)|labels: @l1"];
+tu65513[shape=Mrecord,fontname=Helvetica,color=yellow,label="test_8|d:\sample.boostunittest\file_1.cpp(62)|labels: @l1 @l2 @l3 withaspace"];
 tu1 -> tu65513;
 }

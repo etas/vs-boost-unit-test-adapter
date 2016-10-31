@@ -59,7 +59,7 @@ namespace BoostTestAdapterNunit
         private void AssertLabelTrait(VSTestCase testCase, string label)
         {
             Assert.That(testCase, Is.Not.Null);
-            Assert.That(testCase.Traits.Any((trait) => ((trait.Name == VSTestModel.LabelTrait) && (trait.Value == label))), Is.True);
+            Assert.That(testCase.Traits.Any((trait) => ((trait.Name == label) && (trait.Value.Length == 0))), Is.True);
         }
 
         #endregion Helper Methods
@@ -114,12 +114,12 @@ namespace BoostTestAdapterNunit
             // Ensure proper test discovery
             Assert.That(sink.Tests.Count, Is.EqualTo(8));
 
-            // Ensure proper labeling
-            const string label = "@l1";
-
-            AssertLabelTrait(sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_2")), label);
-            AssertLabelTrait(sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_6")), label);
-            AssertLabelTrait(sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_8")), label);
+            AssertLabelTrait(sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_2")), "l1");
+            AssertLabelTrait(sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_6")), "l1");
+            var test_8 = sink.Tests.FirstOrDefault((vstest) => (vstest.FullyQualifiedName == "test_8"));
+            AssertLabelTrait(test_8, "l1");
+            AssertLabelTrait(test_8, "l2");
+            AssertLabelTrait(test_8, "l3 withaspace");
 
             Assert.That(output, Is.Not.Null);
 
