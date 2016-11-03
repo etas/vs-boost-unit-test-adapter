@@ -88,7 +88,7 @@ namespace BoostTestAdapter.Boost.Runner
             };
             cmdLineArgs += redirection.ToString();
            
-            info.FilePath = this.Settings.ExecutionCommandLine.FileName;
+            info.FilePath = evaluator.Evaluate(this.Settings.ExecutionCommandLine.FileName).Result;
             info.Arguments = cmdLineArgs;
 
             return info;
