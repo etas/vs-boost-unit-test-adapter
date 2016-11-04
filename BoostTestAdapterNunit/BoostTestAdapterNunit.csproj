@@ -145,8 +145,8 @@
     <EmbeddedResource Include="Resources\ReportsLogs\SpecialCharacters\sample.test.report.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.log.txt" />
-    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.report.txt" />
+    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.log.xml" />
+    <EmbeddedResource Include="Resources\ReportsLogs\ControlCharacters\sample.test.report.xml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

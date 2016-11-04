@@ -3,7 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.IO;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using BoostTestAdapter.Utility;
@@ -21,21 +21,10 @@ namespace BoostTestAdapter.Boost.Results
         /// <summary>
         /// Constructor accepting a path to the external file
         /// </summary>
-        /// <param name="path">The path to an external file. File will be opened on construction.</param>
-        protected BoostConsoleOutputBase(string path)
-            : base(path)
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        protected BoostConsoleOutputBase(IDictionary<string, TestResult> target)
+            : base(target)
         {
-            this.FailTestOnMemoryLeak = false;
-        }
-
-        /// <summary>
-        /// Constructor accepting a stream to the file contents
-        /// </summary>
-        /// <param name="stream">The file content stream.</param>
-        protected BoostConsoleOutputBase(Stream stream)
-            : base(stream)
-        {
-            this.FailTestOnMemoryLeak = false;
         }
 
         #endregion Constructors
@@ -45,34 +34,31 @@ namespace BoostTestAdapter.Boost.Results
         /// <summary>
         /// Determines whether or not a test should fail if a memory leak is detected within the output
         /// </summary>
-        public bool FailTestOnMemoryLeak { get; set; }
+        public bool FailTestOnMemoryLeak { get; set; } = false;
 
         #endregion Properties
 
         #region IBoostOutputParser
-
-        /// <summary>
-        /// Processes the standard output and populates the relevant test result data of the referenced collection
-        /// </summary>
-        /// <param name="collection">test result collection where the leak information data will be inserted at</param>
-        public override void Parse(TestResultCollection collection)
+        
+        public override IDictionary<string, TestResult> Parse(string content)
         {
-            // NOTE Disposing is handled by parent class
-            string strConsoleOutput = new StreamReader(this.InputStream).ReadToEnd();
+            content = content ?? string.Empty;
 
-            //the below regex is intended to only to "detect" if any memory leaks are present. Note that any console output printed by the test generally appears before the memory leaks dump.
+            //the below regex is intended to only "detect" if any memory leaks are present. Note that any console output printed by the test generally appears before the memory leaks dump.
             Regex regexObj = new Regex(@"Detected\smemory\sleaks!\nDumping objects\s->\n(.*)Object dump complete.", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline);
-            Match outputMatch = regexObj.Match(strConsoleOutput);
+            Match outputMatch = regexObj.Match(content);
 
             //leak has been detected
             if (outputMatch.Success)
             {
-                RegisterMemoryLeak(outputMatch.Groups[1].Value, collection);
+                RegisterMemoryLeak(outputMatch.Groups[1].Value, Target);
             }
 
             // Extract non-memory leak output
-            string output = strConsoleOutput.Substring(0, ((outputMatch.Success) ? outputMatch.Index : strConsoleOutput.Length));
-            RegisterMessages(output, collection);
+            string output = content.Substring(0, ((outputMatch.Success) ? outputMatch.Index : content.Length));
+            RegisterMessages(output, Target);
+
+            return base.Parse(content);
         }
 
         #endregion IBoostOutputParser
@@ -82,10 +68,12 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="leakInformation">The full memory leak information</param>
         /// <param name="collection">The test collection in which to place memory leak entries</param>
-        private void RegisterMemoryLeak(string leakInformation, TestResultCollection collection)
+        private void RegisterMemoryLeak(string leakInformation, IDictionary<string, TestResult> collection)
         {
-            foreach (TestResult result in collection)
+            foreach (var entry in collection)
             {
+                var result = entry.Value;
+
                 if (this.FailTestOnMemoryLeak)
                 {
                     result.Result = TestResultType.Failed;
@@ -237,17 +225,17 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="output">The console output</param>
         /// <param name="collection">The test collection in which to place console log entries</param>
-        private void RegisterMessages(string output, TestResultCollection collection)
+        private void RegisterMessages(string output, IDictionary<string, TestResult> collection)
         {
             if (!string.IsNullOrEmpty(output))
             {
                 // Attach the console output to each TestCase result in the collection
                 // since we cannot distinguish to which TestCase (in case multiple TestCases are registered)
                 // the output is associated with.
-                foreach (TestResult result in collection)
+                foreach (var entry in collection)
                 {
                     // Consider the whole console contents as 1 entry.
-                    result.LogEntries.Add(CreateLogEntry(output));
+                    entry.Value.LogEntries.Add(CreateLogEntry(output));
                 }
             }
         }

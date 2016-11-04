@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
-using System.IO;
+using System.Collections.Generic;
 
 namespace BoostTestAdapter.Boost.Results
 {
@@ -12,80 +11,37 @@ namespace BoostTestAdapter.Boost.Results
     /// Base class for IBoostTestResultOutput implementations
     /// providing common functionality.
     /// </summary>
-    public abstract class BoostTestResultOutputBase : IBoostTestResultOutput
+    public abstract class BoostTestResultOutputBase : IBoostTestResultParser
     {
         #region Constructors
 
         /// <summary>
-        /// Constructor for external files.
+        /// Constructor.
         /// </summary>
-        /// <param name="path">The path to an external file. File will be opened on construction.</param>
-        protected BoostTestResultOutputBase(string path)
-            : this(File.OpenRead(path))
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        protected BoostTestResultOutputBase(IDictionary<string, TestResult> target)
         {
-            this.CloseStreamOnDispose = true;
+            this.Target = target ?? new Dictionary<string, TestResult>();
         }
-
-        /// <summary>
-        /// Constructor for streams. Ideal for test purposes.
-        /// </summary>
-        /// <param name="stream">The stream containing the output.</param>
-        protected BoostTestResultOutputBase(Stream stream)
-        {
-            this.CloseStreamOnDispose = false;
-            this.InputStream = (stream ?? Stream.Null);
-            this.IsDisposed = false;
-        }
-
+        
         #endregion Constructors
 
         #region Properties
-
-        /// <summary>
-        /// Flag stating whether the stream should be closed on dispose.
-        /// </summary>
-        protected bool CloseStreamOnDispose { get; set; }
-
+        
         /// <summary>
         /// The input stream representing the content.
         /// </summary>
-        protected Stream InputStream { get; set; }
+        protected IDictionary<string, TestResult> Target { get; private set; }
 
         #endregion Properties
 
         #region IBoostOutputParser
 
-        public abstract void Parse(TestResultCollection collection);
+        public virtual IDictionary<string, TestResult> Parse(string content)
+        {
+            return Target;
+        }
 
         #endregion IBoostOutputParser
-
-        #region IDisposable
-
-        public void Dispose()
-        {
-            Dispose(true);
-
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!IsDisposed)
-            {
-                if (disposing)
-                {
-                    if (this.CloseStreamOnDispose)
-                    {
-                        this.InputStream.Dispose();
-                    }
-                }
-            }
-
-            IsDisposed = true;
-        }
-
-        private bool IsDisposed { get; set; }
-
-        #endregion IDisposable
     }
 }

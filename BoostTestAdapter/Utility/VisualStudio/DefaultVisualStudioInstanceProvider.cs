@@ -34,6 +34,7 @@ namespace BoostTestAdapter.Utility.VisualStudio
         {
             get
             {
+                // Acquire the parent pid since the test environment is a child process of the Visual Studio (devenv) process
                 string processId = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture);
                 string parentProcessId = GetParentProcessId(processId);
 
@@ -41,7 +42,7 @@ namespace BoostTestAdapter.Utility.VisualStudio
 
                 if (dte?.DTE != null)
                 {
-                    if(dte.Version == "14")
+                    if (dte.Version == "14")
                     {
                         return new VisualStudio2015Adapter.VisualStudio(dte.DTE);
                     }

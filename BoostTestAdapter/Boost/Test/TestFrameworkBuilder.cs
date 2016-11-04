@@ -200,7 +200,6 @@ namespace BoostTestAdapter.Boost.Test
             return this;
         }
 
-
         /// <summary>
         /// Ends the current TestSuite context and moves up one level in the hierarchy.
         /// </summary>

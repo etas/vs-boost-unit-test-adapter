@@ -20,6 +20,7 @@ using BoostTestAdapter.Utility.VisualStudio;
 using System.Runtime.InteropServices;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
 using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+using BoostTestResult = BoostTestAdapter.Boost.Results.TestResult;
 using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter
@@ -134,9 +135,9 @@ namespace BoostTestAdapter
         /// <param name="settings">Adapter settings which determines test filtering</param>
         /// <param name="tests">The entire test corpus</param>
         /// <returns>A test corpus which contains only the test which are intended to run</returns>
-        private static IEnumerable<TestCase> GetTestsToRun(BoostTestAdapterSettings settings, IEnumerable<TestCase> tests)
+        private static IEnumerable<VSTestCase> GetTestsToRun(BoostTestAdapterSettings settings, IEnumerable<VSTestCase> tests)
         {
-            IEnumerable<TestCase> testsToRun = tests;
+            IEnumerable<VSTestCase> testsToRun = tests;
 
             if (!settings.RunDisabledTests)
             {
@@ -203,8 +204,8 @@ namespace BoostTestAdapter
                         // and have a list of tests over which we can generate test results for.
                         discoverer.DiscoverTests(new[] { source }, runContext, sink);
                         
-                        //The following ensures that only test cases that are not disabled are run when the user presses "Run all"
-                        //This, however, can be overwritten by the .runsettings file supplied
+                        // The following ensures that only test cases that are not disabled are run when the user presses "Run all"
+                        // This, however, can be overridden by the .runsettings file supplied
                         IEnumerable<TestCase> testsToRun = GetTestsToRun(settings, sink.Tests);
 
                         // Batch tests into grouped runs based by source so that we avoid reloading symbols per test run
@@ -420,7 +421,13 @@ namespace BoostTestAdapter
         {
             try
             {
-                args.SetWorkingEnvironment(source, settings, ((_vsProvider == null) ? null : _vsProvider.Instance));
+                var vs = _vsProvider?.Instance;
+                if (vs != null)
+                {
+                    Logger.Debug("Connected to Visual Studio {0} instance", vs.Version);
+                }
+
+                args.SetWorkingEnvironment(source, settings, vs);
             }
             catch (COMException ex)
             {
@@ -494,14 +501,14 @@ namespace BoostTestAdapter
         /// <param name="start">The test execution start time.</param>
         /// <param name="end">The test execution end time.</param>
         /// <param name="settings">boost test adapter settings</param>
-        /// <returns>A Visual Studio TestResult related to the executed test.</returns>
+        /// <returns>A Visual Studio Test result related to the executed test.</returns>
         private static IEnumerable<VSTestResult> GenerateTestResults(TestRun testRun, DateTimeOffset start, DateTimeOffset end, BoostTestAdapterSettings settings)
         {
-            TestResultCollection results = new TestResultCollection();
+            IDictionary<string, BoostTestResult> results;
 
             try
             {
-                results.Parse(testRun.Arguments, settings);
+                results = BoostTestResultParser.Parse(testRun.Arguments, settings);
             }
             catch (XmlException)
             {
@@ -520,7 +527,7 @@ namespace BoostTestAdapter
                     }
                     
                     return testRun.Tests.Select(test => {
-                        Boost.Results.TestResult exception = new Boost.Results.TestResult(results);
+                        var exception = new BoostTestResult();
                         
                         exception.Unit = Boost.Test.TestUnit.FromFullyQualifiedName(test.FullyQualifiedName);
 
@@ -542,13 +549,21 @@ namespace BoostTestAdapter
                 Select(test =>
                 {
                     // Locate the test result associated to the current test
-                    Boost.Results.TestResult result = results[test.FullyQualifiedName];
-                    return (result == null) ? null : GenerateResult(test, result, start, end);
+                    BoostTestResult result = null;
+                    return (results.TryGetValue(test.FullyQualifiedName, out result)) ? GenerateResult(test, result, start, end) : null;
                 }).
                 Where(result => (result != null));
         }
 
-        private static VSTestResult GenerateResult(VSTestCase test, Boost.Results.TestResult result, DateTimeOffset start, DateTimeOffset end)
+        /// <summary>
+        /// Converts a Boost Test Result into an equivalent Visual Studio Test result
+        /// </summary>
+        /// <param name="test">The test case under consideration</param>
+        /// <param name="result">The Boost test result for the test case under consideration</param>
+        /// <param name="start">The test starting time</param>
+        /// <param name="end">The test ending time</param>
+        /// <returns>A Visual Studio test result equivalent to the Boost Test result</returns>
+        private static VSTestResult GenerateResult(VSTestCase test, BoostTestResult result, DateTimeOffset start, DateTimeOffset end)
         {
             Code.Require(test, "test");
             Code.Require(result, "result");

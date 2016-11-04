@@ -72,9 +72,6 @@ namespace BoostTestAdapter
 
             // sources that support list-content parameter
             var listContentDiscovererSources = new List<string>();
-
-            // sources that do NOT support the list-content parameter
-            var sourceCodeDiscovererSources = new List<string>();
             
             foreach (var source in sources)
             {
@@ -93,13 +90,10 @@ namespace BoostTestAdapter
                 if (extension != BoostTestDiscoverer.ExeExtension)
                     continue;
 
+                // Ensure that the source is a Boost.Test module if it supports '--list_content'
                 if (((settings.ForceListContent) || IsListContentSupported(source, settings)))
                 {
                     listContentDiscovererSources.Add(source);
-                }
-                else
-                {
-                    sourceCodeDiscovererSources.Add(source);
                 }
             }
 

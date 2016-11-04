@@ -40,21 +40,7 @@ namespace BoostTestAdapterNunit.Utility
                 return reader.ReadToEnd();
             }
         }
-
-        /// <summary>
-        /// Helper method so as to copy an embedded resource to the temporary directory
-        /// </summary>
-        /// <param name="nameSpace">namespace of the where the resource file is located at</param>
-        /// <param name="resourceName">the filename of the embedded resource that needs to copied over</param>
-        /// <returns>The temporary file of the successfully copied resource</returns>
-        static public TemporaryFile CopyEmbeddedResourceToTempDirectory(string nameSpace, string resourceName)
-        {
-            string input = nameSpace + (nameSpace.EndsWith(".") ? "" : ".") + resourceName;
-            string output = Path.Combine(Path.GetTempPath(), resourceName);
-
-            return new TemporaryFile(CopyEmbeddedResourceToDirectory(input, output));
-        }
-
+        
         /// <summary>
         /// Helper method so as to copy an embedded resource to the path supplied
         /// </summary>

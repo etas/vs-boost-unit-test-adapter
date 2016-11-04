@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Xml.XPath;
+using System.Collections.Generic;
 using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Utility;
 
@@ -39,48 +40,44 @@ namespace BoostTestAdapter.Boost.Results
         #region Constructors
 
         /// <summary>
-        /// Constructor accepting a path to the external file
+        /// Constructor.
         /// </summary>
-        /// <param name="path">The path to an external file. File will be opened on construction.</param>
-        public BoostXmlReport(string path)
-            : base(path)
-        {
-        }
-
-        /// <summary>
-        /// Constructor accepting a stream to the file contents
-        /// </summary>
-        /// <param name="stream">The file content stream.</param>
-        public BoostXmlReport(Stream stream)
-            : base(stream)
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        public BoostXmlReport(IDictionary<string, TestResult> target)
+            : base(target)
         {
         }
 
         #endregion Constructors
 
-        #region IBoostOutputParser
+        #region BoostTestResultXMLOutput
 
-        public override void Parse(TestResultCollection collection)
+        protected override IDictionary<string, TestResult> ParseXml(string xml)
         {
-            XPathDocument doc = new XPathDocument(this.InputStream);
-            XPathNavigator nav = doc.CreateNavigator();
-
-            // Move to document root node
-            if ((nav.MoveToFirstChild()) && (nav.LocalName == Xml.TestResult))
+            using (var reader = new StringReader(xml))
             {
-                ParseTestUnitsReport(nav, null, collection);
+                XPathDocument doc = new XPathDocument(reader);
+                XPathNavigator nav = doc.CreateNavigator();
+
+                // Move to document root node
+                if ((nav.MoveToFirstChild()) && (nav.LocalName == Xml.TestResult))
+                {
+                    ParseTestUnitsReport(nav, null, Target);
+                }
+
+                return Target;
             }
         }
 
-        #endregion IBoostOutputParser
+        #endregion BoostTestResultXMLOutput
 
         /// <summary>
         /// Parses child TestUnit nodes.
         /// </summary>
         /// <param name="nav">The parent XPathNavigator which hosts TestUnit nodes.</param>
         /// <param name="parent">The parent TestSuite to which TestUnits are attached to.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestUnitsReport(XPathNavigator nav, TestSuite parent, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestUnitsReport(XPathNavigator nav, TestSuite parent, IDictionary<string, TestResult> collection)
         {
             foreach (XPathNavigator child in nav.SelectChildren(Xml.TestSuite, string.Empty))
             {
@@ -98,11 +95,11 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The XPathNavigator pointing to a TestSuite node.</param>
         /// <param name="parent">The parent TestSuite to which TestUnits are attached to.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestSuiteReport(XPathNavigator node, TestSuite parent, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestSuiteReport(XPathNavigator node, TestSuite parent, IDictionary<string, TestResult> collection)
         {
             TestSuite testSuite = new TestSuite(node.GetAttribute(Xml.Name, string.Empty), parent);
-            collection[testSuite] = ParseTestResult(node, testSuite, collection);
+            collection[testSuite.FullyQualifiedName] = ParseTestResult(node, testSuite, collection);
 
             ParseTestUnitsReport(node, testSuite, collection);
         }
@@ -112,8 +109,8 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The XPathNavigator pointing to a TestCase node.</param>
         /// <param name="parent">The parent TestSuite to which TestUnits are attached to.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestCaseReport(XPathNavigator node, TestSuite parent, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestCaseReport(XPathNavigator node, TestSuite parent, IDictionary<string, TestResult> collection)
         {
             QualifiedNameBuilder fullname = new QualifiedNameBuilder(parent);
             fullname.Push(node.GetAttribute(Xml.Name, string.Empty));
@@ -121,8 +118,8 @@ namespace BoostTestAdapter.Boost.Results
             TestCase testCase = null;
 
             // If the test is already available, reuse it
-            TestResult current = collection[fullname.ToString()];
-            if (current != null)
+            TestResult current = null;
+            if (collection.TryGetValue(fullname.ToString(), out current))
             {
                 testCase = current.Unit as TestCase;
             }
@@ -173,8 +170,8 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The XPathNavigator pointing to a TestUnit node.</param>
         /// <param name="unit">The test unit for which the test results are related to.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static TestResult ParseTestResult(XPathNavigator node, TestUnit unit, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static TestResult ParseTestResult(XPathNavigator node, TestUnit unit, IDictionary<string, TestResult> collection)
         {
             TestResult result = new TestResult(collection);
 

@@ -4,11 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.VCProjectEngine;
-using VSProjectItem = EnvDTE.ProjectItem;
-using VsFileType = Microsoft.VisualStudio.VCProjectEngine.eFileType; //descriptions at https://msdn.microsoft.com/en-us/library/microsoft.visualstudio.vcprojectengine.efiletype.aspx
 
 namespace VisualStudioAdapter.Shared
 {

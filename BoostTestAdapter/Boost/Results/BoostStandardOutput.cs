@@ -3,7 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.IO;
+using System.Collections.Generic;
 using BoostTestAdapter.Boost.Results.LogEntryTypes;
 
 namespace BoostTestAdapter.Boost.Results
@@ -18,21 +18,12 @@ namespace BoostTestAdapter.Boost.Results
         /// <summary>
         /// Constructor accepting a path to the external file
         /// </summary>
-        /// <param name="path">The path to an external file. File will be opened on construction.</param>
-        public BoostStandardOutput(string path)
-            : base(path)
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        public BoostStandardOutput(IDictionary<string, TestResult> target)
+            : base(target)
         {
         }
-
-        /// <summary>
-        /// Constructor accepting a stream to the file contents
-        /// </summary>
-        /// <param name="stream">The file content stream.</param>
-        public BoostStandardOutput(Stream stream)
-            : base(stream)
-        {
-        }
-
+        
         #endregion Constructors
 
         #region BoostConsoleOutputBase

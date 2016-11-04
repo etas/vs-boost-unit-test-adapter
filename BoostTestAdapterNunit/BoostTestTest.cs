@@ -90,39 +90,7 @@ namespace BoostTestAdapterNunit
             root.Apply(lookup);
             return lookup.Unit;
         }
-
-        /// <summary>
-        /// Deserialises an embedded resource as a TestFramework
-        /// </summary>
-        /// <param name="path">The fully qualified path to the embedded resource</param>
-        /// <returns>The TestFramework deserialised from the embedded resource</returns>
-        private TestFramework Deserialize(string path)
-        {
-            using (Stream stream = TestHelper.LoadEmbeddedResource(path))
-            {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TestFramework));
-                return deserializer.Deserialize(stream) as TestFramework;
-            }
-        }
-
-        /// <summary>
-        /// Serializes the provided TestFramework as an XmlDocument
-        /// </summary>
-        /// <param name="framework">The TestFramework to serialize</param>
-        /// <returns>The serialized Xml for the provided TestFramework</returns>
-        private static XmlDocument Serialize(TestFramework framework)
-        {
-            XmlDocument doc = new XmlDocument();
-
-            using (XmlWriter writer = doc.CreateNavigator().AppendChild())
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(TestFramework));
-                serializer.Serialize(writer, framework);
-            }
-
-            return doc;
-        }
-
+        
         /// <summary>
         /// Asserts test unit details
         /// </summary>
