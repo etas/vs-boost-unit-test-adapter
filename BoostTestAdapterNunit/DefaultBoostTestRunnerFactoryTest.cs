@@ -71,6 +71,14 @@ namespace BoostTestAdapterNunit
             }
             else
             {
+                // For all intents and purposes, the workaround is not of importance
+                // This is intended to be removed when support for Boost 1.62 is no more required
+                BoostTest162Runner workaround = runner as BoostTest162Runner;
+                if (workaround != null)
+                {
+                    runner = workaround.Runner;
+                }
+
                 Assert.That(runner, Is.AssignableTo(type));
             }
         }

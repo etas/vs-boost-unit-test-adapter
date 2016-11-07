@@ -34,18 +34,7 @@ namespace BoostTestAdapter.Utility.VisualStudio
                 return "TestSuite";
             }
         }
-
-        /// <summary>
-        /// Label trait name
-        /// </summary>
-        public static string LabelTrait
-        {
-            get
-            {
-                return "Label";
-            }
-        }
-
+        
         /// <summary>
         /// TestSuite trait name
         /// </summary>

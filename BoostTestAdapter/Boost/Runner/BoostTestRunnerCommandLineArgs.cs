@@ -74,6 +74,71 @@ namespace BoostTestAdapter.Boost.Runner
     }
 
     /// <summary>
+    /// An output destination
+    /// </summary>
+    /// <remarks>Intended for logger or report output</remarks>
+    public class Sink
+    {
+        #region Constructors
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <remarks>Private to allow for a more readable interface via the static File method</remarks>
+        /// <param name="sink">The output destination</param>
+        private Sink(string sink)
+        {
+            Value = sink;
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// The output destination
+        /// </summary>
+        private string Value { get; set; }
+
+        /// <summary>
+        /// Standard Output Sink
+        /// </summary>
+        public static Sink StandardOutput { get; } = new Sink("stdout");
+
+        /// <summary>
+        /// Standard Error Sink
+        /// </summary>
+        public static Sink StandardError { get; } = new Sink("stderr");
+
+        #endregion
+
+        public override string ToString()
+        {
+            return Value;
+        }
+
+        /// <summary>
+        /// Factory method which construct a file output sink instance.
+        /// </summary>
+        /// <param name="path">The path to the output file</param>
+        /// <returns>A sink which represents a file output</returns>
+        public static Sink File(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException("path");
+            }
+
+            if ((path == StandardOutput.ToString()) || (path == StandardError.ToString()))
+            {
+                throw new ArgumentException("The value of the 'path' argument is a reserved keyword", "path");
+            }
+
+            return new Sink(path);
+        }
+    }
+    
+    /// <summary>
     /// Aggregates all possible command line options made available by the Boost Test framework.
     /// Reference: http://www.boost.org/doc/libs/1_43_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html
     /// Reference: http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference.html
@@ -122,8 +187,9 @@ namespace BoostTestAdapter.Boost.Runner
 
         #region Members
 
-        private string _reportFile = null;
-        private string _logFile = null;
+        private Sink _log = null;
+        private Sink _report = null;
+
         private string _stdOutFile = null;
         private string _stdErrFile = null;
 
@@ -139,9 +205,11 @@ namespace BoostTestAdapter.Boost.Runner
         {
             this.Tests = new List<string>();
 
+            this.Log = Sink.StandardOutput;
             this.LogFormat = OutputFormat.Default;
             this.LogLevel = LogLevel.Default;
 
+            this.Report = Sink.StandardError;
             this.ReportFormat = OutputFormat.Default;
             this.ReportLevel = ReportLevel.Default;
 
@@ -191,18 +259,34 @@ namespace BoostTestAdapter.Boost.Runner
         public LogLevel LogLevel { get; set; }
 
         /// <summary>
+        /// Output destination to the log which will host Boost Test output.
+        /// </summary>
+        public Sink Log
+        {
+            get
+            {
+                return GetRootedSink(this._log);
+            }
+
+            set
+            {
+                this._log = value;
+            }
+        }
+
+        /// <summary>
         /// Path (relative to the WorkingDirectory) to the log file which will host Boost Test output.
         /// </summary>
         public string LogFile
         {
             get
             {
-                return GetPath(this._logFile);
+                return GetFile(this.Log);
             }
 
             set
             {
-                this._logFile = value;
+                this.Log = Sink.File(value);
             }
         }
 
@@ -217,18 +301,34 @@ namespace BoostTestAdapter.Boost.Runner
         public ReportLevel ReportLevel { get; set; }
 
         /// <summary>
+        /// Output destination to the report which will host Boost Test report output
+        /// </summary>
+        public Sink Report
+        {
+            get
+            {
+                return GetRootedSink(this._report);
+            }
+
+            set
+            {
+                this._report = value;
+            }
+        }
+        
+        /// <summary>
         /// Path (relative to the WorkingDirectory) to the report file which will host Boost Test report output.
         /// </summary>
         public string ReportFile
         {
             get
             {
-                return GetPath(this._reportFile);
+                return GetFile(this.Report);
             }
 
             set
             {
-                this._reportFile = value;
+                this.Report = Sink.File(value);
             }
         }
 
@@ -308,7 +408,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
-                return GetPath(this._stdOutFile);
+                return GetRootedPath(this._stdOutFile);
             }
 
             set
@@ -324,7 +424,7 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
-                return GetPath(this._stdErrFile);
+                return GetRootedPath(this._stdErrFile);
             }
 
             set
@@ -408,9 +508,9 @@ namespace BoostTestAdapter.Boost.Runner
             }
 
             // --log_sink=log.xml
-            if (!string.IsNullOrEmpty(this._logFile))
+            if (this.Log != Sink.StandardOutput)
             {
-                AddArgument(LogSinkArg, this.LogFile, args);
+                AddArgument(LogSinkArg, this.Log.ToString(), args);
             }
 
             // --report_format=xml
@@ -426,9 +526,9 @@ namespace BoostTestAdapter.Boost.Runner
             }
 
             // --report_sink=report.xml
-            if (!string.IsNullOrEmpty(this._reportFile))
+            if (this.Report != Sink.StandardError)
             {
-                AddArgument(ReportSinkArg, this.ReportFile, args);
+                AddArgument(ReportSinkArg, this.Report.ToString(), args);
             }
 
             // --result_code=no
@@ -470,6 +570,11 @@ namespace BoostTestAdapter.Boost.Runner
             return AppendRedirection(args).ToString().TrimEnd();
         }
 
+        /// <summary>
+        /// Appends the standard output and standard error redirection operators to the command-line
+        /// </summary>
+        /// <param name="args">The command line representation.</param>
+        /// <returns>args</returns>
         private StringBuilder AppendRedirection(StringBuilder args)
         {
             // > std.out
@@ -488,28 +593,64 @@ namespace BoostTestAdapter.Boost.Runner
         }
 
         /// <summary>
-        /// Returns a rooted path for the provided one.
+        /// Returns the associated output file for the provided sink.
+        /// </summary>
+        /// <param name="sink">The output sink.</param>
+        /// <returns>The file associated to the provided sink.</returns>
+        protected string GetFile(Sink sink)
+        {
+            if (sink == Sink.StandardOutput)
+            {
+                return StandardOutFile;
+            }
+            else if (sink == Sink.StandardError)
+            {
+                return StandardErrorFile;
+            }
+
+            return (sink == null) ? null : GetRootedPath(sink.ToString());
+        }
+
+        /// <summary>
+        /// Returns a 'rooted' sink for the provided one if the sink happens to be a file.
+        /// </summary>
+        /// <param name="sink">The sink to root.</param>
+        /// <returns>The rooted sink.</returns>
+        protected Sink GetRootedSink(Sink sink)
+        {
+            if ((sink == Sink.StandardOutput) || (sink == Sink.StandardError))
+            {
+                return sink;
+            }
+
+            return (sink == null ? null : Sink.File(GetRootedPath(sink.ToString())));
+        }
+
+        /// <summary>
+        /// Returns a rooted path (i.e. relative to the working directory) for the provided one.
         /// </summary>
         /// <param name="path">The path to root.</param>
         /// <returns>The rooted path.</returns>
-        protected string GetPath(string path)
+        protected string GetRootedPath(string path)
         {
-            if (!string.IsNullOrEmpty(this.WorkingDirectory) && !string.IsNullOrEmpty(path) && !Path.IsPathRooted(path))
+            if (!string.IsNullOrEmpty(this.WorkingDirectory) && !string.IsNullOrEmpty(path))
             {
-                return Path.Combine(this.WorkingDirectory, path);
+                if (!Path.IsPathRooted(path) && !path.StartsWith(this.WorkingDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Path.Combine(this.WorkingDirectory, path);
+                }
             }
 
             return path;
         }
         
-
         /// <summary>
         /// Provides a (valid) string representation of the provided OutputFormat.
         /// </summary>
         /// <param name="value">The value to serialize to string.</param>
         /// <returns>A (valid) string representation of the provided OutputFormat.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
-        private static string OutputFormatToString(OutputFormat value)
+        internal static string OutputFormatToString(OutputFormat value)
         {
             // serge: boost 1.60 requires uppercase input
             return value.ToString();
@@ -520,7 +661,7 @@ namespace BoostTestAdapter.Boost.Runner
         /// </summary>
         /// <param name="value">The value to serialize to string.</param>
         /// <returns>A (valid) string representation of the provided LogLevel.</returns>
-        private static string LogLevelToString(LogLevel value)
+        internal static string LogLevelToString(LogLevel value)
         {
             return LevelToString(value.ToString());
         }
@@ -643,11 +784,11 @@ namespace BoostTestAdapter.Boost.Runner
 
             clone.LogFormat = this.LogFormat;
             clone.LogLevel = this.LogLevel;
-            clone._logFile = this._logFile;
+            clone._log = this._log;
 
             clone.ReportFormat = this.ReportFormat;
             clone.ReportLevel = this.ReportLevel;
-            clone._reportFile = this._reportFile;
+            clone._report = this._report;
 
             clone.DetectMemoryLeaks = this.DetectMemoryLeaks;
 

@@ -36,9 +36,7 @@ namespace BoostTestAdapter.Settings
             this.FailTestOnMemoryLeak = false;
 
             this.LogLevel = LogLevel.TestSuite;
-
-            this.ExternalTestRunner = null;
-
+            
             this.CatchSystemErrors = true;
 
             this.DetectFloatingPointExceptions = false;
@@ -56,6 +54,8 @@ namespace BoostTestAdapter.Settings
             this.Filters = TestSourceFilter.Empty;
 
             this.RunDisabledTests = false;
+
+            this.TestRunnerFactoryOptions = new BoostTestRunnerFactoryOptions();
         }
 
         #region Properties
@@ -113,7 +113,18 @@ namespace BoostTestAdapter.Settings
             }
         }
 
-        public ExternalBoostTestRunnerSettings ExternalTestRunner { get; set; }
+        public ExternalBoostTestRunnerSettings ExternalTestRunner
+        {
+            get
+            {
+                return this.TestRunnerFactoryOptions.ExternalTestRunnerSettings;
+            }
+
+            set
+            {
+                this.TestRunnerFactoryOptions.ExternalTestRunnerSettings = value;
+            }
+        }
 
         [DefaultValue(TestBatch.Strategy.TestCase)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
@@ -132,6 +143,20 @@ namespace BoostTestAdapter.Settings
 
         public TestSourceFilter Filters { get; set; }
 
+        [DefaultValue(false)]
+        public bool UseBoost162Workaround
+        {
+            get
+            {
+                return this.TestRunnerFactoryOptions.UseBoost162Workaround;
+            }
+
+            set
+            {
+                this.TestRunnerFactoryOptions.UseBoost162Workaround = value;
+            }
+        }
+
         #endregion Serialisable Fields
 
         [XmlIgnore]
@@ -139,6 +164,9 @@ namespace BoostTestAdapter.Settings
 
         [XmlIgnore]
         public BoostTestRunnerCommandLineArgs CommandLineArgs { get; private set; }
+
+        [XmlIgnore]
+        public BoostTestRunnerFactoryOptions TestRunnerFactoryOptions { get; private set; }
 
         [DefaultValue(false)]
         public bool RunDisabledTests { get; set; }

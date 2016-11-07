@@ -67,9 +67,7 @@ namespace BoostTestAdapter.TestBatch
         /// <returns>An IBoostTestRunner valid for the provided source or null if none are available</returns>
         protected IBoostTestRunner GetTestRunner(string source)
         {
-            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions();
-            options.ExternalTestRunnerSettings = (this.Settings == null) ? null : this.Settings.ExternalTestRunner;
-
+            BoostTestRunnerFactoryOptions options = ((this.Settings == null) ? new BoostTestRunnerFactoryOptions() : this.Settings.TestRunnerFactoryOptions);
             return this.TestRunnerFactory.GetRunner(source, options);
         }
 

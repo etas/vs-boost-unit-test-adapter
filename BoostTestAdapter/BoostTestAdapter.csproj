@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoostTestDiscoverer.cs" />
+    <Compile Include="Boost\Runner\BoostTest162Runner.cs" />
     <Compile Include="Discoverers\BoostTestDiscovererUtility.cs" />
     <Compile Include="Discoverers\BoostTestDiscovererFactory.cs" />
     <Compile Include="BoostTestExecutor.cs" />

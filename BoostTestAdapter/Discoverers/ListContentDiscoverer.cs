@@ -69,12 +69,7 @@ namespace BoostTestAdapter.Discoverers
             // Populate loop-invariant attributes and settings
 
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(discoveryContext);
-
-            BoostTestRunnerFactoryOptions options = new BoostTestRunnerFactoryOptions()
-            {
-                ExternalTestRunnerSettings = settings.ExternalTestRunner
-            };
-
+            
             BoostTestRunnerSettings runnerSettings = new BoostTestRunnerSettings()
             {
                 Timeout = settings.DiscoveryTimeoutMilliseconds
@@ -98,7 +93,7 @@ namespace BoostTestAdapter.Discoverers
 
                 try
                 {
-                    IBoostTestRunner runner = _factory.GetRunner(source, options);
+                    IBoostTestRunner runner = _factory.GetRunner(source, settings.TestRunnerFactoryOptions);
                     using (TemporaryFile output = new TemporaryFile(TestPathGenerator.Generate(source, ".list.content.gv")))
                     {
                         // --list_content output is redirected to standard error
@@ -108,6 +103,13 @@ namespace BoostTestAdapter.Discoverers
                         using (var context = new DefaultProcessExecutionContext())
                         { 
                             runner.Execute(args, runnerSettings, context);
+                        }
+
+                        // Skip sources for which the --list_content file is not available
+                        if (!File.Exists(args.StandardErrorFile))
+                        {
+                            Logger.Error("--list_content=DOT output for {0} is not available. Skipping.", source);
+                            continue;
                         }
 
                         // Parse --list_content=DOT output

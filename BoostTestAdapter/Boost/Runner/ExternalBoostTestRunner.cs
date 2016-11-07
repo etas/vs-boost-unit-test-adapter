@@ -53,6 +53,14 @@ namespace BoostTestAdapter.Boost.Runner
             get { return this._source; }
         }
 
+        public override bool ListContentSupported
+        {
+            get
+            {
+                return (Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryListContent);
+            }
+        }
+
         #endregion IBoostTestRunner
 
         #region BoostTestRunnerBase
@@ -66,6 +74,8 @@ namespace BoostTestAdapter.Boost.Runner
         /// <returns>A valid ProcessExecutionContextArgs structure to launch the test executable</returns>
         protected override ProcessExecutionContextArgs GetExecutionContextArgs(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings)
         {
+            Code.Require(args, "args");
+
             ProcessExecutionContextArgs info = base.GetExecutionContextArgs(args, settings);
 
             BoostTestRunnerCommandLineArgs tmpArgs = args.Clone();
