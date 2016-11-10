@@ -39,7 +39,10 @@ namespace BoostTestAdapter.Boost.Results
 
         protected override LogEntry CreateLogEntry(string message)
         {
-            return new LogEntryStandardOutputMessage(message);
+            return new LogEntryStandardOutputMessage()
+            {
+                Detail = message
+            };
         }
 
         #endregion BoostConsoleOutputBase

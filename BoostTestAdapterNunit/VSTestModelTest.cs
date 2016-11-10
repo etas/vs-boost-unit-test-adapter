@@ -247,6 +247,19 @@ namespace BoostTestAdapterNunit
             return result.Messages.First().Category;
         }
 
+        /// <summary>
+        /// Constructs a LogEntry and populates the main components
+        /// </summary>
+        /// <typeparam name="T">A derived LogEntry class type</typeparam>
+        /// <param name="detail">The detail message. 'null' to use the default.</param>
+        /// <param name="source">The source file information assocaited to the log entry. 'null' to use the default.</param>
+        /// <param name="context">The log entry context. 'null' to use the default.</param>
+        /// <returns>A new LogEntry-derived instance populated accordingly</returns>
+        private T MakeLogEntry<T>(string detail = null, SourceFileInfo source = null, IEnumerable<string> context = null) where T : LogEntry, new()
+        {
+            return LogEntry.MakeLogEntry<T>(detail, source, context);
+        }
+
         #endregion Helper Methods
 
         #region Tests
@@ -264,7 +277,7 @@ namespace BoostTestAdapterNunit
                 For(this.TestCase).
                 Passed().
                 Duration(1000).
-                Log(new LogEntryMessage("BOOST_MESSAGE output")).
+                Log(MakeLogEntry<LogEntryMessage>("BOOST_MESSAGE output")).
                 Build();
 
             VSTestResult result = testCaseResult.AsVSTestResult(this.TestCase);
@@ -289,7 +302,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ConvertFailToVSTestResult()
         {
-            LogEntryError error = new LogEntryError("Error: 1 != 2", new SourceFileInfo("file.cpp", 10));
+            LogEntryError error = MakeLogEntry<LogEntryError>("Error: 1 != 2", new SourceFileInfo("file.cpp", 10));
 
             BoostTestResult testCaseResult = new BoostTestResultBuilder().
                 For(this.TestCase).
@@ -346,7 +359,7 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ConvertExceptionToVSTestResult()
         {
-            LogEntryException exception = new LogEntryException("C string: some error", new SourceFileInfo("unknown location", 0));
+            LogEntryException exception = MakeLogEntry<LogEntryException>("C string: some error", new SourceFileInfo("unknown location", 0));
             exception.LastCheckpoint = new SourceFileInfo("boostunittestsample.cpp", 13);
             exception.CheckpointDetail = "Going to throw an exception";
 
@@ -384,15 +397,12 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ConvertMemoryLeakToVSTestResult()
         {
-            LogEntryMemoryLeak leak = new LogEntryMemoryLeak();
+            LogEntryMemoryLeak leak = MakeLogEntry<LogEntryMemoryLeak>();
 
-            leak.LeakLineNumber = 32;
+            leak.Source = new SourceFileInfo(@"C:\boostunittestsample.cpp", 32);
             leak.LeakMemoryAllocationNumber = 836;
             leak.LeakLeakedDataContents = " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ";
-
-            leak.LeakSourceFilePath = @"C:\boostunittestsample.cpp";
-            leak.LeakSourceFileName = "boostunittestsample.cpp";
-
+            
             BoostTestResult testCaseResult = new BoostTestResultBuilder().
                 For(this.TestCase).
                 Passed().
@@ -423,17 +433,17 @@ namespace BoostTestAdapterNunit
         public void TestLogEntryCategory()
         {
             // Standard Output
-            Assert.That(GetCategory(new LogEntryInfo("Info")), Is.EqualTo(TestResultMessage.StandardOutCategory));
-            Assert.That(GetCategory(new LogEntryMessage("Message")), Is.EqualTo(TestResultMessage.StandardOutCategory));
-            Assert.That(GetCategory(new LogEntryStandardOutputMessage("StdOut")), Is.EqualTo(TestResultMessage.StandardOutCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryInfo>("Info")), Is.EqualTo(TestResultMessage.StandardOutCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryMessage>("Message")), Is.EqualTo(TestResultMessage.StandardOutCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryStandardOutputMessage>("StdOut")), Is.EqualTo(TestResultMessage.StandardOutCategory));
 
             // Standard Error
-            Assert.That(GetCategory(new LogEntryWarning("Warning")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
-            Assert.That(GetCategory(new LogEntryError("Error")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
-            Assert.That(GetCategory(new LogEntryFatalError("FatalError")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
-            Assert.That(GetCategory(new LogEntryException("Exception")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
-            Assert.That(GetCategory(new LogEntryMemoryLeak()), Is.EqualTo(TestResultMessage.StandardErrorCategory));
-            Assert.That(GetCategory(new LogEntryStandardErrorMessage("StdErr")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryWarning>("Warning")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryError>("Error")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryFatalError>("FatalError")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryException>("Exception")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryMemoryLeak>()), Is.EqualTo(TestResultMessage.StandardErrorCategory));
+            Assert.That(GetCategory(MakeLogEntry<LogEntryStandardErrorMessage>("StdErr")), Is.EqualTo(TestResultMessage.StandardErrorCategory));
         }
 
         #endregion Tests

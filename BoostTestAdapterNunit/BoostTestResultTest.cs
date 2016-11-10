@@ -132,16 +132,21 @@ namespace BoostTestAdapterNunit
         /// <param name="entries">The expected list of log entries generated from test case execution</param>
         private void AssertLogDetails(BoostTestResult testResult, uint duration, IList<LogEntry> entries)
         {
-            Assert.That(testResult.LogEntries.Count, Is.EqualTo(expected: entries.Count));
+            Assert.That(testResult.LogEntries.Count, Is.EqualTo(entries.Count));
 
             Assert.That(testResult.Duration, Is.EqualTo(duration));
 
+            var logEntries = testResult.LogEntries.AsEnumerable();
+
             foreach (LogEntry entry in entries)
             {
-                LogEntry found = Locate(entry, testResult);
+                LogEntry found = Locate(entry, logEntries);
                 Assert.That(found, Is.Not.Null);
-
+                
                 AssertSourceInfoDetails(found.Source, entry.Source);
+
+                // Remove processed entries
+                logEntries = logEntries.Where(x => x != found);
             }
 
             AssertErrorDetails(testResult, entries);
@@ -152,11 +157,11 @@ namespace BoostTestAdapterNunit
         /// Locates a similar log entry within the provided test result collection
         /// </summary>
         /// <param name="entry">The entry to locate within testResult</param>
-        /// <param name="testResult">The collection from which to look into</param>
+        /// <param name="logEntries">The collection of log entries from which to look into</param>
         /// <returns>A LogEntry instance matching the provided entry or null if one cannot be found</returns>
-        private LogEntry Locate(LogEntry entry, BoostTestResult testResult)
+        private LogEntry Locate(LogEntry entry, IEnumerable<LogEntry> logEntries)
         {
-            return testResult.LogEntries.FirstOrDefault(
+            return logEntries.FirstOrDefault(
                 e =>
                 {
                     // serge: In BoostXmlLog.Parse(TestResultCollection collection) method
@@ -247,14 +252,10 @@ namespace BoostTestAdapterNunit
         /// <param name="rhs">The right-hand side LogEntryMemoryLeak instance</param>
         private void AssertMemoryLeakDetails(LogEntryMemoryLeak lhs, LogEntryMemoryLeak rhs)
         {
-            Assert.AreEqual(lhs.LeakLineNumber, rhs.LeakLineNumber);
+            AssertSourceInfoDetails(lhs.Source, rhs.Source);
             Assert.AreEqual(lhs.LeakLeakedDataContents, rhs.LeakLeakedDataContents);
             Assert.AreEqual(lhs.LeakMemoryAllocationNumber, rhs.LeakMemoryAllocationNumber);
             Assert.AreEqual(lhs.LeakSizeInBytes, rhs.LeakSizeInBytes);
-            Assert.AreEqual(lhs.LeakSourceFileAndLineNumberReportingActive,
-                rhs.LeakSourceFileAndLineNumberReportingActive);
-            Assert.AreEqual(lhs.LeakSourceFileName, rhs.LeakSourceFileName);
-            Assert.AreEqual(lhs.LeakSourceFilePath, rhs.LeakSourceFilePath);
         }
 
         /// <summary>
@@ -367,6 +368,32 @@ namespace BoostTestAdapterNunit
                 ((stderr == null) ? null : new BoostStandardError(stderr))
             });
         }
+        
+        /// <summary>
+        /// Constructs a LogEntry and populates the main components
+        /// </summary>
+        /// <typeparam name="T">A derived LogEntry class type</typeparam>
+        /// <param name="detail">The detail message. 'null' to use the default.</param>
+        /// <param name="source">The source file information assocaited to the log entry. 'null' to use the default.</param>
+        /// <param name="context">The log entry context. 'null' to use the default.</param>
+        /// <returns>A new LogEntry-derived instance populated accordingly</returns>
+        private T MakeLogEntry<T>(string detail = null, SourceFileInfo source = null, IEnumerable<string> context = null) where T : LogEntry, new()
+        {
+            return LogEntry.MakeLogEntry<T>(detail, source, context);
+        }
+
+        /// <summary>
+        /// Constructs a LogEntryMemoryLeak and populates the main components
+        /// </summary>
+        /// <param name="leakLocation">The location of the memory leak.</param>
+        /// <param name="leakSizeInBytes">The number of bytes leaked.</param>
+        /// <param name="leakMemoryAllocationNumber">The memory allocation number.</param>
+        /// <param name="leakLeakedDataContents">The memory contents which were leaked.</param>
+        /// <returns>A new LogEntryMemoryLeak instance populated accordingly</returns>
+        private LogEntryMemoryLeak MakeLogEntryMemoryLeak(SourceFileInfo leakLocation, uint? leakSizeInBytes, uint? leakMemoryAllocationNumber, string leakLeakedDataContents)
+        {
+            return LogEntryMemoryLeak.MakeLogEntryMemoryLeak(leakLocation, leakSizeInBytes, leakMemoryAllocationNumber, leakLeakedDataContents);
+        }
 
         #endregion Helper Methods
 
@@ -397,11 +424,10 @@ namespace BoostTestAdapterNunit
                     , 2000
                     , new[]
                     {
-                    new LogEntryError("check germanSpecialCharacterString == \"NotTheSameString\" failed [Hello my name is Rüdiger != NotTheSameString]",new SourceFileInfo("boostunittest.cpp", 8)),
-                    new LogEntryError("check germanSpecialCharacterString == \"\" failed [üöä != ]",new SourceFileInfo("boostunittest.cpp", 12)),
-                    new LogEntryError("check anzahlDerÄnderungen == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 17)),
-                    new LogEntryError("check üöä == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 18)),
-
+                    MakeLogEntry<LogEntryError>("check germanSpecialCharacterString == \"NotTheSameString\" failed [Hello my name is Rüdiger != NotTheSameString]",new SourceFileInfo("boostunittest.cpp", 8)),
+                    MakeLogEntry<LogEntryError>("check germanSpecialCharacterString == \"\" failed [üöä != ]",new SourceFileInfo("boostunittest.cpp", 12)),
+                    MakeLogEntry<LogEntryError>("check anzahlDerÄnderungen == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 17)),
+                    MakeLogEntry<LogEntryError>("check üöä == 1 failed [2 != 1]",new SourceFileInfo("boostunittest.cpp", 18)),
                     });
 
                 Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(4));
@@ -436,7 +462,7 @@ namespace BoostTestAdapterNunit
                     , 2000
                     , new[]
                     {
-                    new LogEntryError("check { vect1.cbegin(), vect1.cend() } == { vect2.cbegin(), vect2.cend() } failed. \nMismatch in a position 1: 0x00 != 0x01\nMismatch in a position 2: 0x01 != 0x02\nMismatch in a position 3: 0x03 != 0x04\nMismatch in a position 7: 0x00 != A\nCollections size mismatch: 32 != 31",new SourceFileInfo("boostunittest.cpp", 8)),
+                    MakeLogEntry<LogEntryError>("check { vect1.cbegin(), vect1.cend() } == { vect2.cbegin(), vect2.cend() } failed. \nMismatch in a position 1: 0x00 != 0x01\nMismatch in a position 2: 0x01 != 0x02\nMismatch in a position 3: 0x03 != 0x04\nMismatch in a position 7: 0x00 != A\nCollections size mismatch: 32 != 31",new SourceFileInfo("boostunittest.cpp", 8)),
                 });
 
                 Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(1));
@@ -468,7 +494,7 @@ namespace BoostTestAdapterNunit
                 Assert.That(testCaseResult, Is.Not.Null);
 
                 AssertReportDetails(testCaseResult, masterSuiteResult, "BoostUnitTest123", TestResultType.Aborted, 0, 1, 0);
-                AssertLogDetails(testCaseResult, 0, new[] { new LogEntryException("C string: some error", new SourceFileInfo("unknown location", 0)) });
+                AssertLogDetails(testCaseResult, 0, new[] { MakeLogEntry<LogEntryException>("C string: some error", new SourceFileInfo("unknown location", 0)) });
 
                 Assert.That(testCaseResult.LogEntries.Count, Is.EqualTo(1));
 
@@ -502,8 +528,8 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, masterSuiteResult, "test1", TestResultType.Aborted, 0, 2, 0);
                 AssertLogDetails(testCaseResult, 0, new LogEntry[] {
-                    new LogEntryError("check i == 2 failed [0 != 2]", new SourceFileInfo("test_runner_test.cpp", 26)),
-                    new LogEntryFatalError("critical check i == 2 failed [0 != 2]", new SourceFileInfo("test_runner_test.cpp", 28)),
+                    MakeLogEntry<LogEntryError>("check i == 2 failed [0 != 2]", new SourceFileInfo("test_runner_test.cpp", 26)),
+                    MakeLogEntry<LogEntryFatalError>("critical check i == 2 failed [0 != 2]", new SourceFileInfo("test_runner_test.cpp", 28)),
                 });
             }
         }
@@ -536,7 +562,7 @@ namespace BoostTestAdapterNunit
 
                 LogEntry entry = testCaseResult.LogEntries.First();
                 AssertLogDetails(testCaseResult, 1000, new LogEntry[] {
-                    new LogEntryFatalError("Failure", new SourceFileInfo("test_runner_test.cpp", 93)),
+                    MakeLogEntry<LogEntryFatalError>("Failure", new SourceFileInfo("test_runner_test.cpp", 93)),
                 });
             }
         }
@@ -613,8 +639,8 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, nestedTestSuiteResult, "test3", TestResultType.Passed, 2, 0, 0);
                 AssertLogDetails(testCaseResult, 1000, new LogEntry[] {
-                    new LogEntryMessage("Message from test3", new SourceFileInfo("test_runner_test.cpp", 48)),
-                    new LogEntryWarning("condition false == true is not satisfied", new SourceFileInfo("test_runner_test.cpp", 50)), 
+                    MakeLogEntry<LogEntryMessage>("Message from test3", new SourceFileInfo("test_runner_test.cpp", 48)),
+                    MakeLogEntry<LogEntryWarning>("condition false == true is not satisfied", new SourceFileInfo("test_runner_test.cpp", 50)), 
                 });
             }
         }
@@ -739,9 +765,9 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, testSuiteResult, "LeakingTestCase", TestResultType.Failed, 0, 0, 0);
                 AssertLogDetails(testCaseResult, 0, new LogEntry[] {
-                    new LogEntryMessage("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
-                    new LogEntryMemoryLeak(null, null, null, 8, 837, " Data: <        > 98 D5 D9 00 00 00 00 00 \n"),
-                    new LogEntryMemoryLeak(null, null, null, 32, 836, " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ")
+                    MakeLogEntry<LogEntryMessage>("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
+                    MakeLogEntryMemoryLeak(null, 8, 837, " Data: <        > 98 D5 D9 00 00 00 00 00 \n"),
+                    MakeLogEntryMemoryLeak(null, 32, 836, " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ")
                 });
             }
         }
@@ -781,15 +807,9 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, testSuiteResult, "LeakingTestCase", TestResultType.Failed, 0, 0, 0);
                 AssertLogDetails(testCaseResult, 0, new LogEntry[] {
-                    new LogEntryMessage("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
-                    new LogEntryMemoryLeak(@"d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\",@"adapterbugs.cpp", 60, 4, 935, " Data: <    > CD CD CD CD \n")
-                    {
-                      LeakSourceFileAndLineNumberReportingActive = true
-                    },
-                    new LogEntryMemoryLeak(@"d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\",@"adapterbugs.cpp", 57, 4, 934, " Data: <    > F5 01 00 00 ")
-                    {
-                        LeakSourceFileAndLineNumberReportingActive = true
-                    }
+                    MakeLogEntry<LogEntryMessage>("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
+                    MakeLogEntryMemoryLeak(new SourceFileInfo(@"d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\adapterbugs.cpp", 60), 4, 935, " Data: <    > CD CD CD CD \n"),
+                    MakeLogEntryMemoryLeak(new SourceFileInfo(@"d:\hwa\dev\svn\boostunittestadapterdev\branches\tempbugfixing\sample\boostunittest\boostunittest2\adapterbugs.cpp", 57), 4, 934, " Data: <    > F5 01 00 00 ")
                 });
             }
         }
@@ -819,8 +839,8 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, masterSuiteResult, "MyTestCase", TestResultType.Passed, 1, 0, 0);
                 AssertLogDetails(testCaseResult, 0, new LogEntry[] {
-                    new LogEntryStandardOutputMessage("Hello Standard Output World"),
-                    new LogEntryStandardErrorMessage("Hello Standard Error World")
+                    MakeLogEntry<LogEntryStandardOutputMessage>("Hello Standard Output World"),
+                    MakeLogEntry<LogEntryStandardErrorMessage>("Hello Standard Error World")
                 });
             }
         }
@@ -889,22 +909,22 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, masterSuiteResult, "test1", TestResultType.Failed, 5, 4, 0);
                 AssertLogDetails(testCaseResult, 4000, new LogEntry[] {
-                    new LogEntryError(
+                    MakeLogEntry<LogEntryError>(
                         "check processor.op2(i, j) has failed",
                         new SourceFileInfo("c:/exampleboostunittest/source.cpp", 19),
                         new string[] { "With optimization level 1", "With parameter i = 1", "With parameter j = 0" }
                     ),
-                    new LogEntryError(
+                    MakeLogEntry<LogEntryError>(
                         "check processor.op1(i) has failed",
                         new SourceFileInfo("c:/exampleboostunittest/source.cpp", 16),
                         new string[] { "With optimization level 2", "With parameter i = 0" }
                     ),
-                    new LogEntryError(
+                    MakeLogEntry<LogEntryError>(
                         "check processor.op1(i) has failed",
                         new SourceFileInfo("c:/exampleboostunittest/source.cpp", 16),
                         new string[] { "With optimization level 2", "With parameter i = 1" }
                     ),
-                    new LogEntryError(
+                    MakeLogEntry<LogEntryError>(
                         "check processor.op2(i, j) has failed",
                         new SourceFileInfo("c:/exampleboostunittest/source.cpp", 19),
                         new string[] { "With optimization level 2", "With parameter i = 1", "With parameter j = 0" }
@@ -945,9 +965,9 @@ namespace BoostTestAdapterNunit
 
                 AssertReportDetails(testCaseResult, testSuiteResult, "LeakingTestCase", TestResultType.Failed, 0, 0, 0);
                 AssertLogDetails(testCaseResult, 0, new LogEntry[] {
-                    new LogEntryMessage("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
-                    new LogEntryMemoryLeak(null, null, null, 8, 837, " Data: <        > 98 D5 D9 00 00 00 00 00 \n"),
-                    new LogEntryMemoryLeak(null, null, null, 32, 836, " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ")
+                    MakeLogEntry<LogEntryMessage>("Test case LeakingTestCase did not check any assertions", new SourceFileInfo("./boost/test/impl/results_collector.ipp", 220)),
+                    MakeLogEntryMemoryLeak(null, 8, 837, " Data: <        > 98 D5 D9 00 00 00 00 00 \n"),
+                    MakeLogEntryMemoryLeak(null, 32, 836, " Data: <`-  Leak...     > 60 2D BD 00 4C 65 61 6B 2E 2E 2E 00 CD CD CD CD ")
                 });
             }
         }

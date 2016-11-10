@@ -239,10 +239,9 @@ namespace BoostTestAdapter.Utility.VisualStudio
                 FormatException(exception, sb);
             }
 
-            LogEntryError error = entry as LogEntryError;
-            if (error != null)
+            if ((entry.ContextFrames != null) && (entry.ContextFrames.Any()))
             {
-                FormatError(error, sb);
+                FormatContextFrames(entry, sb);
             }
 
             if (memoryLeak != null)
@@ -273,28 +272,25 @@ namespace BoostTestAdapter.Utility.VisualStudio
         }
 
         /// <summary>
-        /// Formats a LogEntryException to append to test result string
+        /// Formats the context frames of a LogEntry and appends it to test result string
         /// </summary>
-        /// <param name="error">The error to format</param>
+        /// <param name="entry">The log entry to format</param>
         /// <param name="sb">The StringBuilder which will host the output</param>
         /// <returns>sb</returns>
-        private static StringBuilder FormatError(LogEntryError error, StringBuilder sb)
+        private static StringBuilder FormatContextFrames(LogEntry entry, StringBuilder sb)
         {
-            if (error.ContextFrames != null)
+            sb.Append(Environment.NewLine).
+                Append("Occurred in a following context:").
+                Append(Environment.NewLine);
+
+            foreach (string frame in entry.ContextFrames)
             {
-                sb.Append(Environment.NewLine).
-                    Append("Failure occurred in a following context:").
-                    Append(Environment.NewLine);
-
-                foreach (string frame in error.ContextFrames)
-                {
-                    sb.Append("    ").Append(frame).Append(Environment.NewLine);
-                }
-
-                // Remove redundant NewLine at the end
-                sb.Remove((sb.Length - Environment.NewLine.Length), Environment.NewLine.Length);
+                sb.Append("    ").Append(frame).Append(Environment.NewLine);
             }
 
+            // Remove redundant NewLine at the end
+            sb.Remove((sb.Length - Environment.NewLine.Length), Environment.NewLine.Length);
+            
             return sb;
         }
 
@@ -306,26 +302,22 @@ namespace BoostTestAdapter.Utility.VisualStudio
         /// <returns>sb</returns>
         private static StringBuilder FormatMemoryLeak(LogEntryMemoryLeak memoryLeak, StringBuilder sb)
         {
-            if ((memoryLeak.LeakSourceFilePath != null) && (memoryLeak.LeakSourceFileName != null))
+            if (memoryLeak.Source != null)
             {
                 sb.Append("source file path leak detected at :").
-                    Append(memoryLeak.LeakSourceFilePath).
-                    Append(memoryLeak.LeakSourceFileName);
-            }
+                    Append(memoryLeak.Source.File);
 
-            if (memoryLeak.LeakLineNumber != null)
-            {
-                sb.Append(", ").
-                    Append("Line number: ").
-                    Append(memoryLeak.LeakLineNumber);
+                if (memoryLeak.Source.LineNumber != -1)
+                {
+                    sb.Append(", Line number: ").
+                        Append(memoryLeak.Source.LineNumber);
+                }
             }
-
-            sb.Append(", ").
-                Append("Memory allocation number: ").
+            
+            sb.Append(", Memory allocation number: ").
                 Append(memoryLeak.LeakMemoryAllocationNumber);
 
-            sb.Append(", ").
-                Append("Leak size: ").
+            sb.Append(", Leak size: ").
                 Append(memoryLeak.LeakSizeInBytes).
                 Append(" byte");
 
