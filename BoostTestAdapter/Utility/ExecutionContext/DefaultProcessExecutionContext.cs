@@ -118,8 +118,7 @@ namespace BoostTestAdapter.Utility.ExecutionContext
                     // Sets variable accordingly to the environment
                     if (startInfo.EnvironmentVariables.ContainsKey(variable.Key))
                     {
-                        string value = startInfo.EnvironmentVariables[variable.Key];
-                        startInfo.EnvironmentVariables[variable.Key] = string.IsNullOrEmpty(value) ? variable.Value : (value + ';' + variable.Value);
+                        startInfo.EnvironmentVariables[variable.Key] = variable.Value;
                     }
                     else
                     {
