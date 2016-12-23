@@ -2,6 +2,41 @@
 
 The version history is presented in descending order (i.e. the latest version updates are presented at the top of the page)
 
+---
+### Version 1.0.8.0
+
+Breaking changes:
+- Dropped support for Visual Studio 2012 and Visual Studio 2013.
+- Dropped support for Boost 1.59 and less.
+- Dropped test discovery option via source code parsing. Tests are enumerated only via the DOT report increasing the overall robustness and correctness of the test discovery. A warning is also issued in case the command --list_content=DOT is not available.
+
+Enhancements:
+- When using custom PATH environment, default PATH is no longer prepended.
+- Filename is evaluated so as to allow the custom injection of custom command-line arguments.
+- Added Boost 1.62 support.
+- Removed the usage of the label trait so that multiple labels can be attributed to one test.
+- Fixed symbol options to allow proper reading from release PDBs built using Visual Studio 2015 Update 3.
+- Enhanced job management so as to ensure that cancelled test executions also cancel the currently running test.
+- Added hyper linkable error stack trace.
+- When relative paths are used, test navigation from the test explorer is not available, so logger output has been added so as to warn user that relative paths are in use.
+- Enforced backward slashes for the working directory, that was causing the debugger to not launch.
+- Fixed installation failure when a .Net framework version is higher than 4.5
+- Discovery timeout increased from a default of 5 seconds to 30 seconds.
+
+---
+### Version 1.0.7.0
+
+Bug fixes:
+- Better handling for cases when Boost Test report is not available.
+- Memory leak reports are now scanned for standard error.
+- Fix line number offsets when multi-line string literals are defined.
+- Assume BOOST_VERSION macro.
+
+Enhancements:
+- Environment specified in project properties is now taken into consideration for test discovery/execution.
+- Working Directory specified in project properties is now taken into consideration for test discovery/execution.
+- Test labels are now exposed as test traits.
+- Better formatting and handling of the test context information.
 
 ---
 ### Version 1.0.6.0
