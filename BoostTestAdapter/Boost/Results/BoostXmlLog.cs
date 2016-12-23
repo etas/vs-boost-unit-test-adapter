@@ -178,17 +178,17 @@ namespace BoostTestAdapter.Boost.Results
 
                     switch (child.Name)
                     {
-                        case Xml.Info: entry = new LogEntryInfo(child.InnerText); break;
-                        case Xml.Message: entry = new LogEntryMessage(child.InnerText); break;
-                        case Xml.Warning: entry = new LogEntryWarning(child.InnerText); break;
-                        case Xml.Error: entry = ParseTestCaseLogError(child); break;
-                        case Xml.FatalError: entry = new LogEntryFatalError(child.InnerText); break;
-                        case Xml.Exception: entry = ParseTestCaseLogException(child); break;
+                        case Xml.Info: entry        = ParseLogEntry<LogEntryInfo>(child); break;
+                        case Xml.Message: entry     = ParseLogEntry<LogEntryMessage>(child); break;
+                        case Xml.Warning: entry     = ParseLogEntry<LogEntryWarning>(child); break;
+                        case Xml.Error: entry       = ParseLogEntry<LogEntryError>(child); break;
+                        case Xml.FatalError: entry  = ParseLogEntry<LogEntryFatalError>(child); break;
+                        case Xml.Exception: entry   = ParseLogException(child); break;
+                        default: entry              = null; break;
                     }
 
                     if (entry != null)
                     {
-                        entry.Source = ParseSourceInfo(child);
                         result.LogEntries.Add(entry);
                     }
                 }
@@ -227,17 +227,13 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The Xml node which contains exception information.</param>
         /// <returns>A LogEntryException populated from the provided Xml node.</returns>
-        private static LogEntryException ParseTestCaseLogException(XmlNode node)
+        private static LogEntryException ParseLogException(XmlNode node)
         {
-            LogEntryException exception = new LogEntryException();
+            LogEntryException exception = ParseLogEntry<LogEntryException>(node);
 
             foreach (XmlNode child in node.ChildNodes)
             {
-                if (child.NodeType == XmlNodeType.CDATA)
-                {
-                    exception.Detail = child.InnerText;
-                }
-                else if ((child.NodeType == XmlNodeType.Element) && (child.Name == Xml.LastCheckpoint))
+                if ((child.NodeType == XmlNodeType.Element) && (child.Name == Xml.LastCheckpoint))
                 {
                     exception.LastCheckpoint = ParseSourceInfo(child);
                     exception.CheckpointDetail = child.InnerText;
@@ -246,29 +242,32 @@ namespace BoostTestAdapter.Boost.Results
 
             return exception;
         }
-
+        
         /// <summary>
-        /// Parse a LogEntryError from the provided node.
+        /// Populates a LogEntry from the provided node with the default information.
         /// </summary>
-        /// <param name="node">The Xml node which contains error information.</param>
-        /// <returns>A LogEntryError populated from the provided Xml node.</returns>
-        private static LogEntryError ParseTestCaseLogError(XmlNode node)
+        /// <param name="node">The Xml node which contains the log information.</param>
+        /// <param name="entry">The LogEntry to be populated.</param>
+        /// <returns>entry</returns>
+        private static T ParseLogEntry<T>(XmlNode node) where T : LogEntry, new()
         {
-            LogEntryError error = new LogEntryError();
+            T entry = new T();
 
             foreach (XmlNode child in node.ChildNodes)
             {
                 if (child.NodeType == XmlNodeType.CDATA)
                 {
-                    error.Detail = child.InnerText;
+                    entry.Detail = child.InnerText;
                 }
                 else if ((child.NodeType == XmlNodeType.Element) && (child.Name == Xml.Context))
                 {
-                    error.ContextFrames = child.SelectNodes(Xml.Frame).Cast<XmlNode>().Select(frame => frame.InnerText.Trim()).ToList();
+                    entry.ContextFrames = child.SelectNodes(Xml.Frame).Cast<XmlNode>().Select(frame => frame.InnerText.Trim()).ToList();
                 }
             }
 
-            return error;
+            entry.Source = ParseSourceInfo(node);
+
+            return entry;
         }
     }
 }

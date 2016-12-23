@@ -15,25 +15,12 @@ namespace BoostTestAdapter.Boost.Results.LogEntryTypes
         #region Constructors
 
         /// <summary>
-        /// Constructor accepting a detail message
+        /// Default Constructor
         /// </summary>
-        /// <param name="detail">detail message of type string</param>
-        public LogEntryWarning(string detail)
+        public LogEntryWarning()
         {
-            this.Detail = detail;
         }
-
-        /// <summary>
-        /// Constructor accepting a detail message and a SourceFileInfo object
-        /// </summary>
-        /// <param name="detail">detail message of type string</param>
-        /// <param name="source">Source file information related to this log message. May be null.</param>
-        public LogEntryWarning(string detail, SourceFileInfo source)
-            : base(source)
-        {
-            this.Detail = detail;
-        }
-
+        
         #endregion Constructors
 
         /// <summary>

@@ -12,9 +12,11 @@ namespace BoostTestAdapter.Boost.Results.LogEntryTypes
     {
         #region Constructors
 
-        public LogEntryStandardErrorMessage(string detail)
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public LogEntryStandardErrorMessage()
         {
-            this.Detail = detail;
         }
 
         #endregion Constructors

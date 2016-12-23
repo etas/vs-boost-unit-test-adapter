@@ -528,7 +528,10 @@ namespace BoostTestAdapter
                         exception.Duration = ((ulong)(end - start).Ticks) / 10;
 
                         exception.Result = TestResultType.Failed;
-                        exception.LogEntries.Add(new Boost.Results.LogEntryTypes.LogEntryFatalError(text));
+                        exception.LogEntries.Add(new Boost.Results.LogEntryTypes.LogEntryFatalError()
+                        {
+                            Detail = text
+                        });
 
                         return GenerateResult(test, exception, start, end);
                     });

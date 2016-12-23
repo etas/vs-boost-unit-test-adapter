@@ -5,6 +5,8 @@
 
 using System.IO;
 using System.Text.RegularExpressions;
+
+using BoostTestAdapter.Utility;
 using BoostTestAdapter.Boost.Results.LogEntryTypes;
 
 namespace BoostTestAdapter.Boost.Results
@@ -202,20 +204,15 @@ namespace BoostTestAdapter.Boost.Results
 
                     if (matchLeakInformation.Groups[1].Success && matchLeakInformation.Groups[2].Success && matchLeakInformation.Groups[3].Success)
                     {
-                        leak.LeakSourceFilePath = matchLeakInformation.Groups[1].Value;
+                        // Group 1 => Directory
+                        // Group 2 => Source File Name
 
-                        leak.LeakSourceFileName = matchLeakInformation.Groups[2].Value;
+                        leak.Source = new SourceFileInfo(matchLeakInformation.Groups[1].Value + matchLeakInformation.Groups[2].Value);
 
                         if (uint.TryParse(matchLeakInformation.Groups[3].Value, out value))
                         {
-                            leak.LeakLineNumber = value;
+                            leak.Source.LineNumber = (int) value;
                         }
-
-                        leak.LeakSourceFileAndLineNumberReportingActive = true;
-                    }
-                    else
-                    {
-                        leak.LeakSourceFileAndLineNumberReportingActive = false;
                     }
 
                     if (uint.TryParse(matchLeakInformation.Groups[4].Value, out value))

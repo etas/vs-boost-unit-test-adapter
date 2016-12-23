@@ -21,27 +21,7 @@ namespace BoostTestAdapter.Boost.Results.LogEntryTypes
         /// </summary>
         public LogEntryMemoryLeak()
         {
-            this.Detail = MemoryLeakNotification;
-        }
-
-        /// <summary>
-        /// Constructor accepting a SourceFileInfo object
-        /// </summary>
-        /// <param name="source">Source file information related to this log message. May be null.</param>
-        public LogEntryMemoryLeak(SourceFileInfo source)
-            : base(source)
-        {
-        }
-
-        public LogEntryMemoryLeak(string leakSourceFilePath, string leakSourceFileName, uint? leakLineNumber, uint? leakSizeInBytes, uint? leakMemoryAllocationNumber, string leakLeakedDataContents)
-        {
-            this.LeakSourceFilePath = leakSourceFilePath;
-            this.LeakSourceFileName = leakSourceFileName;
-            this.LeakLineNumber = leakLineNumber;
-            this.LeakSizeInBytes = leakSizeInBytes;
-            this.LeakMemoryAllocationNumber = leakMemoryAllocationNumber;
-            this.LeakLeakedDataContents = leakLeakedDataContents;
-            this.Detail = MemoryLeakNotification;
+            Detail = MemoryLeakNotification;
         }
 
         #endregion Constructors
@@ -54,25 +34,7 @@ namespace BoostTestAdapter.Boost.Results.LogEntryTypes
         {
             return "Memory leak";
         }
-
-        /// <summary>
-        /// Indicates the source file path where the leak was detected at
-        /// </summary>
-        /// <remarks>If null, the information regarding the leak source file path is not available.  This generally is because the macro to replace the C++ operator new has not been utilized in the test project.</remarks>
-        public string LeakSourceFilePath { get; set; }
-
-        /// <summary>
-        /// Indicates the source filename where the leak was detected at
-        /// </summary>
-        /// <remarks>If null, the information regarding the leak source file name is not available.  This generally is because the macro to replace the C++ operator new has not been utilized in the test project.</remarks>
-        public string LeakSourceFileName { get; set; }
-
-        /// <summary>
-        /// Line number (respective the source file specified in property LeakSourceFileName) where the leak is detected at
-        /// </summary>
-        /// <remarks>If null, the information regarding the leak line number is not available.  This generally is because the macro to replace the C++ operator new has not been utilized in the test project, or the parsing of the line number failed.</remarks>
-        public uint? LeakLineNumber { get; set; }
-
+        
         /// <summary>
         /// Number of bytes leaked.
         /// </summary>
@@ -91,8 +53,22 @@ namespace BoostTestAdapter.Boost.Results.LogEntryTypes
         public string LeakLeakedDataContents { get; set; }
 
         /// <summary>
-        /// Property serves as an indicator wheather the source file and the line number information for the memory leak were available or not
+        /// Constructs a LogEntryMemoryLeak and populates the main components
         /// </summary>
-        public bool LeakSourceFileAndLineNumberReportingActive { get; set; }
+        /// <param name="leakLocation">The location of the memory leak.</param>
+        /// <param name="leakSizeInBytes">The number of bytes leaked.</param>
+        /// <param name="leakMemoryAllocationNumber">The memory allocation number.</param>
+        /// <param name="leakLeakedDataContents">The memory contents which were leaked.</param>
+        /// <returns>A new LogEntryMemoryLeak instance populated accordingly</returns>
+        public static LogEntryMemoryLeak MakeLogEntryMemoryLeak(SourceFileInfo leakLocation, uint? leakSizeInBytes, uint? leakMemoryAllocationNumber, string leakLeakedDataContents)
+        {
+            return new LogEntryMemoryLeak()
+            {
+                Source = leakLocation,
+                LeakSizeInBytes = leakSizeInBytes,
+                LeakMemoryAllocationNumber = leakMemoryAllocationNumber,
+                LeakLeakedDataContents = leakLeakedDataContents
+            };
+        }
     }
 }
