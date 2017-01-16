@@ -337,7 +337,7 @@ namespace BoostTestAdapterNunit
                 Copy("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.log.xml", args.LogFile);
                 Copy("BoostTestAdapterNunit.Resources.ReportsLogs.Empty.sample.test.report.xml", args.ReportFile);
 
-                // Copy the default result files to a temporary location so that they can eventually be read as a TestResultCollection
+                // Copy the default result files to a temporary location so that they can eventually be read as a test result collection
 
                 foreach (string test in args.Tests)
                 {

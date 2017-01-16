@@ -4,7 +4,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System.Globalization;
-using System.IO;
 using System.Xml;
 using System.Linq;
 using System.Collections.Generic;
@@ -46,34 +45,25 @@ namespace BoostTestAdapter.Boost.Results
         #endregion Constants
 
         #region Constructors
-
+        
         /// <summary>
-        /// Constructor accepting a path to the external file
+        /// Constructor.
         /// </summary>
-        /// <param name="path">The path to an external file. File will be opened on construction.</param>
-        public BoostXmlLog(string path)
-            : base(path)
-        {
-        }
-
-        /// <summary>
-        /// Constructor accepting a stream to the file contents
-        /// </summary>
-        /// <param name="stream">The file content stream.</param>
-        public BoostXmlLog(Stream stream)
-            : base(stream)
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        public BoostXmlLog(IDictionary<string, TestResult> target)
+            : base(target)
         {
         }
 
         #endregion Constructors
 
-        #region IBoostOutputParser
+        #region BoostTestResultXMLOutput
 
-        public override void Parse(TestResultCollection collection)
+        protected override IDictionary<string, TestResult> ParseXml(string xml)
         {
             // serge: now log output for dependent test cases supported, the have additional XML
             // element, that corrupts XML document structure
-            using (XmlTextReader xtr = new XmlTextReader(this.InputStream, XmlNodeType.Element, null))
+            using (XmlTextReader xtr = new XmlTextReader(xml, XmlNodeType.Element, null))
             {
                 while (xtr.Read())
                 {
@@ -82,22 +72,24 @@ namespace BoostTestAdapter.Boost.Results
                         XmlDocument doc = new XmlDocument();
                         XmlElement elemTestLog = doc.CreateElement(Xml.TestLog);
                         elemTestLog.InnerXml = xtr.ReadInnerXml();
-                        ParseTestUnitsLog(elemTestLog.ChildNodes, new QualifiedNameBuilder(), collection);
+                        ParseTestUnitsLog(elemTestLog.ChildNodes, new QualifiedNameBuilder(), Target);
                         break;
                     }
                 }
             }
+
+            return Target;
         }
 
-        #endregion IBoostOutputParser
+        #endregion BoostTestResultXMLOutput
 
         /// <summary>
         /// Parses child TestUnit nodes.
         /// </summary>
         /// <param name="nodes">The collection of Xml nodes which are valid TestUnit nodes.</param>
         /// <param name="path">The QualifiedNameBuilder which hosts the current fully qualified path.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestUnitsLog(XmlNodeList nodes, QualifiedNameBuilder path, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestUnitsLog(XmlNodeList nodes, QualifiedNameBuilder path, IDictionary<string, TestResult> collection)
         {
             foreach (XmlNode child in nodes)
             {
@@ -120,8 +112,8 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The TestSuite Xml node to parse.</param>
         /// <param name="path">The QualifiedNameBuilder which hosts the current fully qualified path.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestSuiteLog(XmlNode node, QualifiedNameBuilder path, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestSuiteLog(XmlNode node, QualifiedNameBuilder path, IDictionary<string, TestResult> collection)
         {
             path.Push(node.Attributes[Xml.Name].Value);
 
@@ -135,18 +127,20 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="node">The TestCase Xml node to parse.</param>
         /// <param name="path">The QualifiedNameBuilder which hosts the current fully qualified path.</param>
-        /// <param name="collection">The TestResultCollection which will host the result.</param>
-        private static void ParseTestCaseLog(XmlNode node, QualifiedNameBuilder path, TestResultCollection collection)
+        /// <param name="collection">The test result collection which will host the result.</param>
+        private static void ParseTestCaseLog(XmlNode node, QualifiedNameBuilder path, IDictionary<string, TestResult> collection)
         {
             // Temporarily push TestCase on TestSuite name builder to acquire the fully qualified name of the TestCase
             path.Push(node.Attributes[Xml.Name].Value);
 
+            var currentPath = path.ToString();
+
             // Acquire result record of this TestCase
-            TestResult result = collection[path.ToString()];
-            if (result == null)
+            TestResult result = null;
+            if (!collection.TryGetValue(currentPath, out result))
             {
                 result = new TestResult(collection);
-                collection[path.ToString()] = result;
+                collection[currentPath] = result;
             }
 
             // Reset path to original value

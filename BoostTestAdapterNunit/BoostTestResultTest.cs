@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -26,14 +27,14 @@ namespace BoostTestAdapterNunit
         [SetUp]
         public void SetUp()
         {
-            this.TestResultCollection = new TestResultCollection();
+            this.TestResultCollection = new Dictionary<string, BoostTestResult>();
         }
 
         #endregion Test Setup/Teardown
 
         #region Test Data
 
-        private TestResultCollection TestResultCollection { get; set; }
+        private IDictionary<string, BoostTestResult> TestResultCollection { get; set; }
 
         #endregion Test Data
 
@@ -164,9 +165,7 @@ namespace BoostTestAdapterNunit
             return logEntries.FirstOrDefault(
                 e =>
                 {
-                    // serge: In BoostXmlLog.Parse(TestResultCollection collection) method
-                    // Xml document is recreated. There are insignificant whitespace
-                    // are appearing during transformation. So let's truncate them.
+                    // Truncate insignificant whitespace
                     var entryDetail = Regex.Replace(entry.Detail, @"\r|\n\s+", string.Empty);
                     var eDetail = Regex.Replace(e.Detail, @"\r|\n\s+", string.Empty);
                     return (e.ToString() == entry.ToString()) && (eDetail == entryDetail);
@@ -305,7 +304,7 @@ namespace BoostTestAdapterNunit
         }
 
         /// <summary>
-        /// Tests TestResultCollection for the expected contents when populated from 'PassedTest.sample.test.report.xml'
+        /// Tests test result collection for the expected contents when populated from 'PassedTest.sample.test.report.xml'
         /// </summary>
         /// <returns>The BoostTestResult for the sole test case present in the 'PassedTest.sample.test.report.xml' report</returns>
         private BoostTestResult AssertPassedReportDetails()
@@ -330,43 +329,37 @@ namespace BoostTestAdapterNunit
 
             return testCaseResult;
         }
-
+        
         /// <summary>
-        /// Parses the *Xml* report stream and the *Xml* log stream into the contained TestResultCollection.
+        /// Parses the *Xml* report stream and the *Xml* log stream into the contained test result collection.
         /// Additionally, the standard output and standard error can also be parsed.
         /// </summary>
-        /// <param name="report">The Xml report stream to parse.</param>
-        /// <param name="log">The Xml log stream to parse.</param>
+        /// <param name="report">the path of the XML file report to parse.</param>
+        /// <param name="log">the path of the log file that is to be parsed</param>
         /// <param name="stdout">The text standard output stream to parse.</param>
         /// <param name="stderr">The text standard error stream to parse.</param>
-        private void Parse(Stream report, Stream log, Stream stdout = null, Stream stderr = null)
+        private IDictionary<string, BoostTestResult> Parse(Stream report, Stream log, Stream stdout = null, Stream stderr = null)
         {
-            this.TestResultCollection.Parse(new IBoostTestResultOutput[]
-            {
-                ((report == null) ? null : new BoostXmlReport(report)),
-                ((log == null) ? null : new BoostXmlLog(log)),
-                ((stdout == null) ? null : new BoostStandardOutput(stdout) { FailTestOnMemoryLeak = true }),
-                ((stderr == null) ? null : new BoostStandardError(stderr) { FailTestOnMemoryLeak = true })
-            });
+            var collection = this.TestResultCollection /* new Dictionary<string, BoostTestResult>() */;
+
+            Parse(new BoostXmlReport(collection), report);
+            Parse(new BoostXmlLog(collection), log);
+            Parse(new BoostStandardOutput(collection) { FailTestOnMemoryLeak = true }, stdout);
+            Parse(new BoostStandardError(collection) { FailTestOnMemoryLeak = true }, stderr);
+
+            return collection;
         }
 
-        /// <summary>
-        /// Parses the *Xml* report stream and the *Xml* log stream into the contained TestResultCollection.
-        /// Additionally, the standard output and standard error can also be parsed.
-        /// </summary>
-        /// <param name="reportFilePath">the path of the XML file report to parse.</param>
-        /// <param name="logFilePath">the path of the log file that is to be parsed</param>
-        /// <param name="stdout">The text standard output stream to parse.</param>
-        /// <param name="stderr">The text standard error stream to parse.</param>
-        private void Parse(string reportFilePath, string logFilePath, Stream stdout = null, Stream stderr = null)
+        private static IDictionary<string, BoostTestResult> Parse(IBoostTestResultParser parser, Stream content)
         {
-            this.TestResultCollection.Parse(new IBoostTestResultOutput[]
+            var enc = Encoding.GetEncoding("iso-8859-1");
+            enc = (Encoding) enc.Clone();
+            enc.EncoderFallback = new EncoderReplacementFallback(string.Empty);
+
+            using (var reader = new StreamReader(content ?? Stream.Null, enc))
             {
-                ((string.IsNullOrEmpty(reportFilePath)) ? null : new BoostXmlReport(reportFilePath)),
-                ((string.IsNullOrEmpty(logFilePath)) ? null : new BoostXmlLog(logFilePath)),
-                ((stdout == null) ? null : new BoostStandardOutput(stdout) {FailTestOnMemoryLeak = true}),
-                ((stderr == null) ? null : new BoostStandardError(stderr))
-            });
+                return parser.Parse(reader.ReadToEnd());
+            }
         }
         
         /// <summary>
@@ -406,10 +399,10 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseBoostReportLogContainingGermanCharacters()
         {
-            using (var reportFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.report.xml"))
-            using (var logFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters", "sample.test.log.xml"))
+            using (var report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters.sample.test.report.xml"))
+            using (var log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.SpecialCharacters.sample.test.log.xml"))
             {
-                Parse(reportFile.Path, logFile.Path);
+                Parse(report, log);
 
                 BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
                 Assert.That(masterSuiteResult, Is.Not.Null);
@@ -444,10 +437,10 @@ namespace BoostTestAdapterNunit
         [Test]
         public void ParseBoostReportLogContainingControlCharacters()
         {
-            using (var reportFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.report.txt"))
-            using (var logFile = TestHelper.CopyEmbeddedResourceToTempDirectory("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters", "sample.test.log.txt"))
+            using (var report = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters.sample.test.report.xml"))
+            using (var log = TestHelper.LoadEmbeddedResource("BoostTestAdapterNunit.Resources.ReportsLogs.ControlCharacters.sample.test.log.xml"))
             {
-                Parse(reportFile.Path, logFile.Path);
+                Parse(report, log);
 
                 BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
                 Assert.That(masterSuiteResult, Is.Not.Null);
@@ -713,7 +706,7 @@ namespace BoostTestAdapterNunit
                 }
 
                 // Only *TestCase* results should be enumerated.
-                Assert.That(results.Intersect(this.TestResultCollection).Count(), Is.EqualTo(results.Count));
+                Assert.That(results.Intersect(this.TestResultCollection.Values).Count(), Is.EqualTo(results.Count));
             }
         }
 
@@ -753,12 +746,12 @@ namespace BoostTestAdapterNunit
                 //      'test_cases_passed', 'test_cases_failed', 'test_cases_skipped' and 'test_cases_aborted'
                 //      are computed in case test results are modified from the Xml output
                 //      (which in the case of memory leaks, passing tests may be changed to failed).
-                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testSuiteResult = this.TestResultCollection["LeakingSuite"];
                 Assert.That(testSuiteResult, Is.Not.Null);
 
-                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testCaseResult = this.TestResultCollection["LeakingSuite/LeakingTestCase"];
                 Assert.That(testCaseResult, Is.Not.Null);
@@ -795,12 +788,12 @@ namespace BoostTestAdapterNunit
                 //      'test_cases_passed', 'test_cases_failed', 'test_cases_skipped' and 'test_cases_aborted'
                 //      are computed in case test results are modified from the Xml output
                 //      (which in the case of memory leaks, passing tests may be changed to failed).
-                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testSuiteResult = this.TestResultCollection["LeakingSuite"];
                 Assert.That(testSuiteResult, Is.Not.Null);
 
-                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testCaseResult = this.TestResultCollection["LeakingSuite/LeakingTestCase"];
                 Assert.That(testCaseResult, Is.Not.Null);
@@ -953,12 +946,12 @@ namespace BoostTestAdapterNunit
                 //      'test_cases_passed', 'test_cases_failed', 'test_cases_skipped' and 'test_cases_aborted'
                 //      are computed in case test results are modified from the Xml output
                 //      (which in the case of memory leaks, passing tests may be changed to failed).
-                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(masterSuiteResult, null, "MyTest", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testSuiteResult = this.TestResultCollection["LeakingSuite"];
                 Assert.That(testSuiteResult, Is.Not.Null);
 
-                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Passed, 0, 0, 0, 0, 1, 0, 0);
+                AssertReportDetails(testSuiteResult, masterSuiteResult, "LeakingSuite", TestResultType.Failed, 0, 0, 0, 0, 1, 0, 0);
 
                 BoostTestResult testCaseResult = this.TestResultCollection["LeakingSuite/LeakingTestCase"];
                 Assert.That(testCaseResult, Is.Not.Null);
@@ -987,8 +980,7 @@ namespace BoostTestAdapterNunit
 
                 BoostTestResult masterSuiteResult = this.TestResultCollection[string.Empty];
                 Assert.That(masterSuiteResult, Is.Not.Null);
-
-
+                
                 // NOTE The values here do not match the Xml report file since the results are aggregated as one.
                 //      All tests are considered as failed since they share the same result.
                 AssertReportDetails(masterSuiteResult, null, "MultipleTests", TestResultType.Failed, 4, 1, 0, 0, 1, 0, 0);

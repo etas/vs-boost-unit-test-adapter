@@ -122,7 +122,7 @@ namespace BoostTestAdapterNunit
             TestFramework expected = new TestFrameworkBuilder(Source, "MyTest", 1, false).
                 TestCase("Test", 65536, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 30),null, false).
                 TestSuite("Suite", 2, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 35), false).
-                    TestCase("Test", 65537, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 37),null, false).
+                    TestCase("Test", 65537, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 37), null, false).
                 EndSuite().
                 TestCase("TestB", 65538, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 44), null, false).
             Build();

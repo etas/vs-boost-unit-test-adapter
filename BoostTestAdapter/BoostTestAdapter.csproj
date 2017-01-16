@@ -100,7 +100,7 @@
     <Compile Include="Boost\Results\LogEntryTypes\LogEntryStandardOutputMessage.cs" />
     <Compile Include="Boost\Results\LogEntryTypes\LogEntryWarning.cs" />
     <Compile Include="Boost\Results\TestResult.cs" />
-    <Compile Include="Boost\Results\TestResultCollection.cs" />
+    <Compile Include="Boost\Results\BoostTestResultParser.cs" />
     <Compile Include="Boost\Runner\BoostTestRunner.cs" />
     <Compile Include="Boost\Runner\BoostTestRunnerBase.cs" />
     <Compile Include="Boost\Runner\BoostTestRunnerCommandLineArgs.cs" />

@@ -38,7 +38,7 @@ namespace BoostTestAdapter.Boost.Results
         /// Constructor.
         /// </summary>
         /// <param name="collection">The parent collection which hosts this TestResult.</param>
-        public TestResult(TestResultCollection collection)
+        public TestResult(IDictionary<string, TestResult> collection)
         {
             this.Collection = collection;
             this.LogEntries = new List<LogEntry>();
@@ -48,7 +48,7 @@ namespace BoostTestAdapter.Boost.Results
         /// <summary>
         /// Parent collection which hosts this result.
         /// </summary>
-        public TestResultCollection Collection { get; private set; }
+        public IDictionary<string, TestResult> Collection { get; private set; }
 
         /// <summary>
         /// Test Unit related to this test result.
@@ -176,9 +176,9 @@ namespace BoostTestAdapter.Boost.Results
             /// <summary>
             /// Constructor.
             /// </summary>
-            /// <param name="collection">The TestResultCollection which hosts all results.</param>
+            /// <param name="collection">The test result collection which hosts all results.</param>
             /// <param name="types">The types to lookup</param>
-            public TestCaseResultVisitor(TestResultCollection collection, IEnumerable<TestResultType> types)
+            public TestCaseResultVisitor(IDictionary<string, TestResult> collection, IEnumerable<TestResultType> types)
             {
                 this.Collection = collection;
                 this.ResultTypes = types;
@@ -189,7 +189,7 @@ namespace BoostTestAdapter.Boost.Results
 
             #region Properties
 
-            public TestResultCollection Collection { get; private set; }
+            public IDictionary<string, TestResult> Collection { get; private set; }
 
             public IEnumerable<TestResultType> ResultTypes { get; private set; }
 
@@ -206,9 +206,9 @@ namespace BoostTestAdapter.Boost.Results
             {
                 Utility.Code.Require(testCase, "testCase");
 
-                TestResult result = this.Collection[testCase];
-
-                if ((result != null) && (this.ResultTypes.Contains(result.Result)))
+                TestResult result = null;
+                
+                if ((this.Collection.TryGetValue(testCase.FullyQualifiedName, out result)) && (this.ResultTypes.Contains(result.Result)))
                 {
                     ++this.Count;
                 }

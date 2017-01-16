@@ -5,10 +5,7 @@
 
 using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using BoostTestAdapter.Utility;
+using System.Collections.Generic;
 
 namespace BoostTestAdapter.Boost.Results
 {
@@ -18,17 +15,34 @@ namespace BoostTestAdapter.Boost.Results
     /// </summary>
     public abstract class BoostTestResultXMLOutput : BoostTestResultOutputBase
     {
-        protected BoostTestResultXMLOutput(string path)
-            : base(AddXMLEncodingDeclaration(path))
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="target">The destination result collection. Possibly used for result aggregation.</param>
+        protected BoostTestResultXMLOutput(IDictionary<string, TestResult> target)
+            : base(target)
         {
-            this.CloseStreamOnDispose = true;
         }
 
-        protected BoostTestResultXMLOutput(Stream stream)
-            : base(stream)
-        {
+        #region BoostTestResultOutputBase
 
+        public override IDictionary<string, TestResult> Parse(string content)
+        {
+            content = ParseCDataSection(content);
+            content = RemoveNullTerminators(content);
+            content = AddXMLEncodingDeclaration(content);
+
+            return ParseXml(content);
         }
+
+        #endregion
+
+        /// <summary>
+        /// Parses the XML report from the provided XML string
+        /// </summary>
+        /// <param name="xml">The XML string content</param>
+        /// <returns>The test result collection containing the parsed information</returns>
+        protected abstract IDictionary<string, TestResult> ParseXml(string xml);
 
         /// <summary>
         /// Boost UTF does not add any XML Encoding Declaration in the XML file so in case a file contains German characters,
@@ -36,38 +50,24 @@ namespace BoostTestAdapter.Boost.Results
         /// </summary>
         /// <param name="path">path of the xml file to be loaded</param>
         /// <returns>Stream object containing the xml file data</returns>
-        private static Stream AddXMLEncodingDeclaration(string path)
+        private static string AddXMLEncodingDeclaration(string content)
         {
-            MemoryStream memoryStream = null;
-            try
-            {
-                if (File.Exists(path))
-                {
-                    var enc = Encoding.GetEncoding("iso-8859-1");
-                    enc = (Encoding)enc.Clone();
-                    enc.EncoderFallback = new EncoderReplacementFallback(string.Empty);
-
-                    var fileContent = File.ReadAllText(path, enc);
-                    fileContent = ParseCDataSection(fileContent);
-                    if (!fileContent.StartsWith("<?xml", StringComparison.Ordinal))
-                        fileContent = fileContent.Insert(0, "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n");
-
-                    byte[] encodedBuffer = enc.GetBytes(fileContent).Where(x => x > 0).ToArray();
-
-                    memoryStream = new MemoryStream(encodedBuffer);
-                    memoryStream.Position = 0;
-                }
-            }
-            catch
-            {
-                if (memoryStream != null)
-                {
-                    memoryStream.Close();
-                }
-                throw;
+            if (!content.StartsWith("<?xml", StringComparison.Ordinal))
+            { 
+                content = content.Insert(0, "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n");
             }
 
-            return memoryStream;
+            return content;
+        }
+
+        /// <summary>
+        /// Removes all null terminators which can be possibly located in the input value
+        /// </summary>
+        /// <param name="value">The string to be filtered.</param>
+        /// <returns>The filtered string.</returns>
+        private static string RemoveNullTerminators(string value)
+        {
+            return value.Replace('\0', ' ');
         }
 
         /// <summary>

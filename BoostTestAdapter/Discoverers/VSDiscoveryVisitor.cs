@@ -75,7 +75,7 @@ namespace BoostTestAdapter.Discoverers
             {
                 VSTestCase test = GenerateTestCase(testCase);
 
-                //send to discovery sink
+                // Send to discovery sink
                 if (null != this.DiscoverySink)
                 {
                     Logger.Info("Found test: {0}", test.FullyQualifiedName);
@@ -95,7 +95,7 @@ namespace BoostTestAdapter.Discoverers
         private VSTestCase GenerateTestCase(TestCase testCase)
         {
             VSTestCase test = new VSTestCase(
-                GetFullyQualifiedName(testCase),
+                testCase.FullyQualifiedName,
                 BoostTestExecutor.ExecutorUri,
                 this.Source
             );
@@ -127,7 +127,7 @@ namespace BoostTestAdapter.Discoverers
                 foreach (string label in unit.Labels)
                 {
                     // Register each and every label as an individual trait
-                    test.Traits.Add(new Trait(label, ""));
+                    test.Traits.Add(new Trait(label, string.Empty));
                 }             
 
                 // Test cases inherit the labels of parent test units
@@ -159,17 +159,6 @@ namespace BoostTestAdapter.Discoverers
         }
 
         /// <summary>
-        /// Provides the fully qualified name of the provided TestCase
-        /// </summary>
-        /// <param name="test">The test case whose fully qualified is to be acquired</param>
-        /// <returns>The fully qualified name of the provided TestCase</returns>
-        private static string GetFullyQualifiedName(TestCase test)
-        {
-            Code.Require(test, "test");
-            return test.FullyQualifiedName;
-        }
-
-        /// <summary>
         /// Provides the fully qualified name of the parent TestUnit of the provided TestCase
         /// </summary>
         /// <param name="test">The TestCase whose parent TestUnit is to be queried</param>
@@ -179,6 +168,8 @@ namespace BoostTestAdapter.Discoverers
             Code.Require(test, "test");
 
             TestUnit parent = test.Parent;
+
+            // A test case must have a parent, at the very least, the master test suite should be the parent of a test case
             Debug.Assert(parent != null);
 
             // Since the master test suite name is not included in the fully qualified name, identify

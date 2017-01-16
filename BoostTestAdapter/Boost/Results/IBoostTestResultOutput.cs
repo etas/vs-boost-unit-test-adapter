@@ -3,24 +3,20 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System;
+using System.Collections.Generic;
 
 namespace BoostTestAdapter.Boost.Results
 {
     /// <summary>
     /// Interface for Boost Test result output.
     /// </summary>
-    public interface IBoostTestResultOutput : IDisposable
+    public interface IBoostTestResultParser
     {
         /// <summary>
-        /// Parses the referenced output and updates the referred to
-        /// TestResultCollection with the newly collected information.
+        /// Parses the referenced output and provides a test result collection containing the parsed result.
         /// </summary>
-        /// <remarks>
-        /// Implementations should check whether the collection already has an entry
-        /// defined for a particular TestUnit and update the entry or rewrite as necessary.
-        /// </remarks>
-        /// <param name="collection">The TestResultCollection which will host the parsed details.</param>
-        void Parse(TestResultCollection collection);
+        /// <param name="content">The report content as a string.</param>
+        /// <returns>A test result collection containing the parsed output</returns>
+        IDictionary<string, TestResult> Parse(string content);
     }
 }

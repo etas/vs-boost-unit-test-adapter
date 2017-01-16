@@ -24,16 +24,16 @@ namespace BoostTestAdapter.Utility
         ///     Get a snapshot of the running object table (ROT).
         /// </summary>
         /// <returns>
-        ///     A hashtable mapping the name of the object
+        ///     A collection of pairs mapping the name of the object
         ///     in the ROT to the corresponding object
         /// </returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CreateBindCtx")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "GetObject"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "GetRunningObjectTable"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "IRunningObjectTable")]
-        public static IDictionary<string, object> RunningObjectTable
+        public static IEnumerable<KeyValuePair<string, object> > RunningObjectTable
         {
             get
             {
-                var result = new Dictionary<string, object>();
-
                 var numFetched = new IntPtr();
                 IRunningObjectTable runningObjectTable;
                 IEnumMoniker monikerEnumerator;
@@ -57,7 +57,7 @@ namespace BoostTestAdapter.Utility
 
                     if (createBindCtxReturnCode != S_OK)
                     {
-                        throw new ROTException("GetRunningObjectTable returned with code:" + createBindCtxReturnCode);
+                        throw new ROTException("CreateBindCtx returned with code:" + createBindCtxReturnCode);
                     }
 
                     string runningObjectName;
@@ -72,10 +72,8 @@ namespace BoostTestAdapter.Utility
                         throw new ROTException("IRunningObjectTable::GetObject returned with code:" + getObjectReturnValue);
                     }
 
-                    result[runningObjectName] = runningObjectVal;
+                    yield return new KeyValuePair<string, object>(runningObjectName, runningObjectVal);
                 }
-
-                return result;
             }
         }
     }

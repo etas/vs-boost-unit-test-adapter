@@ -84,7 +84,13 @@ namespace BoostTestAdapter.Discoverers
             {
                 try
                 {
-                    args.SetWorkingEnvironment(source, settings, ((_vsProvider == null) ? null : _vsProvider.Instance));
+                    var vs = _vsProvider?.Instance;
+                    if (vs != null)
+                    {
+                        Logger.Debug("Connected to Visual Studio {0} instance", vs.Version);
+                    }
+
+                    args.SetWorkingEnvironment(source, settings, vs);
                 }
                 catch (COMException ex)
                 {

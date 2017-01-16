@@ -24,8 +24,10 @@ namespace BoostTestAdapterNunit.Utility
         /// <param name="expected">The expected root test unit hierarchy which is to be compared against</param>
         private FrameworkEqualityVisitor(TestUnit expected, bool respectOrder = true)
         {
-            this.ExpectedUnit = expected;
+            this.Expected = expected;
             this.OrderRespected = respectOrder;
+
+            this.ExpectedUnit = expected;
         }
 
         /// <summary>
@@ -34,14 +36,14 @@ namespace BoostTestAdapterNunit.Utility
         public TestUnit Expected { get; private set; }
 
         /// <summary>
-        /// Used to record which test unit is currently under test
-        /// </summary>
-        private TestUnit ExpectedUnit { get; set; }
-
-        /// <summary>
         /// States if test unit ordering is respected
         /// </summary>
         public bool OrderRespected { get; private set; }
+
+        /// <summary>
+        /// Used to record which test unit is currently under test
+        /// </summary>
+        private TestUnit ExpectedUnit { get; set; }
 
         #region ITestVisitor
 
