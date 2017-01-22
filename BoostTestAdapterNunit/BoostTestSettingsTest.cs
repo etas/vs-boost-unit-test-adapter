@@ -69,6 +69,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.Filters, Is.EqualTo(TestSourceFilter.Empty));
             Assert.That(settings.RunDisabledTests, Is.False);
             Assert.That(settings.UseBoost162Workaround, Is.False);
+            Assert.That(settings.PostTestDelay, Is.EqualTo(0));
         }
         
         #endregion Helper Methods
@@ -174,6 +175,23 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = ParseXml(settingsXml);
             return settings.UseBoost162Workaround;
+        }
+
+        /// <summary>
+        /// The 'PostTestDelay' option can be properly parsed
+        /// 
+        /// Test aims:
+        ///     - Assert that: the 'PostTestDelay' option can be properly parsed
+        /// </summary>
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><PostTestDelay>0</PostTestDelay></BoostTest></RunSettings>", Result = 0)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><PostTestDelay>-2147483648</PostTestDelay></BoostTest></RunSettings>", Result = -2147483648)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><PostTestDelay>2147483647</PostTestDelay></BoostTest></RunSettings>", Result = 2147483647)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><PostTestDelay>15</PostTestDelay></BoostTest></RunSettings>", Result = 15)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest /></RunSettings>", Result = 0)]
+        public int ParsePostTestDelayOption(string settingsXml)
+        {
+            BoostTestAdapterSettings settings = ParseXml(settingsXml);
+            return settings.PostTestDelay;
         }
 
         #endregion Tests

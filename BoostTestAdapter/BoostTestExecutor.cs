@@ -8,20 +8,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using System.Threading;
+using System.Runtime.InteropServices;
+
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
+
 using BoostTestAdapter.Boost.Results;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
 using BoostTestAdapter.TestBatch;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using BoostTestAdapter.Utility;
 using BoostTestAdapter.Utility.VisualStudio;
-using System.Runtime.InteropServices;
-using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
-using VSTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
-using BoostTestResult = BoostTestAdapter.Boost.Results.TestResult;
 using BoostTestAdapter.Utility.ExecutionContext;
+using BoostTestResult = BoostTestAdapter.Boost.Results.TestResult;
 
 namespace BoostTestAdapter
 {
@@ -362,6 +365,11 @@ namespace BoostTestAdapter
                         // Execute the tests
                         if (ExecuteTests(batch, runContext, frameworkHandle))
                         {
+                            if (settings.PostTestDelay > 0)
+                            {
+                                Thread.Sleep(settings.PostTestDelay);
+                            }
+
                             foreach (VSTestResult result in GenerateTestResults(batch, start, settings))
                             {
                                 // Identify test result to Visual Studio Test framework

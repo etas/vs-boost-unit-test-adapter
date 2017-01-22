@@ -56,12 +56,17 @@ namespace BoostTestAdapter.Settings
             this.RunDisabledTests = false;
 
             this.TestRunnerFactoryOptions = new BoostTestRunnerFactoryOptions();
+
+            this.PostTestDelay = 0;
         }
 
         #region Properties
 
         #region Serialisable Fields
 
+        /// <summary>
+        /// Specifies the duration in milliseconds test process are allowed to execute until forcibly terminated. Use '-1' to allow tests to execute indefinitely.
+        /// </summary>
         [DefaultValue(-1)]
         public int ExecutionTimeoutMilliseconds
         {
@@ -76,15 +81,27 @@ namespace BoostTestAdapter.Settings
             }
         }
 
+        /// <summary>
+        /// Specifies the duration in milliseconds test process are allowed to execute in order to have their list_content output analyzed until forcibly terminated.
+        /// </summary>
         [DefaultValue(30000)]
         public int DiscoveryTimeoutMilliseconds { get; set; }
 
+        /// <summary>
+        /// Set to 'true'|'1' to fail tests in case memory leaks are detected.
+        /// </summary>
         [DefaultValue(false)]
         public bool FailTestOnMemoryLeak { get; set; }
 
+        /// <summary>
+        /// Specify Boost Test log verbosity.
+        /// </summary>
         [DefaultValue(LogLevel.TestSuite)]
         public LogLevel LogLevel { get; set; }
 
+        /// <summary>
+        /// Set to 'true'|'1' to enable Boost Test's catch_system_errors.
+        /// </summary>
         [DefaultValue(true)]
         public bool CatchSystemErrors
         {
@@ -99,6 +116,9 @@ namespace BoostTestAdapter.Settings
             }
         }
 
+        /// <summary>
+        /// Set to 'true'|'1' to enable Boost Test's detect_fp_exceptions.
+        /// </summary>
         [DefaultValue(false)]
         public bool DetectFloatingPointExceptions
         {
@@ -113,6 +133,9 @@ namespace BoostTestAdapter.Settings
             }
         }
 
+        /// <summary>
+        /// Describes the discovery and test execution mechanisms for Boost Test executables using a custom runner implementation.
+        /// </summary>
         public ExternalBoostTestRunnerSettings ExternalTestRunner
         {
             get
@@ -126,23 +149,44 @@ namespace BoostTestAdapter.Settings
             }
         }
 
+        /// <summary>
+        /// Determines how tests should be grouped for execution.
+        /// </summary>
         [DefaultValue(TestBatch.Strategy.TestCase)]
         public TestBatch.Strategy TestBatchStrategy { get; set; }
 
+        /// <summary>
+        /// Forces the use of 'list_content=DOT' even if the test module is not recognized as a safe module.
+        /// </summary>
         [DefaultValue(false)]
         public bool ForceListContent { get; set; }
 
+        /// <summary>
+        /// Determines the working directory which is to be used during the discovery/execution of the test module. If the test module is executed within a Visual Studio test adapter session, the Working Directory defined in the 'Debug' property sheet configuration overrides this value.
+        /// </summary>
         [DefaultValue(null)]
         public string WorkingDirectory { get; set; }
-        
+
+        /// <summary>
+        /// Enables/Disables standard output redirection. Note that if disabled, memory leak detection is implicitly disabled.
+        /// </summary>
         [DefaultValue(true)]
         public bool EnableStdOutRedirection { get; set; }
 
+        /// <summary>
+        /// Enables/Disables standard error redirection.
+        /// </summary>
         [DefaultValue(true)]
         public bool EnableStdErrRedirection { get; set; }
 
+        /// <summary>
+        /// Define a series of regular expression patterns which determine which test modules should be taken into consideration for discovery/execution.
+        /// </summary>
         public TestSourceFilter Filters { get; set; }
 
+        /// <summary>
+        /// Enables/Disables the Boost 1.62 workaround. Allows the use of the test adapter with Boost Test released with Boost 1.62.
+        /// </summary>
         [DefaultValue(false)]
         public bool UseBoost162Workaround
         {
@@ -157,19 +201,37 @@ namespace BoostTestAdapter.Settings
             }
         }
 
+        /// <summary>
+        /// Set to 'true'|'1' to force explicitly disabled tests to be run with any other enabled tests if "Run all..." is pressed. By default, only enabled tests are run.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool RunDisabledTests { get; set; }
+
+        /// <summary>
+        /// Determines a delay represented in milliseconds which will be forced after the execution of each test batch.
+        /// </summary>
+        [DefaultValue(0)]
+        public int PostTestDelay { get; set; }
+
         #endregion Serialisable Fields
 
+        /// <summary>
+        /// Internal Test Runner Settings. Serializable properties implicitly populate this instance.
+        /// </summary>
         [XmlIgnore]
         public BoostTestRunnerSettings TestRunnerSettings { get; private set; }
 
+        /// <summary>
+        /// Internal Command Line Arguments. Serializable properties implicitly populate this instance.
+        /// </summary>
         [XmlIgnore]
         public BoostTestRunnerCommandLineArgs CommandLineArgs { get; private set; }
 
+        /// <summary>
+        /// Internal Test Runner Factory Options. Serializable properties implicitly populate this instance.
+        /// </summary>
         [XmlIgnore]
         public BoostTestRunnerFactoryOptions TestRunnerFactoryOptions { get; private set; }
-
-        [DefaultValue(false)]
-        public bool RunDisabledTests { get; set; }
 
         #endregion Properties
 
