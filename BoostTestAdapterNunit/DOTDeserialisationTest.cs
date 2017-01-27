@@ -129,7 +129,6 @@ namespace BoostTestAdapterNunit
 
             Compare("BoostTestAdapterNunit.Resources.ListContentDOT.sample.3.list.content.gv", expected);
         }
-
         
         /// <summary>
         /// Deserialisation of Boost Test DOT content consisting of test cases which are
@@ -155,6 +154,24 @@ namespace BoostTestAdapterNunit
             Build();
 
             Compare("BoostTestAdapterNunit.Resources.ListContentDOT.test_list_content.gv", expected);
+        }
+
+        /// <summary>
+        /// Assert that: It is possible to deserialize --list_content=DOT output consisting of a BOOST_DATA_TEST_CASE
+        /// </summary>
+        [Test]
+        public void DeserializeBoostDataTestCase()
+        {
+            TestFramework expected = new TestFrameworkBuilder(Source, "DataTestCaseExample", 1).
+                TestSuite("BoostUnitTest", 2, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 10)).
+                    TestCase("_0", 65536, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 10)).
+                    TestCase("_1", 65537, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 10)).
+                    TestCase("_2", 65538, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 10)).
+                    TestCase("_3", 65539, new SourceFileInfo(@"c:\boostunittest\boostunittestsample.cpp", 10)).
+                EndSuite().
+            Build();
+
+            Compare("BoostTestAdapterNunit.Resources.ListContentDOT.boost_data_test_case.gv", expected);
         }
     }
 }

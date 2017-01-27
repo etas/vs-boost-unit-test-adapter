@@ -466,7 +466,11 @@ namespace BoostTestAdapterNunit
         {
             VSTestCase test = new VSTestCase(fullyQualifiedName, BoostTestExecutor.ExecutorUri, source);
 
-            test.Traits.Add(VSTestModel.TestSuiteTrait, QualifiedNameBuilder.FromString(fullyQualifiedName).Pop().ToString());
+            var fullyQualifiedNameBuilder = QualifiedNameBuilder.FromString(fullyQualifiedName);
+
+            test.DisplayName = fullyQualifiedNameBuilder.Peek();
+
+            test.Traits.Add(VSTestModel.TestSuiteTrait, fullyQualifiedNameBuilder.Pop().ToString());
             test.Traits.Add(VSTestModel.StatusTrait, VSTestModel.TestEnabled);
 
             return test;
@@ -972,7 +976,7 @@ namespace BoostTestAdapterNunit
             
             List<KeyValuePair<string, IList<string>>> expectedBatches = new List<KeyValuePair<string, IList<string>>>
             {
-                new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"A/Test1", "A/Test2"}),
+                new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"A/Test1", "Test2"}),
                 new KeyValuePair<string, IList<string>>(DefaultSource, new List<string> {"B/Test1"}),
                 new KeyValuePair<string, IList<string>>(otherSource, new List<string> {"A/Test1"})
             };

@@ -210,6 +210,7 @@ namespace BoostTestAdapter.Settings
         /// <summary>
         /// Determines a delay represented in milliseconds which will be forced after the execution of each test batch.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "PostTest")]
         [DefaultValue(0)]
         public int PostTestDelay { get; set; }
 

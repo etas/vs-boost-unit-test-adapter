@@ -59,6 +59,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoostDataTestCaseVerifierTest.cs" />
     <Compile Include="BoostTestDiscovererFactoryTest.cs" />
     <Compile Include="BoostTestDiscovererTest.cs" />
     <Compile Include="BoostTestExecutorTest.cs" />
@@ -80,9 +81,11 @@
     <Compile Include="TestSourceFilterTest.cs" />
     <Compile Include="Fakes\DummySolution.cs" />
     <Compile Include="Fakes\DummyVSProvider.cs" />
+    <Compile Include="Utility\BoostTestLocator.cs" />
     <Compile Include="Utility\FrameworkEqualityVisitor.cs" />
     <Compile Include="Utility\TestHelper.cs" />
     <Compile Include="Utility\VisualStudioInstanceBuilders.cs" />
+    <Compile Include="VSDiscoveryVisitorTest.cs" />
     <Compile Include="VSTestModelTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +123,7 @@
     <EmbeddedResource Include="Resources\ListContentDOT\sample.8.list.content.gv" />
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.stderr.log" />
     <EmbeddedResource Include="Resources\ListContentDOT\test_list_content.gv" />
+    <EmbeddedResource Include="Resources\ListContentDOT\boost_data_test_case.gv" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.log.xml" />

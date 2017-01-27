@@ -49,9 +49,8 @@ namespace BoostTestAdapter.TestBatch
                     BoostTestRunnerCommandLineArgs args = BuildCommandLineArgs(source.Key);
                     foreach (VSTestCase test in suiteGroup)
                     {
-                        // List all tests by display name
-                        // but ensure that the first test is fully qualified so that remaining tests are taken relative to this test suite
-                        args.Tests.Add((args.Tests.Count == 0) ? test.FullyQualifiedName : test.DisplayName);
+                        // List all tests by name but ensure that the first test is fully qualified so that remaining tests are taken relative to this test suite
+                        args.Tests.Add((args.Tests.Count == 0) ? test.FullyQualifiedName : QualifiedNameBuilder.FromString(test.FullyQualifiedName).Peek());
                     }
 
                     yield return new TestRun(runner, suiteGroup, args, adaptedSettings);

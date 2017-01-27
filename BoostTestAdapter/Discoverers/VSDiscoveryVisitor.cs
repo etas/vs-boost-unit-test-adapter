@@ -3,6 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System.IO;
 using System.Diagnostics;
 
 using BoostTestAdapter.Boost.Test;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 using TestCase = BoostTestAdapter.Boost.Test.TestCase;
 using VSTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
-using System.IO;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -32,6 +32,8 @@ namespace BoostTestAdapter.Discoverers
         /// <param name="sink">The ITestCaseDiscoverySink which will have tests registered with</param>
         public VSDiscoveryVisitor(string source, ITestCaseDiscoverySink sink)
         {
+            Code.Require(sink, "sink");
+
             this.Source = source;
             this.DiscoverySink = sink;
             this.OutputLog = true;
@@ -45,7 +47,7 @@ namespace BoostTestAdapter.Discoverers
         /// <summary>
         /// Whether the module should output to the logger regarding relative paths
         /// </summary>
-        public bool OutputLog { get; private set; }
+        private bool OutputLog { get; set; }
 
         /// <summary>
         /// The Visual Studio DiscoverySink which is used to notify test discovery
@@ -57,8 +59,19 @@ namespace BoostTestAdapter.Discoverers
         public void Visit(TestSuite testSuite)
         {
             Code.Require(testSuite, "testSuite");
-
-            if (ShouldVisit(testSuite))
+            
+            if (BoostDataTestCaseVerifier.IsBoostDataTestCase(testSuite))
+            {
+                foreach (TestUnit child in testSuite.Children)
+                {
+                    // NOTE Since we have asserted that the suite is a BOOST_DATA_TEST_CASE,
+                    //      all child instances are to be of type TestCase
+                    
+                    var displayName = testSuite.Name + '/' + child.Name;
+                    Visit((TestCase)child, displayName);
+                }
+            }
+            else
             {
                 foreach (TestUnit child in testSuite.Children)
                 {
@@ -71,27 +84,34 @@ namespace BoostTestAdapter.Discoverers
         {
             Code.Require(testCase, "testCase");
 
-            if (ShouldVisit(testCase))
-            {
-                VSTestCase test = GenerateTestCase(testCase);
-
-                // Send to discovery sink
-                if (null != this.DiscoverySink)
-                {
-                    Logger.Info("Found test: {0}", test.FullyQualifiedName);
-                    this.DiscoverySink.SendTestCase(test);
-                }
-            }
+            Visit(testCase, testCase.Name);
         }
 
         #endregion ITestVisitor
+
+        /// <summary>
+        /// Visits the provided TestCase
+        /// </summary>
+        /// <param name="testCase">The TestCase which is to be visited</param>
+        /// <param name="displayName">The test case display name to use (overrides the test case name)</param>
+        private void Visit(TestCase testCase, string displayName)
+        {
+            Code.Require(testCase, "testCase");
+
+            VSTestCase test = GenerateTestCase(testCase);
+            test.DisplayName = string.IsNullOrEmpty(displayName) ? test.DisplayName : displayName;
+
+            // Send to discovery sink
+            Logger.Info("Found test: {0}", test.FullyQualifiedName);
+            this.DiscoverySink.SendTestCase(test);
+        }
 
         /// <summary>
         /// Generates a Visual Studio equivalent test case structure.
         /// </summary>
         /// <param name="testCase">The Boost.Test.TestCase to convert.</param>
         /// <returns>An equivalent Visual Studio TestCase structure to the one provided.</returns>
-       
+
         private VSTestCase GenerateTestCase(TestCase testCase)
         {
             VSTestCase test = new VSTestCase(
@@ -136,26 +156,6 @@ namespace BoostTestAdapter.Discoverers
             }
 
             return test;
-        }
-
-        /// <summary>
-        /// States whether the provided test suite should be visited
-        /// </summary>
-        /// <param name="unit">The test suite under consideration</param>
-        /// <returns>true if the provided TestSuite should be visited; false otherwise</returns>
-        protected virtual bool ShouldVisit(TestSuite suite)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// States whether the provided test case should be visited
-        /// </summary>
-        /// <param name="unit">The test case under consideration</param>
-        /// <returns>true if the provided TestCase should be visited; false otherwise</returns>
-        protected virtual bool ShouldVisit(TestCase test)
-        {
-            return true;
         }
 
         /// <summary>

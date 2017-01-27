@@ -96,12 +96,7 @@ namespace BoostTestAdapter.Utility
         #endregion Properties
 
         #region Constant Properties
-
-        /// <summary>
-        /// Identifies the standard depth level at which the MasterTestSuite is located.
-        /// </summary>
-        public static uint MasterTestSuiteLevel { get { return 1; } }
-
+        
         /// <summary>
         /// Identifies the default MasterTestSuite test suite name.
         /// </summary>

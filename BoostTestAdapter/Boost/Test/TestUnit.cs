@@ -78,9 +78,7 @@ namespace BoostTestAdapter.Boost.Test
         /// Identifies any label associations with this test unit
         /// </summary>
         public IEnumerable<string> Labels { get; set; }
-
-
-
+        
         /// <summary>
         /// Cached version of the fully qualified name builder
         /// </summary>
@@ -117,7 +115,6 @@ namespace BoostTestAdapter.Boost.Test
         /// <summary>
         ///  Identifies whether the test is explicitly disabled by setting this value to false
         /// </summary>
-
         public bool DefaultEnabled { get; set; }
 
         #endregion Properties

@@ -44,26 +44,10 @@ namespace BoostTestAdapter.Boost.Test
         /// <returns>The deserialised Test Framework</returns>
         public TestFramework Deserialise(Stream stream)
         {
-            return Deserialise(stream, null);
-        }
-
-        /// <summary>
-        /// Parses the stream containing a Boost Test DOT representation of a Test Framework. Notifies the 
-        /// provided visitor (during parsing) of any identified test units.
-        /// </summary>
-        /// <param name="stream">The stream consisting of a DOT representation</param>
-        /// <param name="visitor">The visitor which will be notified during parsing</param>
-        /// <returns>The deserialised Test Framework</returns>
-        /// <remarks>
-        ///     The visitor will not necessarily be notified in a top-down fashion. To ensure top-down
-        ///     visitation, wait for the result and visit the master test suite.
-        /// </remarks>
-        public TestFramework Deserialise(Stream stream, ITestVisitor visitor)
-        {
-            BoostTestFrameworkVisitor dotVisitor = new BoostTestFrameworkVisitor(this, visitor);
+            BoostTestFrameworkVisitor dotVisitor = new BoostTestFrameworkVisitor(this);
             return DOT.Parse(stream, dotVisitor);
         }
-
+        
         /// <summary>
         /// Implementation of DOTBaseVisitor which creates/populates a
         /// TestFramework instance from a DOT abstract syntax tree.
@@ -74,10 +58,9 @@ namespace BoostTestAdapter.Boost.Test
             /// Constructor
             /// </summary>
             /// <param name="parent">The parent TestFrameworkDOTDeserialiser instance</param>
-            public BoostTestFrameworkVisitor(TestFrameworkDOTDeserialiser parent, ITestVisitor visitor)
+            public BoostTestFrameworkVisitor(TestFrameworkDOTDeserialiser parent)
             {
                 this.Parent = parent;
-                this.Visitor = visitor;
 
                 this.Framework = null;
                 this.Context = null;
@@ -87,12 +70,7 @@ namespace BoostTestAdapter.Boost.Test
             /// The parent TestFrameworkDOTDeserialiser instance
             /// </summary>
             public TestFrameworkDOTDeserialiser Parent { get; private set; }
-
-            /// <summary>
-            /// An ITestVisitor which is to be notified once a test unit has been fully defined
-            /// </summary>
-            public ITestVisitor Visitor { get; private set; }
-
+            
             /// <summary>
             /// The generated Test Framework
             /// </summary>
@@ -166,14 +144,9 @@ namespace BoostTestAdapter.Boost.Test
                 // Register any child test cases
                 while (info != this.Context.TestUnits.Peek())
                 {
-                    TestCase test = CreateTestCase(this.Context.TestUnits.Pop(), this.Context.ParentSuite);
-                    Visit(test);
+                    CreateTestCase(this.Context.TestUnits.Pop(), this.Context.ParentSuite);
                 }
-
-                // NOTE Suite is visited after children since it is at this point that we
-                //      can guarantee that the suite is fully formed
-                Visit(suite);
-
+                
                 this.Context.TestUnits.Pop();
                 this.Context.ParentSuite = (TestSuite)suite.Parent;
 
@@ -356,18 +329,6 @@ namespace BoostTestAdapter.Boost.Test
                 // Dependencies
 
                 return unit;
-            }
-
-            /// <summary>
-            /// Allows the registered ITestVisitor to visit the completed TestUnit definition
-            /// </summary>
-            /// <param name="unit">The test unit to visit</param>
-            void Visit(TestUnit unit)
-            {
-                if (this.Visitor != null)
-                {
-                    unit.Apply(this.Visitor);
-                }
             }
 
             /// <summary>
