@@ -4,13 +4,10 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
-using System.IO;
-using System.Xml;
-using System.Xml.Serialization;
 using BoostTestAdapter.Boost.Test;
 using BoostTestAdapter.Utility;
-using BoostTestAdapterNunit.Utility;
 using NUnit.Framework;
+using BoostTestAdapterNunit.Utility;
 
 namespace BoostTestAdapterNunit
 {
@@ -25,57 +22,7 @@ namespace BoostTestAdapterNunit
         private const string Source = @"C:\tests.dll";
 
         #endregion Test Data
-
-        #region Helper Classes
         
-        /// <summary>
-        /// ITestVisitor implementation which looks up test units based on their qualified name.
-        /// </summary>
-        private class TestUnitLookup : ITestVisitor
-        {
-            public TestUnitLookup(string fullyQualifiedName)
-            {
-                this.FullyQualifiedName = fullyQualifiedName;
-            }
-
-            public string FullyQualifiedName { get; private set; }
-            public TestUnit Unit { get; private set; }
-
-            public void Visit(TestCase testCase)
-            {
-                Check(testCase);
-            }
-
-            public void Visit(TestSuite testSuite)
-            {
-                if (!Check(testSuite))
-                {
-                    foreach (TestUnit child in testSuite.Children)
-                    {
-                        child.Apply(this);
-                        if (this.Unit != null)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            private bool Check(TestUnit unit)
-            {
-                bool match = (unit.FullyQualifiedName == this.FullyQualifiedName);
-
-                if (match)
-                {
-                    this.Unit = unit;
-                }
-
-                return match;
-            }
-        }
-
-        #endregion Helper Classes
-
         #region Helper Methods
         
         /// <summary>
@@ -86,9 +33,7 @@ namespace BoostTestAdapterNunit
         /// <returns>The test unit with the requested fully qualified name or null if it cannot be found</returns>
         private TestUnit Lookup(TestUnit root, string fullyQualifiedName)
         {
-            TestUnitLookup lookup = new TestUnitLookup(fullyQualifiedName);
-            root.Apply(lookup);
-            return lookup.Unit;
+            return BoostTestLocator.Locate(root, fullyQualifiedName);
         }
         
         /// <summary>

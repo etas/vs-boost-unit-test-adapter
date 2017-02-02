@@ -122,12 +122,11 @@ namespace BoostTestAdapter.Discoverers
                         using (FileStream stream = File.OpenRead(args.StandardErrorFile))
                         {
                             TestFrameworkDOTDeserialiser deserialiser = new TestFrameworkDOTDeserialiser(source);
-
-                            // Pass in a visitor to avoid a 2-pass loop in order to notify test cases to VS
-                            //
-                            // NOTE Due to deserialisation, make sure that only test cases are visited. Test
-                            //      suites may be visited after their child test cases are visited.
-                            deserialiser.Deserialise(stream, new VSDiscoveryVisitorTestsOnly(source, discoverySink));
+                            TestFramework framework = deserialiser.Deserialise(stream);
+                            if ((framework != null) && (framework.MasterTestSuite != null))
+                            {
+                                framework.MasterTestSuite.Apply(new VSDiscoveryVisitor(source, discoverySink));
+                            }
                         }
                     }
                 }
@@ -139,27 +138,5 @@ namespace BoostTestAdapter.Discoverers
         }
 
         #endregion IBoostTestDiscoverer
-        
-        /// <summary>
-        /// A specification of VSDiscoveryVisitor which limits visitation to tests only.
-        /// Allows for optimal visitation during DOT deserialisation.
-        /// </summary>
-        private class VSDiscoveryVisitorTestsOnly : VSDiscoveryVisitor
-        {
-            public VSDiscoveryVisitorTestsOnly(string source, ITestCaseDiscoverySink sink)
-                : base(source, sink)
-            {
-            }
-
-            protected override bool ShouldVisit(TestSuite suite)
-            {
-                return false;
-            }
-
-            protected override bool ShouldVisit(TestCase test)
-            {
-                return true;
-            }
-        }
     }
 }
