@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BoostTestAdapter</RootNamespace>
-    <AssemblyName>BoostTestAdapter</AssemblyName>
+    <AssemblyName>BoostTestAdapter.TestAdapter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -122,9 +122,9 @@
     <Compile Include="Discoverers\ListContentDiscoverer.cs" />
     <Compile Include="Discoverers\ExternalDiscoverer.cs" />
     <Compile Include="Discoverers\VSDiscoveryVisitor.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Discoverers\IBoostTestDiscoverer.cs" />
     <Compile Include="Discoverers\IBoostTestDiscovererFactory.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Utility\BoostDataTestCaseVerifier.cs" />
     <Compile Include="Utility\BoostTestRunnerCommandLineArgsEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

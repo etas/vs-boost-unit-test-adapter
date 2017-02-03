@@ -104,7 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Resources\Log4NetConfigFile\BoostTestAdapter.dll.config" />
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.NoSourceFileAndLineNumbersAvailable.test.stdout.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.SourceFileAndLineNumbersAvailable.test.stdout.log" />
     <EmbeddedResource Include="Resources\ReportsLogs\OutputTest\sample.test.stderr.log" />
@@ -124,6 +123,7 @@
     <EmbeddedResource Include="Resources\ReportsLogs\MemoryLeakTest\sample.test.stderr.log" />
     <EmbeddedResource Include="Resources\ListContentDOT\test_list_content.gv" />
     <EmbeddedResource Include="Resources\ListContentDOT\boost_data_test_case.gv" />
+    <EmbeddedResource Include="Resources\Log4NetConfigFile\BoostTestAdapter.TestAdapter.dll.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.log.xml" />
