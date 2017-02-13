@@ -43,7 +43,7 @@ namespace BoostTestAdapter.Boost.Runner
 
         public string Source => this.Runner.Source;
 
-        public void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext executionContext)
+        public int Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext executionContext)
         {
             var fixedArgs = args;
 
@@ -55,7 +55,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             using (var stderr = new TemporaryFile(IsStandardErrorFileDifferent(args, fixedArgs) ? fixedArgs.StandardErrorFile : null))
             {
-                this.Runner.Execute(fixedArgs, settings, executionContext);
+                int resultCode = this.Runner.Execute(fixedArgs, settings, executionContext);
 
                 // Extract the report output to its intended location
                 string source = (fixedArgs == null) ? null : fixedArgs.StandardErrorFile;
@@ -72,6 +72,8 @@ namespace BoostTestAdapter.Boost.Runner
                         Logger.Exception(ex, "Failed to extract test report from standard error [{0}] to report file [{1}] ({2})", source, destination, ex.Message);
                     }
                 }
+
+                return resultCode;
             }
         }
 

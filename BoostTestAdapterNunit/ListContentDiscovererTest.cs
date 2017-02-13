@@ -84,8 +84,8 @@ namespace BoostTestAdapterNunit
                 if ((args.ListContent.HasValue) && (args.ListContent.Value == ListContentFormat.DOT))
                 {
                     output = TestHelper.CopyEmbeddedResourceToDirectory("BoostTestAdapterNunit.Resources.ListContentDOT.sample.8.list.content.gv", args.StandardErrorFile);
-                }                
-            });
+                }             
+            }).Returns(0);
 
             FakeBoostTestRunnerFactory factory = new FakeBoostTestRunnerFactory(runner);
             ListContentDiscoverer discoverer = new ListContentDiscoverer(factory, DummyVSProvider.Default);
@@ -125,6 +125,29 @@ namespace BoostTestAdapterNunit
 
             // Ensure proper environment cleanup
             Assert.That(File.Exists(output), Is.False);
+        }
+
+        /// <summary>
+        /// Assert that: Given a failing --list_content=DOT execution identified by a non-0 exit code, no tests are to be discovered.
+        /// </summary>
+        [Test]
+        public void FailingExitCode()
+        {
+            IBoostTestRunner runner = A.Fake<IBoostTestRunner>();
+                        
+            A.CallTo(() => runner.ListContentSupported).Returns(true);
+            A.CallTo(() => runner.Execute(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IProcessExecutionContext>._)).Returns(-1073741515);
+
+            FakeBoostTestRunnerFactory factory = new FakeBoostTestRunnerFactory(runner);
+            ListContentDiscoverer discoverer = new ListContentDiscoverer(factory, DummyVSProvider.Default);
+
+            DefaultTestContext context = new DefaultTestContext();
+            DefaultTestCaseDiscoverySink sink = new DefaultTestCaseDiscoverySink();
+
+            discoverer.DiscoverTests(new[] { "missing-dll.exe", }, context, sink);
+            
+            // Ensure proper test discovery
+            Assert.That(sink.Tests.Count, Is.EqualTo(0));
         }
     }
 }
