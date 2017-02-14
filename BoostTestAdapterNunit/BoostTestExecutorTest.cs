@@ -302,7 +302,7 @@ namespace BoostTestAdapterNunit
 
             #region IBoostTestRunner
             
-            public void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
+            public int Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
             {
                 this.ExecutionArgs.Add(new MockBoostTestRunnerExecutionArgs()
                 {
@@ -346,6 +346,8 @@ namespace BoostTestAdapterNunit
                     Copy(resources.ReportFilePath, args.ReportFile);
                     Copy(resources.LogFilePath, args.LogFile);
                 }
+
+                return 0;
             }
 
             public string Source { get; private set; }

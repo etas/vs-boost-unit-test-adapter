@@ -126,9 +126,10 @@ namespace BoostTestAdapterNunit
 
         public string Source { get; private set; }
 
-        public void Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
+        public int Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)
         {
             Copy("BoostTestAdapterNunit.Resources.ListContentDOT.sample.8.list.content.gv", args.StandardErrorFile);
+            return 0;
         }
 
         private void Copy(string embeddedResource, string path)
