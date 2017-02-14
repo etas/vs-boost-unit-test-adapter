@@ -1,1 +1,8 @@
+# Test resources need line endings to remain as set/committed
 BoostTestAdapterNunit/Resources/**/* -text
+
+# Source/Development files are to use clrf as line endings
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.sln text eol=crlf
+GlobalSuppressions.cs binary

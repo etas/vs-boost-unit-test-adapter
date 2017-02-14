@@ -54,8 +54,8 @@ namespace BoostTestAdapterNunit
         [Test]
         public void Log4NetCorrectLoggingToFileVerification()
         {
-            string resourceFileName = "BoostTestAdapter.dll.config";
-            string logFileName = "BoostTestAdapter.dll.log";
+            string resourceFileName = "BoostTestAdapter.TestAdapter.dll.config";
+            string logFileName = "BoostTestAdapter.TestAdapter.dll.log";
 
             using (TemporaryFile resourceFile = new TemporaryFile(CopyLog4NetConfigFileFromAssemblyToWorkingDirectory(resourceFileName)))
             using (TemporaryFile logFile = new TemporaryFile(Path.Combine(Directory.GetCurrentDirectory(), logFileName)))

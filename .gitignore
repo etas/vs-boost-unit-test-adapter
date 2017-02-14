@@ -218,3 +218,9 @@ FakesAssemblies/
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
+
+# Boost Unit Test Adapter
+
+# The following configuration is an output of BoostTestAdapter post-build event
+BoostTestAdapterNunit/BoostTestAdapter.TestAdapter.dll.config
+BoostTestPlugin/BoostTestAdapter.TestAdapter.dll.config

@@ -27,7 +27,7 @@ In case of any issues please file an issue at https://github.com/etas/vs-boost-u
         <Asset d:Source="Project" d:ProjectName="BoostTestAdapter" Type="UnitTestExtension" Path="|BoostTestAdapter|" />
         <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:TargetPath="ItemTemplates\VC\Test\Boost Unit Test File.zip" />
         <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" Path="ProjectTemplates" d:TargetPath="ProjectTemplates\VC\Test\Boost Unit Test Project.zip" />
-        <Asset Type="Application Settings Configuration file" d:Source="File" Path="BoostTestAdapter.dll.config" />
+        <Asset Type="Application Settings Configuration file" d:Source="File" Path="BoostTestAdapter.TestAdapter.dll.config" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VisualStudioAdapter" Path="|VisualStudioAdapter|" AssemblyName="|VisualStudioAdapter;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VisualStudio2015Adapter" Path="|VisualStudio2015Adapter|" AssemblyName="|VisualStudio2015Adapter;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Antlr.DOT" Path="|Antlr.DOT|" AssemblyName="|Antlr.DOT;AssemblyName|" />
