@@ -64,25 +64,8 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
-                bool supported = false;
+                bool supported = ContainsSymbol("boost::unit_test::runtime_config::LIST_CONTENT");   // Boost 1.60/1.61
 
-                // Try to locate the list_content function debug symbol. If this is not available, this implies that:
-                // - Debug symbols are not available for the requested source
-                // - Debug symbols are available but the source is not a Boost Unit Test version >= 3 module
-                try
-                {
-                    // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
-                    using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
-                    {
-                        supported =
-                            dbgHelp.ContainsSymbol("boost::unit_test::runtime_config::LIST_CONTENT");   // Boost 1.60/1.61
-                    }
-                }
-                catch (Win32Exception ex)
-                {
-                    Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
-                }
-                
                 if (!supported)
                 {
                     Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceListContent>' via a .runsettings file.", this.TestRunnerExecutable);
@@ -92,6 +75,16 @@ namespace BoostTestAdapter.Boost.Runner
             }
         }
 
+        public virtual bool VersionSupported
+        {
+            get
+            {
+                return ContainsSymbol("boost::unit_test::runtime_config::VERSION");   // Boost 1.63
+            }
+        }
+
+        #endregion IBoostTestRunner
+        
         /// <summary>
         /// Provides a ProcessExecutionContextArgs structure containing the necessary information to launch the test process.
         /// Aggregates the BoostTestRunnerCommandLineArgs structure with the command-line arguments specified at configuration stage.
@@ -111,8 +104,6 @@ namespace BoostTestAdapter.Boost.Runner
                 EnvironmentVariables = args.Environment
             };
         }
-
-        #endregion IBoostTestRunner
 
         /// <summary>
         /// Monitors the provided process for the specified timeout.
@@ -235,6 +226,29 @@ namespace BoostTestAdapter.Boost.Runner
             catch (Exception e)
             {
                 Logger.Error(e.Message);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Tests if the test runner executable contains the specific symbol
+        /// </summary>
+        /// <param name="symbol">The symbol to locate</param>
+        /// <returns>true if the requested symbol is identified by the test runner executable; false otherwise</returns>
+        private bool ContainsSymbol(string symbol)
+        {
+            try
+            {
+                // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
+                using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
+                {
+                    return dbgHelp.ContainsSymbol(symbol);
+                }
+            }
+            catch (Win32Exception ex)
+            {
+                Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
             }
 
             return false;

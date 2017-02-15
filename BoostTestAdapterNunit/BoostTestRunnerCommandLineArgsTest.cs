@@ -162,6 +162,8 @@ namespace BoostTestAdapterNunit
             Assert.That(args.DetectFPExceptions, Is.EqualTo(clone.DetectFPExceptions));
             Assert.That(args.SavePattern, Is.EqualTo(clone.SavePattern));
             Assert.That(args.ListContent, Is.EqualTo(clone.ListContent));
+            Assert.That(args.Help, Is.EqualTo(clone.Help));
+            Assert.That(args.Version, Is.EqualTo(clone.Version));
 
             Assert.That(args.ToString(), Is.EqualTo(clone.ToString()));
             Assert.That(args.Environment, Is.EqualTo(clone.Environment));
@@ -215,6 +217,33 @@ namespace BoostTestAdapterNunit
             
             // list content only includes the --list_content and the output redirection commands
             Assert.That(args.ToString(), Is.EqualTo(expected));
+        }
+
+        /// <summary>
+        /// Assert that: A Boost.Test command-line requiring version output is generated accordingly
+        /// </summary>
+        [Test]
+        public void VersionCommandLineArgs()
+        {
+            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs()
+            {
+                Version = true
+            };
+
+            // Version without output redirection
+            {
+                const string expected = "\"--version\"";
+                Assert.That(args.ToString(), Is.EqualTo(expected));
+            }
+
+            // Version with output redirection
+            {
+                args.StandardOutFile = @"C:\Temp\version.out";
+                args.StandardErrorFile = @"C:\Temp\version.err";
+
+                const string expected = "\"--version\" > \"C:\\Temp\\version.out\" 2> \"C:\\Temp\\version.err\"";
+                Assert.That(args.ToString(), Is.EqualTo(expected));
+            }
         }
 
         #endregion Tests

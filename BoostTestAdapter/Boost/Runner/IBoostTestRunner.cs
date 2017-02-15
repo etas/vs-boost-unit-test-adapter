@@ -31,5 +31,10 @@ namespace BoostTestAdapter.Boost.Runner
         /// Determines if the test runner provides --list_content capabilities.
         /// </summary>
         bool ListContentSupported { get; }
+
+        /// <summary>
+        /// Determines if the test runner provides --version capabilities.
+        /// </summary>
+        bool VersionSupported { get; }
     }
 }
