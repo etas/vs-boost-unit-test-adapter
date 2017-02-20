@@ -380,6 +380,8 @@ namespace BoostTestAdapter
                 }
                 catch (Boost.Runner.TimeoutException ex)
                 {
+                    Logger.Info("Test batch {0} [{1}] timed out", batch.Source, string.Join(", ", batch.Tests));
+
                     foreach (VSTestCase testCase in batch.Tests)
                     {
                         VSTestResult testResult = GenerateTimeoutResult(testCase, ex);
@@ -391,6 +393,15 @@ namespace BoostTestAdapter
                 catch (Exception ex)
                 {
                     Logger.Exception(ex, "Exception caught while running test batch {0} [{1}] ({2})", batch.Source, string.Join(", ", batch.Tests), ex.Message);
+
+                    // Notify test execution warning
+                    foreach (VSTestCase testCase in batch.Tests)
+                    {
+                        VSTestResult testResult = GenerateExecutionExceptionResult(testCase, ex);
+                        testResult.StartTime = start;
+
+                        frameworkHandle.RecordResult(testResult);
+                    }
                 }
             }
         }
@@ -642,6 +653,28 @@ namespace BoostTestAdapter
             }
 
             return TestNotFound;
+        }
+
+        /// <summary>
+        /// Generates a default TestResult for a general executor exception.
+        /// </summary>
+        /// <param name="test">The test which failed execution.</param>
+        /// <returns>A warning TestResult related to the provided test execution exception.</returns>
+        private static VSTestResult GenerateExecutionExceptionResult(VSTestCase test, Exception ex)
+        {
+            VSTestResult result = new VSTestResult(test);
+
+            result.ComputerName = Environment.MachineName;
+
+            // NOTE Marking test as failed in an attempt to be consistent with the
+            //      'Boost.Test result file not found' error scenario
+            result.Outcome = TestOutcome.Failed;
+            result.ErrorMessage = "Test Execution Error. Refer to 'Output' for more details.";
+
+            var message = new TestResultMessage(TestResultMessage.StandardErrorCategory, ex.Message);
+            result.Messages.Add(message);
+
+            return result;
         }
 
         /// <summary>
