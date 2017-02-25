@@ -355,8 +355,7 @@ namespace BoostTestAdapterNunit
             public bool ListContentSupported { get; private set; }
 
             #endregion IBoostTestRunner
-
-
+            
             private void Copy(string embeddedResource, string path)
             {
                 using (Stream inStream = TestHelper.LoadEmbeddedResource(embeddedResource))
@@ -1183,6 +1182,38 @@ namespace BoostTestAdapterNunit
                     Assert.That(args.Arguments.StandardErrorFile, Is.Null);
                 }
             }
+        }
+
+        /// <summary>
+        /// Assert that: Failing to execute a test due to an adapter error, the test should be explicitly marked
+        /// </summary>
+        [Test]
+        public void ExecutionException()
+        {
+            IBoostTestRunner runner = A.Fake<IBoostTestRunner>();
+            A.CallTo(() => runner.Source).Returns(DefaultSource);
+            A.CallTo(() => runner.Execute(A<BoostTestRunnerCommandLineArgs>._, A<BoostTestRunnerSettings>._, A<IProcessExecutionContext>._)).Throws(new Exception());
+
+            IBoostTestRunnerFactory runnerFactory = A.Fake<IBoostTestRunnerFactory>();
+            A.CallTo(() => runnerFactory.GetRunner(A<string>._, A<BoostTestRunnerFactoryOptions>._)).Returns(runner);
+            
+            var executor = new BoostTestExecutor(runnerFactory, new StubBoostTestDiscovererFactory(this), DummyVSProvider.Default);
+
+            executor.RunTests(
+                new string[] { DefaultSource },
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+            Assert.That(this.FrameworkHandle.Results.Count, Is.EqualTo(1));
+            
+            var result = this.FrameworkHandle.Results.First();
+            
+            // NOTE Given that there is no exact definition as to how a test should be marked (skipped/failed)
+            //      in such scenarios, we are asserting on what we are not expecting rather than what we expect
+
+            Assert.That(result.Outcome, Is.Not.EqualTo(TestOutcome.None));
+            Assert.That(result.Outcome, Is.Not.EqualTo(TestOutcome.Passed));
         }
 
         #endregion Tests
