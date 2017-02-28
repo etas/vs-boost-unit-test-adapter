@@ -228,7 +228,17 @@ namespace BoostTestAdapter.Boost.Runner
             this.ListContent = null;
             this.Help = false;
 
-            this.Environment = new Dictionary<string, string>();
+            /* The environment variable "BUTA" is set whenever a test is executed. The purpose
+             * is to provide a means for boost unit tests to detect that they are being executed
+             * using the boost unit test adapter. One might use this so as for the tests to 
+             * increase the verbosity level whenever boost unit tests are executed using the
+             * boost unit test adapter.
+             */
+
+            this.Environment = new Dictionary<string, string>()
+            {
+                { "BUTA", "1" }
+            };
         }
 
         #endregion Constructors
