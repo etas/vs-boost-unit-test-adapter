@@ -586,6 +586,7 @@ namespace BoostTestAdapterNunit
             );
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
+
         }
 
         /// <summary>
@@ -611,6 +612,37 @@ namespace BoostTestAdapterNunit
             Assert.That(runner.ExecutionArgs.First().Context, Is.TypeOf<DebugFrameworkExecutionContext>());
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
+        }
+
+        /// <summary>
+        /// "BUTA" environment variable should be set within an execution context.
+        /// 
+        /// Test aims:
+        ///     - Ensure that the text execution runner provides the environment variable "BUTA" in the execution
+        ///     context
+        /// </summary>
+        [Test]
+        public void BUTAEnvironmentVariableProvided()
+        {
+            this.RunContext.IsBeingDebugged = true;
+
+            this.Executor.RunTests(
+                GetDefaultTests(),
+                this.RunContext,
+                this.FrameworkHandle
+            );
+
+            MockBoostTestRunner runner = this.RunnerFactory.LastTestRunner as MockBoostTestRunner;
+
+            Assert.That(runner, Is.Not.Null);
+
+            var oExpectedEnvironmentVariables = new Dictionary<string, string>()
+            {
+                { "BUTA", "1" }
+            };
+
+            CollectionAssert.AreEqual(oExpectedEnvironmentVariables, runner.ExecutionArgs.First().Arguments.Environment);
+
         }
 
         /// <summary>

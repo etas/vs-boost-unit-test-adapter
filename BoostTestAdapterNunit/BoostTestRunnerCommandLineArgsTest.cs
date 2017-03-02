@@ -5,6 +5,7 @@
 
 using BoostTestAdapter.Boost.Runner;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.IO;
 
 namespace BoostTestAdapterNunit
@@ -69,6 +70,25 @@ namespace BoostTestAdapterNunit
         {
             BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs();
             Assert.That(args.ToString(), Is.Empty);
+        }
+
+        /// <summary>
+        /// "BUTA" environment variable present by default in the environment variable collection
+        /// 
+        /// Test aims:
+        ///     - Ensure that the "BUTA" environment is present by default in the enviorment variable collection.
+        /// </summary>
+        [Test]
+        public void BUTAEnviormentVariablePresent()
+        {
+            BoostTestRunnerCommandLineArgs args = new BoostTestRunnerCommandLineArgs();
+
+            var oExpectedEnviormentVariables = new Dictionary<string, string>()
+            {
+                { "BUTA", "1" }
+            };
+
+            CollectionAssert.AreEqual(oExpectedEnviormentVariables, args.Environment);
         }
 
         /// <summary>
@@ -144,6 +164,7 @@ namespace BoostTestAdapterNunit
             Assert.That(args.ListContent, Is.EqualTo(clone.ListContent));
 
             Assert.That(args.ToString(), Is.EqualTo(clone.ToString()));
+            Assert.That(args.Environment, Is.EqualTo(clone.Environment));
         }
 
         /// <summary>
