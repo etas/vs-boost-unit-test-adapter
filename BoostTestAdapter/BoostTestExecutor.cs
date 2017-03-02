@@ -333,9 +333,10 @@ namespace BoostTestAdapter
 
             switch (strategy)
             {
-                case Strategy.Source: return new SourceTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
-                case Strategy.TestSuite: return new TestSuiteTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
-                case Strategy.TestCase: return new IndividualTestBatchStrategy(this._testRunnerFactory, settings, argsBuilder);
+                case Strategy.Source: return new SourceTestBatchStrategy(_testRunnerFactory, settings, argsBuilder);
+                case Strategy.TestSuite: return new TestSuiteTestBatchStrategy(_testRunnerFactory, settings, argsBuilder);
+                case Strategy.TestCase: return new IndividualTestBatchStrategy(_testRunnerFactory, settings, argsBuilder);
+                case Strategy.One: return new OneShotTestBatchStrategy(_testRunnerFactory, settings, argsBuilder);
             }
 
             return null;
@@ -499,7 +500,7 @@ namespace BoostTestAdapter
             
             args.StandardOutFile = ((settings.EnableStdOutRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdOutFile) : null);
             args.StandardErrorFile = ((settings.EnableStdErrRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdErrFile) : null);
-
+            
             // Set '--catch_system_errors' to 'yes' if the test is not being debugged
             // or if this value was not overridden via configuration before-hand
             args.CatchSystemErrors = args.CatchSystemErrors.GetValueOrDefault(false) || !debugMode;

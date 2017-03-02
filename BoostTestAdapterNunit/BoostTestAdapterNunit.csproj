@@ -59,6 +59,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchStrategyTest.cs" />
     <Compile Include="BoostDataTestCaseVerifierTest.cs" />
     <Compile Include="BoostTestDiscovererFactoryTest.cs" />
     <Compile Include="BoostTestDiscovererTest.cs" />
