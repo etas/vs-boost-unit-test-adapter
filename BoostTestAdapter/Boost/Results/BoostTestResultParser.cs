@@ -71,7 +71,7 @@ namespace BoostTestAdapter.Boost.Results
             }
 
             string report = args.ReportFile;
-            if (!string.IsNullOrEmpty(report) && (File.Exists(report)))
+            if (!string.IsNullOrEmpty(report))
             {
                 return new ParserFactoryResult()
                 {
@@ -97,7 +97,7 @@ namespace BoostTestAdapter.Boost.Results
             }
 
             string log = args.LogFile;
-            if (!string.IsNullOrEmpty(log) && (File.Exists(log)))
+            if (!string.IsNullOrEmpty(log))
             {
                 return new ParserFactoryResult()
                 {
@@ -118,7 +118,7 @@ namespace BoostTestAdapter.Boost.Results
         /// <returns>An IBoostTestResultParser/Source pair or null if one cannot be identified from the provided arguments</returns>
         private static ParserFactoryResult GetStandardOutputParser(BoostTestRunnerCommandLineArgs args, BoostTestAdapterSettings settings, IDictionary<string, TestResult> results)
         {
-            if ((!string.IsNullOrEmpty(args.StandardOutFile)) && (File.Exists(args.StandardOutFile)))
+            if (!string.IsNullOrEmpty(args.StandardOutFile))
             {
                 return new ParserFactoryResult()
                 {
@@ -142,7 +142,7 @@ namespace BoostTestAdapter.Boost.Results
         /// <returns>An IBoostTestResultParser/Source pair or null if one cannot be identified from the provided arguments</returns>
         private static ParserFactoryResult GetStandardErrorParser(BoostTestRunnerCommandLineArgs args, BoostTestAdapterSettings settings, IDictionary<string, TestResult> results)
         {
-            if ((!string.IsNullOrEmpty(args.StandardErrorFile)) && (File.Exists(args.StandardErrorFile)))
+            if (!string.IsNullOrEmpty(args.StandardErrorFile))
             {
                 return new ParserFactoryResult()
                 {
