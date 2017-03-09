@@ -6,7 +6,6 @@
 using BoostTestAdapter.Boost.Runner;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.IO;
 
 namespace BoostTestAdapterNunit
 {
@@ -46,7 +45,7 @@ namespace BoostTestAdapterNunit
 
             args.DetectMemoryLeaks = 0;
 
-            args.CatchSystemErrors = false;
+            args.CatchSystemErrors = true;
             args.DetectFPExceptions = true;
 
             args.StandardOutFile = GenerateFullyQualifiedPath("stdout.log");
@@ -102,7 +101,7 @@ namespace BoostTestAdapterNunit
         {
             BoostTestRunnerCommandLineArgs args = GenerateCommandLineArgs();
             // serge: boost 1.60 requires uppercase input
-            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=no\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink="
+            Assert.That(args.ToString(), Is.EqualTo("\"--run_test=test,suite/*\" \"--catch_system_errors=yes\" \"--log_format=XML\" \"--log_level=test_suite\" \"--log_sink="
                 + GenerateFullyQualifiedPath("log.xml") + "\" \"--report_format=XML\" \"--report_level=detailed\" \"--report_sink="
                 + GenerateFullyQualifiedPath("report.xml") + "\" \"--detect_memory_leak=0\" \"--detect_fp_exceptions=yes\" > \"" 
                 + GenerateFullyQualifiedPath("stdout.log") + "\" 2> \""

@@ -184,7 +184,7 @@ namespace BoostTestAdapter
             Logger.Debug("IRunContext.RunSettings.SettingsXml: {0}", runContext.RunSettings.SettingsXml);
 
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(runContext);
-
+            
             foreach (string source in sources)
             {
                 if (_cancelled)
@@ -216,7 +216,7 @@ namespace BoostTestAdapter
                         // NOTE For code-coverage speed is given preference over adapter responsiveness.
                         TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.Source : settings.TestBatchStrategy);
 
-                        ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
+                        ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings, runContext);
                         if (batchStrategy == null)
                         {
                             Logger.Error("No valid test batching strategy was found for {0}. Source skipped.", source);
@@ -271,7 +271,7 @@ namespace BoostTestAdapter
                 strategy = Strategy.TestSuite;
             }
 
-            ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings);
+            ITestBatchingStrategy batchStrategy = GetBatchStrategy(strategy, settings, runContext);
             if (batchStrategy == null)
             {
                 Logger.Error("No valid test batching strategy was found. Tests skipped.");
@@ -303,13 +303,32 @@ namespace BoostTestAdapter
         /// </summary>
         /// <param name="strategy">The base strategy to provide</param>
         /// <param name="settings">Adapter settings currently in use</param>
+        /// <param name="runContext">The RunContext for this TestCase. Determines whether the test should be debugged or not.</param>
         /// <returns>An ITestBatchingStrategy instance or null if one cannot be provided</returns>
-        private ITestBatchingStrategy GetBatchStrategy(TestBatch.Strategy strategy, BoostTestAdapterSettings settings)
+        private ITestBatchingStrategy GetBatchStrategy(TestBatch.Strategy strategy, BoostTestAdapterSettings settings, IRunContext runContext)
         {
-            TestBatch.CommandLineArgsBuilder argsBuilder = GetDefaultArguments;
+            TestBatch.CommandLineArgsBuilder argsBuilder = (string _source, BoostTestAdapterSettings _settings) =>
+            {
+                return GetDefaultArguments(_source, _settings, runContext.IsBeingDebugged);
+            };
+
             if (strategy != Strategy.TestCase)
             {
-                argsBuilder = GetBatchedTestRunsArguments;
+                // Disable stdout, stderr and memory leak detection since it is difficult
+                // to distinguish from which test does portions of the output map to
+                argsBuilder = (string _source, BoostTestAdapterSettings _settings) =>
+                {
+                    var args = GetDefaultArguments(_source, _settings, runContext.IsBeingDebugged);
+
+                    // Disable standard error/standard output capture
+                    args.StandardOutFile = null;
+                    args.StandardErrorFile = null;
+
+                    // Disable memory leak detection
+                    args.DetectMemoryLeaks = 0;
+
+                    return args;
+                };
             }
 
             switch (strategy)
@@ -461,11 +480,12 @@ namespace BoostTestAdapter
         /// </summary>
         /// <param name="source">The TestCases source</param>
         /// <param name="settings">The Boost Test adapter settings currently in use</param>
+        /// <param name="debugMode">Determines whether the test should be debugged or not.</param>
         /// <returns>A BoostTestRunnerCommandLineArgs structure for the provided source</returns>
-        private BoostTestRunnerCommandLineArgs GetDefaultArguments(string source, BoostTestAdapterSettings settings)
+        private BoostTestRunnerCommandLineArgs GetDefaultArguments(string source, BoostTestAdapterSettings settings, bool debugMode)
         {
             BoostTestRunnerCommandLineArgs args = settings.CommandLineArgs.Clone();
-
+            
             GetDebugConfigurationProperties(source, settings, args);
             
             // Specify log and report file information
@@ -480,26 +500,10 @@ namespace BoostTestAdapter
             args.StandardOutFile = ((settings.EnableStdOutRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdOutFile) : null);
             args.StandardErrorFile = ((settings.EnableStdErrRedirection) ? TestPathGenerator.Generate(source, FileExtensions.StdErrFile) : null);
 
-            return args;
-        }
-        
-        /// <summary>
-        /// Factory function which returns an appropriate BoostTestRunnerCommandLineArgs structure for batched test runs
-        /// </summary>
-        /// <param name="source">The TestCases source</param>
-        /// <param name="settings">The Boost Test adapter settings currently in use</param>
-        /// <returns>A BoostTestRunnerCommandLineArgs structure for the provided source</returns>
-        private BoostTestRunnerCommandLineArgs GetBatchedTestRunsArguments(string source, BoostTestAdapterSettings settings)
-        {
-            BoostTestRunnerCommandLineArgs args = GetDefaultArguments(source, settings);
-
-            // Disable standard error/standard output capture
-            args.StandardOutFile = null;
-            args.StandardErrorFile = null;
-
-            // Disable memory leak detection
-            args.DetectMemoryLeaks = 0;
-
+            // Set '--catch_system_errors' to 'yes' if the test is not being debugged
+            // or if this value was not overridden via configuration before-hand
+            args.CatchSystemErrors = args.CatchSystemErrors.GetValueOrDefault(false) || !debugMode;
+            
             return args;
         }
 
