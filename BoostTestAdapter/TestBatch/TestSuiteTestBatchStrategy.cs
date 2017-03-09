@@ -30,6 +30,7 @@ namespace BoostTestAdapter.TestBatch
         public override IEnumerable<TestRun> BatchTests(IEnumerable<VSTestCase> tests)
         {
             BoostTestRunnerSettings adaptedSettings = this.Settings.TestRunnerSettings.Clone();
+            // Disable timeout since this batching strategy executes more than one test at a time
             adaptedSettings.Timeout = -1;
 
             // Group by source

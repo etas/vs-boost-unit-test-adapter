@@ -372,6 +372,8 @@ namespace BoostTestAdapter
 
                             foreach (VSTestResult result in GenerateTestResults(batch, start, settings))
                             {
+                                Logger.Debug("Test {0}: {1}", result.TestCase, result.Outcome);
+
                                 // Identify test result to Visual Studio Test framework
                                 frameworkHandle.RecordResult(result);
                             }
@@ -529,38 +531,33 @@ namespace BoostTestAdapter
             {
                 results = BoostTestResultParser.Parse(testRun.Arguments, settings);
             }
-            catch (XmlException)
+            catch (FileNotFoundException ex)
             {
-                string text = ((File.Exists(testRun.Arguments.ReportFile)) ? File.ReadAllText(testRun.Arguments.ReportFile) : string.Empty);
+                Logger.Exception(ex, "Boost.Test result file [{0}] was not found", ex.FileName);
+
+                // Represent result parsing exception as a test fatal error
+                return testRun.Tests.Select(test => GenerateTestFailure(test, "Boost.Test result file was not found.", start, end));
+            }
+            catch (XmlException ex)
+            {
+                Logger.Exception(ex, "Failed to parse Boost.Test result file as XML");
+
+                string text = File.ReadAllText(testRun.Arguments.ReportFile);
 
                 if (text.Trim().StartsWith(TestNotFound, StringComparison.Ordinal))
                 {
+                    Logger.Warn("Boost.Test could not run test batch [{0}] since a test could not be found", testRun.Tests);
+
                     return testRun.Tests.Select(GenerateNotFoundResult);
                 }
                 else
-                {
-                    // Represent result parsing exception as a test fatal error
+                {   
                     if (string.IsNullOrEmpty(text))
                     {
-                        text = "Boost Test result file was not found or is empty.";
+                        Logger.Warn("Boost.Test report file was empty");
                     }
-                    
-                    return testRun.Tests.Select(test => {
-                        var exception = new BoostTestResult();
-                        
-                        exception.Unit = Boost.Test.TestUnit.FromFullyQualifiedName(test.FullyQualifiedName);
-
-                        // NOTE Divide by 10 to compensate for duration calculation described in VSTestResult.AsVSTestResult(this Boost.Results.TestResult, VSTestCase)
-                        exception.Duration = ((ulong)(end - start).Ticks) / 10;
-
-                        exception.Result = TestResultType.Failed;
-                        exception.LogEntries.Add(new Boost.Results.LogEntryTypes.LogEntryFatalError()
-                        {
-                            Detail = text
-                        });
-
-                        return GenerateResult(test, exception, start, end);
-                    });
+                                     
+                    return testRun.Tests.Select(test => GenerateTestFailure(test, text, start, end));
                 }
             }
 
@@ -675,6 +672,33 @@ namespace BoostTestAdapter
             result.Messages.Add(message);
 
             return result;
+        }
+
+        /// <summary>
+        /// Generates a generic test failure
+        /// </summary>
+        /// <param name="test">The test which is to be considered as failed (regardless of its outcome)</param>
+        /// <param name="error">The error detail string</param>
+        /// <param name="start">The test execution start time</param>
+        /// <param name="end">The test execution end time</param>
+        /// <returns>A failing VSTestResult with the provided error information</returns>
+        private static VSTestResult GenerateTestFailure(VSTestCase test, string error, DateTimeOffset start, DateTimeOffset end)
+        {
+            // Represent the test failure with a dummy result to make use of GenerateResult
+            var exception = new BoostTestResult();
+
+            exception.Unit = Boost.Test.TestUnit.FromFullyQualifiedName(test.FullyQualifiedName);
+
+            // NOTE Divide by 10 to compensate for duration calculation described in VSTestResult.AsVSTestResult(this Boost.Results.TestResult, VSTestCase)
+            exception.Duration = ((ulong)(end - start).Ticks) / 10;
+
+            exception.Result = TestResultType.Failed;
+            exception.LogEntries.Add(new Boost.Results.LogEntryTypes.LogEntryFatalError()
+            {
+                Detail = error
+            });
+
+            return GenerateResult(test, exception, start, end);
         }
 
         /// <summary>
