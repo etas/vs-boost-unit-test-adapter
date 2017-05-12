@@ -172,6 +172,8 @@ namespace BoostTestAdapter.Boost.Runner
         internal const string ListContentArg = "--list_content";
         internal const string HelpArg = "--help";
 
+        internal const string VersionArg = "--version";
+
         private const string TestSeparator = ",";
 
         private const char ArgSeparator = ' ';
@@ -227,6 +229,7 @@ namespace BoostTestAdapter.Boost.Runner
             this.SavePattern = false;
             this.ListContent = null;
             this.Help = false;
+            this.Version = false;
 
             /* The environment variable "BUTA" is set whenever a test is executed. The purpose
              * is to provide a means for boost unit tests to detect that they are being executed
@@ -359,7 +362,7 @@ namespace BoostTestAdapter.Boost.Runner
         public string AutoStartDebug { get; set; }
 
         /// <summary>
-        /// Flag which displays Boost UTF test information in standard out.
+        /// Flag which displays Boost.Test test information in standard out.
         /// </summary>
         public bool BuildInfo { get; set; }
 
@@ -375,7 +378,7 @@ namespace BoostTestAdapter.Boost.Runner
         public bool ColorOutput { get; set; }
 
         /// <summary>
-        /// Determines the result code the Boost UTF uses on exit.
+        /// Determines the result code the Boost.Test uses on exit.
         /// </summary>
         public bool ResultCode { get; set; }
 
@@ -390,7 +393,7 @@ namespace BoostTestAdapter.Boost.Runner
         public bool UseAltStack { get; set; }
 
         /// <summary>
-        /// Instructs the Boost UTF to break on floating-point exceptions.
+        /// Instructs the Boost.Test to break on floating-point exceptions.
         /// </summary>
         public bool DetectFPExceptions { get; set; }
 
@@ -401,7 +404,7 @@ namespace BoostTestAdapter.Boost.Runner
         public bool SavePattern { get; set; }
 
         /// <summary>
-        /// The Boost UTF lists all tests which are to be executed without actually executing the tests.
+        /// The Boost.Test lists all tests which are to be executed without actually executing the tests.
         /// </summary>
         /// <remarks>Introduced in Boost 1.59 / Boost Test 3</remarks>
         public ListContentFormat? ListContent { get; set; }
@@ -410,6 +413,11 @@ namespace BoostTestAdapter.Boost.Runner
         /// Help output.
         /// </summary>
         public bool Help { get; set; }
+
+        /// <summary>
+        /// Version information output.
+        /// </summary>
+        public bool Version { get; set; }
 
         /// <summary>
         /// Path (relative to the WorkingDirectory) to the report file which will host the standard output content.
@@ -456,7 +464,16 @@ namespace BoostTestAdapter.Boost.Runner
             {
                 AddArgument(HelpArg, args);
 
-                // return immediately since Boost UTF should ignore the rest of the arguments
+                // return immediately since Boost.Test should ignore the rest of the arguments
+                return AppendRedirection(args).ToString().TrimEnd();
+            }
+
+            // --version
+            if (this.Version)
+            {
+                AddArgument(VersionArg, args);
+
+                // return immediately since Boost.Test should ignore the rest of the arguments
                 return AppendRedirection(args).ToString().TrimEnd();
             }
 
@@ -465,7 +482,7 @@ namespace BoostTestAdapter.Boost.Runner
             {
                 AddArgument(ListContentArg, ListContentFormatToString(this.ListContent.Value), args);
 
-                // return immediately since Boost UTF should ignore the rest of the arguments
+                // return immediately since Boost.Test should ignore the rest of the arguments
                 return AppendRedirection(args).ToString().TrimEnd();
             }
 
@@ -817,6 +834,8 @@ namespace BoostTestAdapter.Boost.Runner
             clone.DetectFPExceptions = this.DetectFPExceptions;
             clone.SavePattern = this.SavePattern;
             clone.ListContent = this.ListContent;
+            clone.Help = this.Help;
+            clone.Version = this.Version;
 
             return clone;
         }

@@ -1,0 +1,8 @@
+An unrecognized parameter in the argument version
+
+Usage: test.exe [Boost.Test argument]... -- [custom test module argument]...
+
+For detailed help on Boost.Test parameters use:
+  test.exe --help
+or
+  test.exe --help=<parameter name>

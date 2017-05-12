@@ -116,13 +116,9 @@ namespace BoostTestAdapterNunit
             this.Source = source;
         }
 
-        public bool ListContentSupported
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool ListContentSupported { get; } = true;
+
+        public bool VersionSupported { get; } = false;
 
         public string Source { get; private set; }
 

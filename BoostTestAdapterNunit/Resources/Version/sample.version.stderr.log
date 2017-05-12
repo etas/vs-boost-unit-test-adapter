@@ -1,0 +1,5 @@
+Boost.Test module in executable 'test.exe'
+Compiled from Boost version 1.63.0 with static linking to Boost.Test
+- Compiler: Microsoft Visual C++ version 14.0
+- Platform: Win32
+- STL     : Dinkumware standard library version 650
