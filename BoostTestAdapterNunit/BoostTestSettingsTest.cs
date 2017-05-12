@@ -60,7 +60,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.LogLevel, Is.EqualTo(LogLevel.TestSuite));
             Assert.That(settings.ExternalTestRunner, Is.Null);
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
-            Assert.That(settings.CatchSystemErrors, Is.True);
+            Assert.That(settings.CatchSystemErrors, Is.Null);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
             Assert.That(settings.ForceListContent, Is.False);
             Assert.That(settings.WorkingDirectory, Is.Null);
@@ -169,7 +169,10 @@ namespace BoostTestAdapterNunit
         ///     - Assert that: the Boost 1.62 workaround option can be parsed
         /// </summary>
         [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>true</UseBoost162Workaround></BoostTest></RunSettings>", Result = true)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>1</UseBoost162Workaround></BoostTest></RunSettings>", Result = true)]
         [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>false</UseBoost162Workaround></BoostTest></RunSettings>", Result = false)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround>0</UseBoost162Workaround></BoostTest></RunSettings>", Result = false)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><UseBoost162Workaround /></BoostTest></RunSettings>", Result = false)]
         [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest /></RunSettings>", Result = false)]
         public bool ParseWorkaroundOption(string settingsXml)
         {
@@ -192,6 +195,23 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = ParseXml(settingsXml);
             return settings.PostTestDelay;
+        }
+
+        /// <summary>
+        /// The 'CatchSystemErrors' option can be properly parsed
+        /// 
+        /// Test aims:
+        ///     - Assert that: the 'CatchSystemErrors' option can be properly parsed
+        /// </summary>
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><CatchSystemErrors>true</CatchSystemErrors></BoostTest></RunSettings>", Result = true)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><CatchSystemErrors>1</CatchSystemErrors></BoostTest></RunSettings>", Result = true)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><CatchSystemErrors>false</CatchSystemErrors></BoostTest></RunSettings>", Result = false)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><CatchSystemErrors>0</CatchSystemErrors></BoostTest></RunSettings>", Result = false)]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest /></RunSettings>", Result = null)]
+        public bool? ParseCatchSystemErrorsOption(string settingsXml)
+        {
+            BoostTestAdapterSettings settings = ParseXml(settingsXml);
+            return settings.CatchSystemErrors;
         }
 
         #endregion Tests

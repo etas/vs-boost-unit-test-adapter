@@ -579,6 +579,11 @@ namespace BoostTestAdapterNunit
             );
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
+
+            MockBoostTestRunner runner = this.RunnerFactory.LastTestRunner as MockBoostTestRunner;
+
+            Assert.That(runner, Is.Not.Null);
+            Assert.That(runner.ExecutionArgs.All(args => (!args.Arguments.CatchSystemErrors.HasValue || args.Arguments.CatchSystemErrors.Value)), Is.True);
         }
 
         /// <summary>
@@ -616,6 +621,10 @@ namespace BoostTestAdapterNunit
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
 
+            MockBoostTestRunner runner = this.RunnerFactory.LastTestRunner as MockBoostTestRunner;
+
+            Assert.That(runner, Is.Not.Null);
+            Assert.That(runner.ExecutionArgs.All(args => (!args.Arguments.CatchSystemErrors.HasValue || args.Arguments.CatchSystemErrors.Value)), Is.True);
         }
 
         /// <summary>
@@ -639,6 +648,7 @@ namespace BoostTestAdapterNunit
 
             Assert.That(runner, Is.Not.Null);
             Assert.That(runner.ExecutionArgs.First().Context, Is.TypeOf<DebugFrameworkExecutionContext>());
+            Assert.That(runner.ExecutionArgs.All(args => (args.Arguments.CatchSystemErrors.HasValue && !args.Arguments.CatchSystemErrors.Value)), Is.True);
 
             AssertDefaultTestResultProperties(this.FrameworkHandle.Results);
         }

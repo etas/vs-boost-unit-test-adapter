@@ -220,7 +220,7 @@ namespace BoostTestAdapter.Boost.Runner
             this.ShowProgress = false;
             this.BuildInfo = false;
             this.AutoStartDebug = "no";
-            this.CatchSystemErrors = true;
+            this.CatchSystemErrors = null;
             this.ColorOutput = false;
             this.ResultCode = true;
             this.Random = 0;
@@ -369,7 +369,13 @@ namespace BoostTestAdapter.Boost.Runner
         /// <summary>
         /// Determines whether system errors should be caught.
         /// </summary>
-        public bool CatchSystemErrors { get; set; }
+        /// <remarks>
+        /// Since the default value of '--catch_system_errors' is dependent on Boost.Test's 
+        /// '#define BOOST_TEST_DEFAULTS_TO_CORE_DUMP', this value has been set to a optional type
+        /// 
+        /// Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/catch_system.html
+        /// </remarks>
+        public bool? CatchSystemErrors { get; set; }
 
         /// <summary>
         /// States whether standard output text is colour coded.
@@ -510,10 +516,10 @@ namespace BoostTestAdapter.Boost.Runner
                 AddArgument(AutoStartDebugArg, this.AutoStartDebug, args);
             }
 
-            // --catch_system_errors=no
-            if (!this.CatchSystemErrors)
+            // --catch_system_errors=yes
+            if (this.CatchSystemErrors.HasValue)
             {
-                AddArgument(CatchSystemErrorsArg, No, args);
+                AddArgument(CatchSystemErrorsArg, (this.CatchSystemErrors.Value ? Yes : No), args);
             }
 
             // --color_output=yes
