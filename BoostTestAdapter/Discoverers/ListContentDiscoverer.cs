@@ -99,6 +99,10 @@ namespace BoostTestAdapter.Discoverers
 
                     args.SetWorkingEnvironment(source, settings, vs);
                 }
+                catch (ROTException ex)
+                {
+                    Logger.Exception(ex, "Could not retrieve WorkingDirectory from Visual Studio Configuration");
+                }
                 catch (COMException ex)
                 {
                     Logger.Exception(ex, "Could not retrieve WorkingDirectory from Visual Studio Configuration");

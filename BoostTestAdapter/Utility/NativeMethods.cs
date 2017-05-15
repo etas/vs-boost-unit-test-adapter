@@ -57,7 +57,8 @@ namespace BoostTestAdapter.Utility
 
                     if (createBindCtxReturnCode != S_OK)
                     {
-                        throw new ROTException("CreateBindCtx returned with code:" + createBindCtxReturnCode);
+                        // Avoid throwing at this point. Skip entry and continue the iteration.
+                        continue;
                     }
 
                     string runningObjectName;
@@ -69,7 +70,7 @@ namespace BoostTestAdapter.Utility
 
                     if (getObjectReturnValue != S_OK)
                     {
-                        throw new ROTException("IRunningObjectTable::GetObject returned with code:" + getObjectReturnValue);
+                        runningObjectVal = null;
                     }
 
                     yield return new KeyValuePair<string, object>(runningObjectName, runningObjectVal);
