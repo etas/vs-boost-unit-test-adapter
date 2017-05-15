@@ -259,6 +259,8 @@ namespace BoostTestAdapter.Boost.Runner
         /// <summary>
         /// List of fully qualified name tests which are to be executed.
         /// </summary>
+        /// <remarks>The semantics of this property follow the documentation of Boost.Test's --run_test argument for Boost 1.61</remarks>
+        /// <remarks>This property cannot handle multiple filter definitions as described in documentation of Boost.Test's --run_test argument for Boost 1.63</remarks>
         public IList<string> Tests { get; private set; }
 
         /// <summary>

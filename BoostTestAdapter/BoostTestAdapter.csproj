@@ -125,6 +125,7 @@
     <Compile Include="Discoverers\IBoostTestDiscoverer.cs" />
     <Compile Include="Discoverers\IBoostTestDiscovererFactory.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="TestBatch\OneShotTestBatchStrategy.cs" />
     <Compile Include="Utility\BoostDataTestCaseVerifier.cs" />
     <Compile Include="Utility\BoostTestRunnerCommandLineArgsEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

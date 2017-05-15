@@ -19,7 +19,8 @@ namespace BoostTestAdapter.TestBatch
     {
         Source,
         TestSuite,
-        TestCase
+        TestCase,
+        One
     }
 
     /// <summary>
