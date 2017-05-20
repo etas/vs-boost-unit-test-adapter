@@ -15,6 +15,9 @@ In order to use/develop the Boost Unit Test Adapter, the following components mu
 - [Microsoft Visual Studio](https://www.visualstudio.com/). The following versions are supported:
   + Visual Studio 2015 (Community, Professional, Enterprise).
 
+## License
+Distributed under the Boost Software License, Version 1.0. (See accompanying file [LICENSE_1_0.txt}(https://github.com/etas/vs-boost-unit-test-adapter/blob/master/BoostTestPlugin/LICENSE_1_0.txt) or copy at http://www.boost.org/LICENSE_1_0.txt)
+
 ## More...
 
 Please refer to the [project wiki](https://github.com/etas/vs-boost-unit-test-adapter/wiki) for further information.
