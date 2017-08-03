@@ -54,7 +54,7 @@ namespace BoostTestAdapter.Boost.Runner
                 return MonitorProcess(process, settings.Timeout);
             }
         }
-        
+
         public virtual string Source
         {
             get { return this.TestRunnerExecutable; }
@@ -64,7 +64,10 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
-                bool supported = ContainsSymbol("boost::unit_test::runtime_config::LIST_CONTENT");   // Boost 1.60/1.61
+                bool supported = ContainsSymbols(new[] {
+                    "boost::unit_test::runtime_config::LIST_CONTENT",       // Boost 1.60/1.61
+                    "boost::unit_test::runtime_config::btrt_list_content"   // Boost 1.64/1.65
+                }).Any(result => result.Value);
 
                 if (!supported)
                 {
@@ -79,12 +82,15 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get
             {
-                return ContainsSymbol("boost::unit_test::runtime_config::VERSION");   // Boost 1.63
+                return ContainsSymbols(new[] {
+                    "boost::unit_test::runtime_config::VERSION",       // Boost 1.63
+                    "boost::unit_test::runtime_config::btrt_version"   // Boost 1.64/1.65
+                }).Any(result => result.Value);
             }
         }
 
         #endregion IBoostTestRunner
-        
+
         /// <summary>
         /// Provides a ProcessExecutionContextArgs structure containing the necessary information to launch the test process.
         /// Aggregates the BoostTestRunnerCommandLineArgs structure with the command-line arguments specified at configuration stage.
@@ -124,7 +130,7 @@ namespace BoostTestAdapter.Boost.Runner
 
             return process.ExitCode;
         }
-        
+
         /// <summary>
         ///     Kills a process identified by its pid and all its children processes
         /// </summary>
@@ -236,22 +242,38 @@ namespace BoostTestAdapter.Boost.Runner
         /// </summary>
         /// <param name="symbol">The symbol to locate</param>
         /// <returns>true if the requested symbol is identified by the test runner executable; false otherwise</returns>
-        private bool ContainsSymbol(string symbol)
+        private IEnumerable<KeyValuePair<string, bool>> ContainsSymbols(IEnumerable<string> symbols)
+        {
+            // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
+            using (DebugHelper dbgHelp = CreateDebugHelper(this.TestRunnerExecutable))
+            {
+                if (dbgHelp != null)
+                {
+                    foreach (string symbol in symbols)
+                    {
+                        yield return new KeyValuePair<string, bool>(symbol, dbgHelp.ContainsSymbol(symbol));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a DebugHelper instance for the specified source
+        /// </summary>
+        /// <param name="source">The module/source for which to inspect debug symbols</param>
+        /// <returns>A new DebugHelper instance for the specified source or null if one cannot be created</returns>
+        private static DebugHelper CreateDebugHelper(string source)
         {
             try
             {
-                // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
-                using (DebugHelper dbgHelp = new DebugHelper(this.TestRunnerExecutable))
-                {
-                    return dbgHelp.ContainsSymbol(symbol);
-                }
+                return new DebugHelper(source);
             }
             catch (Win32Exception ex)
             {
-                Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", this.Source);
+                Logger.Exception(ex, "Could not create a DBGHELP instance for '{0}' to determine whether symbols are available.", source);
             }
 
-            return false;
+            return null;
         }
     }
 }
