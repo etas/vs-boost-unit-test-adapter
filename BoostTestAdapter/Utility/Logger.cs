@@ -4,6 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
+using System.Threading;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -47,6 +48,7 @@ namespace BoostTestAdapter.Utility
             string configFilePath = Path.Combine(pathOfExecutingAssembly, (assemblyName + ".dll.config"));
 
             log4net.GlobalContext.Properties["pid"] = Process.GetCurrentProcess().Id;
+            log4net.GlobalContext.Properties["threadid"] = Thread.CurrentThread.ManagedThreadId;
             log4net.GlobalContext.Properties["LogFilePath"] = logFilePath;
             log4net.Config.XmlConfigurator.Configure(new FileInfo(configFilePath));
         }

@@ -46,15 +46,13 @@ namespace BoostTestAdapter
         }
 
         #endregion
-
-
+        
         #region Members
 
         private readonly IBoostTestDiscovererFactory _boostTestDiscovererFactory;
 
         #endregion
-
-
+        
         #region ITestDiscoverer
 
         /// <summary>

@@ -5,6 +5,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
@@ -16,9 +18,11 @@ using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Boost.Test;
 
 using BoostTestAdapter.Utility.VisualStudio;
+using BoostTestAdapter.Utility.ExecutionContext;
+
+using VisualStudioAdapter;
 
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using BoostTestAdapter.Utility.ExecutionContext;
 
 namespace BoostTestAdapter.Discoverers
 {
@@ -31,13 +35,13 @@ namespace BoostTestAdapter.Discoverers
         #region Constructors
 
         /// <summary>
-        /// Default constructor. A default implementation of IBoostTestRunnerFactory is provided.
+        /// Default constructor. A default implementation of IBoostTestRunnerFactory and IVisualStudioInstanceProvider is provided.
         /// </summary>
         public ListContentDiscoverer()
             : this(new DefaultBoostTestRunnerFactory(), new DefaultVisualStudioInstanceProvider())
         {
         }
-
+        
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -72,11 +76,11 @@ namespace BoostTestAdapter.Discoverers
         {
             Code.Require(sources, "sources");
             Code.Require(discoverySink, "discoverySink");
-
+            
             // Populate loop-invariant attributes and settings
 
             BoostTestAdapterSettings settings = BoostTestAdapterSettingsProvider.GetSettings(discoveryContext);
-            
+
             BoostTestRunnerSettings runnerSettings = new BoostTestRunnerSettings()
             {
                 Timeout = settings.DiscoveryTimeoutMilliseconds
@@ -91,13 +95,16 @@ namespace BoostTestAdapter.Discoverers
             {
                 try
                 {
-                    var vs = _vsProvider?.Instance;
-                    if (vs != null)
+                    using (new Utility.TimedScope("Extract settings from Visual Studio for \"{0}\"", source))
                     {
-                        Logger.Debug("Connected to Visual Studio {0} instance", vs.Version);
-                    }
+                        var vs = _vsProvider?.Instance;
+                        if (vs != null)
+                        {
+                            Logger.Debug("Connected to Visual Studio {0} instance", vs.Version);
+                        }
 
-                    args.SetWorkingEnvironment(source, settings, vs);
+                        args.SetWorkingEnvironment(source, settings, vs);
+                    }
                 }
                 catch (ROTException ex)
                 {
@@ -119,9 +126,12 @@ namespace BoostTestAdapter.Discoverers
 
                         int resultCode = EXIT_SUCCESS;
 
-                        using (var context = new DefaultProcessExecutionContext())
+                        using (new Utility.TimedScope("Execute \"--list_content=DOT\" for \"{0}\"", source))
                         {
-                            resultCode = runner.Execute(args, runnerSettings, context);
+                            using (var context = new DefaultProcessExecutionContext())
+                            {
+                                resultCode = runner.Execute(args, runnerSettings, context);
+                            }
                         }
 
                         // Skip sources for which the --list_content file is not available
@@ -139,16 +149,29 @@ namespace BoostTestAdapter.Discoverers
                         }
 
                         // Parse --list_content=DOT output
-                        using (var stream = File.OpenRead(args.StandardErrorFile))
-                        using (var reader = new StreamReader(stream, System.Text.Encoding.Default))
+                        Stream stream = null;
+                        try
                         {
-                            TestFrameworkDOTDeserialiser deserialiser = new TestFrameworkDOTDeserialiser(source);
-                            TestFramework framework = deserialiser.Deserialise(reader);
-                            if ((framework != null) && (framework.MasterTestSuite != null))
+                            stream = File.OpenRead(args.StandardErrorFile);
+                            using (var reader = new StreamReader(stream, System.Text.Encoding.Default))
                             {
-                                framework.MasterTestSuite.Apply(new VSDiscoveryVisitor(source, GetVersion(runner), discoverySink));
+                                stream = null;
+
+                                TestFrameworkDOTDeserialiser deserialiser = new TestFrameworkDOTDeserialiser(source);
+                                TestFramework framework = deserialiser.Deserialise(reader);
+                                if ((framework != null) && (framework.MasterTestSuite != null))
+                                {
+                                    framework.MasterTestSuite.Apply(new VSDiscoveryVisitor(source, GetVersion(runner), discoverySink));
+                                }
                             }
                         }
+                        finally
+                        {
+                            if (stream != null)
+                            {
+                                stream.Dispose();
+                            }
+                        }                        
                     }
                 }
                 catch (Exception ex)
@@ -157,7 +180,7 @@ namespace BoostTestAdapter.Discoverers
                 }
             }
         }
-
+        
         /// <summary>
         /// Regular expression pattern for extracting Boost version from Boost.Test --version output
         /// </summary>
@@ -170,7 +193,7 @@ namespace BoostTestAdapter.Discoverers
         /// <returns>The Boost version of the Boost.Test module or the empty string if the version cannot be retrieved</returns>
         private static string GetVersion(IBoostTestRunner runner)
         {
-            if (!runner.VersionSupported)
+            if (!runner.Capabilities.Version)
             {
                 return string.Empty;
             }

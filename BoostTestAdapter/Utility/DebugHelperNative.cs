@@ -4,6 +4,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -140,10 +142,12 @@ namespace BoostTestAdapter.Utility
             [DllImport("DbgHelp.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public extern static bool SymUnloadModule64(IntPtr hProcess, ulong baseOfDll);
+            
+            public delegate bool SymEnumSymbolsProc(ref SYMBOL_INFO symInfo, uint symbolSize, IntPtr contextZero);
 
-            [DllImport("DbgHelp.dll", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            [DllImport("DbgHelp", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public extern static bool SymFromName(IntPtr hProcess, string SymName, ref SYMBOL_INFO symInfo);
+            public extern static bool SymEnumSymbols(IntPtr hProcess, ulong baseOfDll, string mask, SymEnumSymbolsProc callback, IntPtr contextZero);
 
             #endregion
 
@@ -187,7 +191,10 @@ namespace BoostTestAdapter.Utility
 
             if (_dllBase == 0)
             {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+                int error = Marshal.GetLastWin32Error();
+                Dispose(false);
+
+                throw new Win32Exception(error);
             }
 
             _libHandle = handle;
@@ -206,12 +213,20 @@ namespace BoostTestAdapter.Utility
         private void Dispose(bool disposing)
         {
             if (_disposed)
+            { 
                 return;
+            }
 
             if (_libHandle == IntPtr.Zero)
+            { 
                 return;
+            }
 
-            NativeMethods.SymUnloadModule64(_libHandle, _dllBase);
+            if (_dllBase != 0)
+            { 
+                NativeMethods.SymUnloadModule64(_libHandle, _dllBase);
+            }
+
             NativeMethods.SymCleanup(_libHandle);
 
             _libHandle = IntPtr.Zero;
@@ -228,18 +243,24 @@ namespace BoostTestAdapter.Utility
         #endregion IDisposable
 
         /// <summary>
-        /// Determines whether or not a symbol with the <b>exact</b> provided name is available.
+        /// Performs a symbol lookup via a wildcard pattern and enumerates the fully-qualified name of
+        /// the symbols in question
         /// </summary>
-        /// <param name="name">The name of the symbol to search for.</param>
-        /// <returns>true if the symbol is available; false otherwise.</returns>
-        public bool ContainsSymbol(string name)
+        /// <param name="mask">The wildcard symbol name pattern</param>
+        /// <returns>A collection of symbols which match the provided wildcard pattern</returns>
+        public IEnumerable<string> LookupSymbolNamesByPattern(string mask)
         {
-            Code.Require(name, "name");
+            var symbols = new List<string>();
 
-            LastErrorMessage = string.Empty;
+            NativeMethods.SymEnumSymbolsProc callback = (ref NativeMethods.SYMBOL_INFO symInfo, uint symbolSize, IntPtr context) =>
+            {
+                symbols.Add(symInfo.Name);
+                return true;
+            };
             
-            NativeMethods.SYMBOL_INFO symbol = new NativeMethods.SYMBOL_INFO();
-            return NativeMethods.SymFromName(_libHandle, name, ref symbol);
+            var result = NativeMethods.SymEnumSymbols(_libHandle, _dllBase, mask, callback, IntPtr.Zero);
+
+            return (result) ? symbols : Enumerable.Empty<string>();
         }
     }
 }

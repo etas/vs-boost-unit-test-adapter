@@ -68,6 +68,7 @@
     <Compile Include="BoostTestRunnerCommandLineArgsTest.cs" />
     <Compile Include="BoostTestSettingsTest.cs" />
     <Compile Include="BoostTestTest.cs" />
+    <Compile Include="CachingBoostTestRunnerFactoryTest.cs" />
     <Compile Include="CommandEvaluatorTest.cs" />
     <Compile Include="CorrectReferencedAssembliesTest.cs" />
     <Compile Include="DefaultBoostTestRunnerFactoryTest.cs" />

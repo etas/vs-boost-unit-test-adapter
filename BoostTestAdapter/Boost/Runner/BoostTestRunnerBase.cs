@@ -32,14 +32,19 @@ namespace BoostTestAdapter.Boost.Runner
         }
 
         #endregion Constructors
-
+        
         #region Properties
 
         /// <summary>
-        /// Boost Test runner '.exe' file path.
+        /// Boost.Test runner '.exe' file path
         /// </summary>
         protected string TestRunnerExecutable { get; private set; }
 
+        /// <summary>
+        /// Caches Boost.Test runner capabilities
+        /// </summary>
+        private BoostTestRunnerCapabilities _capabilities = null;
+        
         #endregion Properties
 
         #region IBoostTestRunner
@@ -59,36 +64,20 @@ namespace BoostTestAdapter.Boost.Runner
         {
             get { return this.TestRunnerExecutable; }
         }
-
-        public virtual bool ListContentSupported
+        
+        public virtual IBoostTestRunnerCapabilities Capabilities
         {
             get
             {
-                bool supported = ContainsSymbols(new[] {
-                    "boost::unit_test::runtime_config::LIST_CONTENT",       // Boost 1.60/1.61
-                    "boost::unit_test::runtime_config::btrt_list_content"   // Boost 1.64/1.65
-                }).Any(result => result.Value);
-
-                if (!supported)
+                if (_capabilities == null)
                 {
-                    Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceListContent>' via a .runsettings file.", this.TestRunnerExecutable);
+                    _capabilities = GetCapabilities();
                 }
 
-                return supported;
+                return _capabilities;
             }
         }
-
-        public virtual bool VersionSupported
-        {
-            get
-            {
-                return ContainsSymbols(new[] {
-                    "boost::unit_test::runtime_config::VERSION",       // Boost 1.63
-                    "boost::unit_test::runtime_config::btrt_version"   // Boost 1.64/1.65
-                }).Any(result => result.Value);
-            }
-        }
-
+        
         #endregion IBoostTestRunner
 
         /// <summary>
@@ -238,23 +227,46 @@ namespace BoostTestAdapter.Boost.Runner
         }
 
         /// <summary>
-        /// Tests if the test runner executable contains the specific symbol
+        /// Acquires the Boost.Test runner's capabilities via debug symbol lookup
         /// </summary>
-        /// <param name="symbol">The symbol to locate</param>
-        /// <returns>true if the requested symbol is identified by the test runner executable; false otherwise</returns>
-        private IEnumerable<KeyValuePair<string, bool>> ContainsSymbols(IEnumerable<string> symbols)
+        /// <returns>The Boost.Test runner's capabilities</returns>
+        private BoostTestRunnerCapabilities GetCapabilities()
         {
-            // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
-            using (DebugHelper dbgHelp = CreateDebugHelper(this.TestRunnerExecutable))
+            using (new Utility.TimedScope("Looking up '--list_content' and '--version' debug symbols"))
             {
-                if (dbgHelp != null)
+                // Search symbols on the TestRunner not on the source. Source could be .dll which may not contain list_content functionality.
+                using (DebugHelper dbgHelp = CreateDebugHelper(this.TestRunnerExecutable))
                 {
-                    foreach (string symbol in symbols)
+                    if (dbgHelp != null)
                     {
-                        yield return new KeyValuePair<string, bool>(symbol, dbgHelp.ContainsSymbol(symbol));
+                        // Restrict symbol search to namespace scope to improve lookup speeds
+                        var symbols = dbgHelp.LookupSymbolNamesByPattern("boost::unit_test::runtime_config::*");
+
+                        var listContent = symbols.Any(symbol =>
+                            (symbol == "boost::unit_test::runtime_config::LIST_CONTENT") ||     // Boost 1.60 - Boost 1.63
+                            (symbol == "boost::unit_test::runtime_config::btrt_list_content")   // Boost 1.64 - Boost 1.65
+                        );
+
+                        if (!listContent)
+                        {
+                            Logger.Warn("Could not locate debug symbols for '{0}'. To make use of '--list_content' discovery, ensure that debug symbols are available or make use of '<ForceBoostVersion>' via a .runsettings file.", this.TestRunnerExecutable);
+                        }
+
+                        // Don't bother checking for the '--version' symbol if '--list_content' is not available
+                        var version = listContent && symbols.Any(symbol =>
+                            (symbol == "boost::unit_test::runtime_config::VERSION") ||          // Boost 1.63
+                            (symbol == "boost::unit_test::runtime_config::btrt_version")        // Boost 1.64 - Boost 1.65
+                        );
+
+                        return new BoostTestRunnerCapabilities {
+                            ListContent = listContent,
+                            Version = version
+                        };
                     }
                 }
             }
+
+            return null;
         }
 
         /// <summary>

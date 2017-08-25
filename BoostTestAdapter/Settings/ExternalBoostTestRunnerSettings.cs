@@ -25,7 +25,7 @@ namespace BoostTestAdapter.Settings
     /// Identifies the external test runner configuration block and its configuration options.
     /// </summary>
     [XmlRoot(Xml.ExternalTestRunner)]
-    public class ExternalBoostTestRunnerSettings : IXmlSerializable
+    public class ExternalBoostTestRunnerSettings : IXmlSerializable, IEquatable<ExternalBoostTestRunnerSettings>
     {
         #region Constants
 
@@ -112,5 +112,36 @@ namespace BoostTestAdapter.Settings
 
         #endregion IXmlSerializable
 
+        #region Object
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ExternalBoostTestRunnerSettings);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+
+            hash = hash * 33 + ((ExtensionType == null) ? 0 : ExtensionType.ToString().GetHashCode());
+            hash = hash * 33 + DiscoveryMethodType.GetHashCode();
+            hash = hash * 33 + ((ExecutionCommandLine == null) ? 0 : ExecutionCommandLine.ToString().GetHashCode());
+
+            return hash;
+        }
+
+        #endregion
+
+        #region IEquatable<ExternalBoostTestRunnerSettings>
+
+        public bool Equals(ExternalBoostTestRunnerSettings other)
+        {
+            return (other != null) &&
+                ((ExtensionType == other.ExtensionType) || ((ExtensionType != null) && (ExtensionType.ToString() == other.ExtensionType.ToString()))) &&
+                (DiscoveryMethodType == other.DiscoveryMethodType) &&
+                ((ExecutionCommandLine == other.ExecutionCommandLine) || ((ExecutionCommandLine != null) && (ExecutionCommandLine.ToString() == other.ExecutionCommandLine.ToString())));
+        }
+
+        #endregion
     }
 }

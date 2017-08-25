@@ -3,6 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System;
 using System.ComponentModel;
 using System.Xml;
 using System.Xml.Serialization;
@@ -42,9 +43,7 @@ namespace BoostTestAdapter.Settings
             this.DetectFloatingPointExceptions = false;
 
             this.TestBatchStrategy = TestBatch.Strategy.TestCase;
-
-            this.ForceListContent = false;
-
+            
             this.WorkingDirectory = null;
 
             this.EnableStdOutRedirection = true;
@@ -58,6 +57,8 @@ namespace BoostTestAdapter.Settings
             this.TestRunnerFactoryOptions = new BoostTestRunnerFactoryOptions();
 
             this.PostTestDelay = 0;
+
+            this.ForceBoostVersion = null;
         }
 
         #region Properties
@@ -158,8 +159,24 @@ namespace BoostTestAdapter.Settings
         /// <summary>
         /// Forces the use of 'list_content=DOT' even if the test module is not recognized as a safe module.
         /// </summary>
-        [DefaultValue(false)]
-        public bool ForceListContent { get; set; }
+        /// <remarks>Deprecated. This configuration element is superseded by '<ForceBoostVersion>'</remarks>
+        [DefaultValue(false), Obsolete("This configuration element is superseded by '<ForceBoostVersion>'")]
+        public bool ForceListContent
+        {
+            get
+            {
+                return (TestRunnerFactoryOptions.ForcedBoostTestVersion != null) &&
+                    (TestRunnerFactoryOptions.ForcedBoostTestVersion >= DefaultBoostTestRunnerFactory.Boost159);
+            }
+
+            set
+            {
+                if (value && (TestRunnerFactoryOptions.ForcedBoostTestVersion == null))
+                {
+                    TestRunnerFactoryOptions.ForcedBoostTestVersion = DefaultBoostTestRunnerFactory.Boost159;
+                }
+            }
+        }
 
         /// <summary>
         /// Determines the working directory which is to be used during the discovery/execution of the test module. If the test module is executed within a Visual Studio test adapter session, the Working Directory defined in the 'Debug' property sheet configuration overrides this value.
@@ -213,6 +230,24 @@ namespace BoostTestAdapter.Settings
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "PostTest")]
         [DefaultValue(0)]
         public int PostTestDelay { get; set; }
+
+        /// <summary>
+        /// Assumes/Forces the use of a specific Boost version even if the test module is not recognized as a safe module.
+        /// </summary>
+        /// <remarks>Assumes Boost.Test capabilities from the specified version. This configuration element supersedes '<ForceListContent>'</remarks>
+        [DefaultValue(null)]
+        public string ForceBoostVersion
+        {
+            get
+            {
+                return (TestRunnerFactoryOptions.ForcedBoostTestVersion == null) ? string.Empty : TestRunnerFactoryOptions.ForcedBoostTestVersion.ToString();
+            }
+
+            set
+            {
+                TestRunnerFactoryOptions.ForcedBoostTestVersion = (string.IsNullOrEmpty(value) ? null : Version.Parse(value));
+            }
+        }
 
         #endregion Serialisable Fields
 

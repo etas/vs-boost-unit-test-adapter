@@ -13,6 +13,7 @@ using BoostTestAdapter.Discoverers;
 using BoostTestAdapter.Boost.Runner;
 
 using BoostTestAdapterNunit.Fakes;
+using BoostTestAdapterNunit.Utility;
 
 using NUnit.Framework;
 
@@ -27,7 +28,7 @@ namespace BoostTestAdapterNunit
         public void SetUp()
         {
             this.RunnerFactory = new StubBoostTestRunnerFactory(new[] { "test.listcontent.exe" });
-            this.DiscovererFactory = new BoostTestDiscovererFactory(this.RunnerFactory);
+            this.DiscovererFactory = new BoostTestDiscovererFactory(this.RunnerFactory, DummyVSProvider.Default);
         }
 
         #endregion Test Setup/Teardown
@@ -40,13 +41,6 @@ namespace BoostTestAdapterNunit
 
         #endregion Test Data
 
-        internal enum ListContentUse
-        {
-            Use,
-            ForceUse,
-            Default = Use
-        }
-
         #region Tests
 
         /// <summary>
@@ -55,56 +49,23 @@ namespace BoostTestAdapterNunit
         /// Test aims:
         ///     - Ensure that the proper ITestDiscoverer type is provided for the requested source.
         /// </summary>
-        // Exe types
-        [TestCase("test.exe", ListContentUse.Use, null, Result = null)]
-        [TestCase("test.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.exe", ListContentUse.Use, ".dll", Result = null)]
-        [TestCase("test.exe", ListContentUse.ForceUse, ".dll", Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.Use, ".dll", Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.ForceUse, ".dll", Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.exe", ListContentUse.Use, ".exe", Result = typeof(ExternalDiscoverer))]
-        [TestCase("test.exe", ListContentUse.ForceUse, ".exe", Result = typeof(ExternalDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.Use, ".exe", Result = typeof(ExternalDiscoverer))]
-        [TestCase("test.listcontent.exe", ListContentUse.ForceUse, ".exe", Result = typeof(ExternalDiscoverer))]
-        // .test.boostd.exe
-        [TestCase("test.test.boostd.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.test.boostd.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        // .test.boostd.exe (case-insensitive)
-        [TestCase("test.TEST.BOOSTD.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        // .test.boost.exe
-        [TestCase("test.test.boost.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.test.boost.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        // .test.boostd.exe (case-insensitive)
-        [TestCase("test.TEST.BOOST.EXE", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        // .AcceptanceTest.boostd.exe
-        [TestCase("test.AcceptanceTest.boostd.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.AcceptanceTest.boostd.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        // .Acceptancetest.boostd.exe (case-insensitive)
-        [TestCase("test.Acceptancetest.boostd.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        // .AcceptanceTest.boost.exe
-        [TestCase("test.AcceptanceTest.boost.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
-        [TestCase("test.AcceptanceTest.boost.exe", ListContentUse.ForceUse, null, Result = typeof(ListContentDiscoverer))]
-        // .Acceptancetest.boost.exe (case-insensitive)
-        [TestCase("test.Acceptancetest.boost.exe", ListContentUse.Use, null, Result = typeof(ListContentDiscoverer))]
+        // Exe types - No '--list_content' support
+        [TestCase("test.exe", null, Result = null)]
+        [TestCase("test.exe", ".dll", Result = null)]
+        [TestCase("test.exe", ".exe", Result = typeof(ExternalDiscoverer))]
+        // Exe types - '--list_content' support
+        [TestCase("test.listcontent.exe", null, Result = typeof(ListContentDiscoverer))]
+        [TestCase("test.listcontent.exe", ".dll", Result = typeof(ListContentDiscoverer))]
+        [TestCase("test.listcontent.exe", ".exe", Result = typeof(ExternalDiscoverer))]
         // Dll types
-        [TestCase("test.dll", ListContentUse.Use, null, Result = null)]
-        [TestCase("test.dll", ListContentUse.Use, ".dll", Result = typeof(ExternalDiscoverer))]
-        [TestCase("test.dll", ListContentUse.Use, ".exe", Result = null)]
-        [TestCase("test.dll", ListContentUse.ForceUse, null, Result = null)]
-        [TestCase("test.dll", ListContentUse.ForceUse, ".dll", Result = typeof(ExternalDiscoverer))]
-        [TestCase("test.dll", ListContentUse.ForceUse, ".exe", Result = null)]
+        [TestCase("test.dll", null, Result = null)]
+        [TestCase("test.dll", ".dll", Result = typeof(ExternalDiscoverer))]
+        [TestCase("test.dll", ".exe", Result = null)]
         // Invalid extension types
-        [TestCase("test.txt", ListContentUse.Use, null, Result = null)]
-        [TestCase("test.txt", ListContentUse.Use, ".dll", Result = null)]
-        [TestCase("test.txt", ListContentUse.Use, ".exe", Result = null)]
-        [TestCase("test.txt", ListContentUse.ForceUse, null, Result = null)]
-        [TestCase("test.txt", ListContentUse.ForceUse, ".dll", Result = null)]
-        [TestCase("test.txt", ListContentUse.ForceUse, ".exe", Result = null)]
-        [TestCase("test.test.Acceptance.boostd.exe", ListContentUse.Use, null, Result = null)]
-        [TestCase("test.test.Acceptance.boost.exe", ListContentUse.Use, null, Result = null)]
-        public Type TestDiscovererProvisioning(string source, ListContentUse listContent, string externalExtension)
+        [TestCase("test.txt", null, Result = null)]
+        [TestCase("test.txt", ".dll", Result = null)]
+        [TestCase("test.txt", ".exe", Result = null)]
+        public Type TestDiscovererProvisioning(string source, string externalExtension)
         {
             ExternalBoostTestRunnerSettings externalSettings = null;
             
@@ -115,8 +76,7 @@ namespace BoostTestAdapterNunit
 
             BoostTestAdapterSettings settings = new BoostTestAdapterSettings()
             {
-                ExternalTestRunner = externalSettings,
-                ForceListContent = (listContent == ListContentUse.ForceUse)
+                ExternalTestRunner = externalSettings
             };
 
             IBoostTestDiscoverer discoverer = this.DiscovererFactory.GetDiscoverer(source, settings);
