@@ -1,0 +1,9 @@
+digraph G {rankdir=LR;
+tu1[shape=ellipse,peripheries=2,fontname=Helvetica,color=green,label="äöüß"];
+{
+tu65536[shape=Mrecord,fontname=Helvetica,color=green,label="BoostUnitTest|c:\boostunittest\äöüß\boostunittest.cpp(3)"];
+tu1 -> tu65536;
+tu65537[shape=Mrecord,fontname=Helvetica,color=green,label="BoostUnitTestSample|c:\boostunittest\äöüß\boostunittestsample.cpp(5)"];
+tu1 -> tu65537;
+}
+}

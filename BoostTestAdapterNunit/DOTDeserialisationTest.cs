@@ -3,6 +3,9 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+using System.IO;
+using System.Text;
+
 using BoostTestAdapter.Utility;
 using BoostTestAdapter.Boost.Test;
 
@@ -39,10 +42,23 @@ namespace BoostTestAdapterNunit
         /// <param name="expected">The TestFramework which the deserialised version should be compared against</param>
         private void Compare(string resource, TestFramework expected)
         {
+            Compare(resource, expected, Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Compares a test framework deserialised from the provided embedded resource against the expected one
+        /// using the specified encoding to read the resource file
+        /// </summary>
+        /// <param name="resource">Path to an embedded resource which is to be treated as input for TestFramework deserialisation</param>
+        /// <param name="expected">The TestFramework which the deserialised version should be compared against</param>
+        /// <param name="encoding">The encoding by which to interpret the resource file</param>
+        private void Compare(string resource, TestFramework expected, Encoding encoding)
+        {
             using (var stream = TestHelper.LoadEmbeddedResource(resource))
+            using (var reader = new StreamReader(stream, encoding))
             {
                 TestFrameworkDOTDeserialiser parser = new TestFrameworkDOTDeserialiser(Source);
-                TestFramework framework = parser.Deserialise(stream);
+                TestFramework framework = parser.Deserialise(reader);
 
                 FrameworkEqualityVisitor.IsEqualTo(framework, expected, false);
             }
@@ -172,6 +188,35 @@ namespace BoostTestAdapterNunit
             Build();
 
             Compare("BoostTestAdapterNunit.Resources.ListContentDOT.boost_data_test_case.gv", expected);
+        }
+
+        /// <summary>
+        /// Assert that: It is possible to deserialize --list_content=DOT output consisting of paths containing special characters (e.g: äöüß)
+        /// </summary>
+        [Test]
+        public void DeserializeSpecialCharactersPaths()
+        {
+            TestFramework expected = new TestFrameworkBuilder(Source, "äöüß", 1).
+                TestCase("BoostUnitTest", 65536, new SourceFileInfo(@"c:\boostunittest\äöüß\boostunittest.cpp", 3)).
+                TestCase("BoostUnitTestSample", 65537, new SourceFileInfo(@"c:\boostunittest\äöüß\boostunittestsample.cpp", 5)).
+            Build();
+
+            Compare("BoostTestAdapterNunit.Resources.ListContentDOT.special_characters.list.content.gv", expected, Encoding.GetEncoding("Windows-1250"));
+        }
+
+        /// <summary>
+        /// Assert that: It is possible to incorrectly deserialize --list_content=DOT output consisting of
+        ///              characters which are not encoded in the expected (system) encoding
+        /// </summary>
+        [Test]
+        public void DeserializeSpecialCharactersPathsMismatchEncoding()
+        {
+            TestFramework expected = new TestFrameworkBuilder(Source, "äöüß", 1).
+                TestCase("BoostUnitTest", 65536, new SourceFileInfo(@"c:\boostunittest\äöüß\boostunittest.cpp", 3)).
+                TestCase("BoostUnitTestSample", 65537, new SourceFileInfo(@"c:\boostunittest\äöüß\boostunittestsample.cpp", 5)).
+            Build();
+
+            Assert.That(() => Compare("BoostTestAdapterNunit.Resources.ListContentDOT.special_characters.list.content.gv", expected, Encoding.UTF8), Throws.Exception.TypeOf<AssertionException>());
         }
     }
 }

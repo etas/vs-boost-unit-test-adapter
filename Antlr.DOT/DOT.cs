@@ -18,8 +18,27 @@ namespace Antlr.DOT
         /// <param name="listener">The listener which is notified of the abstract syntax nodes</param>
         public static T Parse<T>(Stream stream, IDOTVisitor<T> visitor)
         {
-            var instream = new AntlrInputStream(stream);
-            var lexer = new DOTLexer(instream);
+            return Parse(new AntlrInputStream(stream), visitor);
+        }
+
+        /// <summary>
+        /// Parses a DOT representation from the provided stream. The parse tree is then notified via the provided listener.
+        /// </summary>
+        /// <param name="reader">The stream reader from which to parse</param>
+        /// <param name="listener">The listener which is notified of the abstract syntax nodes</param>
+        public static T Parse<T>(TextReader reader, IDOTVisitor<T> visitor)
+        {
+            return Parse(new AntlrInputStream(reader), visitor);
+        }
+
+        /// <summary>
+        /// Parses a DOT representation from the provided stream. The parse tree is then notified via the provided listener.
+        /// </summary>
+        /// <param name="stream">The stream from which to parse</param>
+        /// <param name="listener">The listener which is notified of the abstract syntax nodes</param>
+        private static T Parse<T>(AntlrInputStream stream, IDOTVisitor<T> visitor)
+        {
+            var lexer = new DOTLexer(stream);
             var tokenstream = new CommonTokenStream(lexer);
             var parser = new DOTParser(tokenstream);
 

@@ -126,6 +126,7 @@
     <EmbeddedResource Include="Resources\ListContentDOT\boost_data_test_case.gv" />
     <EmbeddedResource Include="Resources\Log4NetConfigFile\BoostTestAdapter.TestAdapter.dll.config" />
     <EmbeddedResource Include="Resources\Version\sample.version.stderr.log" />
+    <EmbeddedResource Include="Resources\ListContentDOT\special_characters.list.content.gv" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ReportsLogs\AbortedTest\sample.test.log.xml" />
