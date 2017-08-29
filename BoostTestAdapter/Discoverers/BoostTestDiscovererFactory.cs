@@ -3,13 +3,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
 using BoostTestAdapter.Discoverers;
 using BoostTestAdapter.Boost.Runner;
 using BoostTestAdapter.Settings;
-using System;
 
 namespace BoostTestAdapter
 {
@@ -17,8 +19,11 @@ namespace BoostTestAdapter
     {
         #region Constants
 
-        private static string ForceListContentExtension { get { return ".test.boostd.exe"; } }
-
+        /// <summary>
+        /// Default 'ForceListContent' filename pattern. Such filenames are assumed to be valid Boost.Test modules by default.
+        /// </summary>
+        private static readonly Regex _forceListContentExtensionPattern = new Regex(@"test\.boost(?:d)?\.exe$", RegexOptions.IgnoreCase);
+        
         #endregion 
 
         #region Constructors
@@ -87,8 +92,10 @@ namespace BoostTestAdapter
                 }
 
                 // Skip modules which are not .exe
-                if (extension != BoostTestDiscoverer.ExeExtension)
+                if (string.Compare(extension, BoostTestDiscoverer.ExeExtension, true) != 0)
+                {
                     continue;
+                }
 
                 // Ensure that the source is a Boost.Test module if it supports '--list_content'
                 if (((settings.ForceListContent) || IsListContentSupported(source, settings)))
@@ -133,9 +140,8 @@ namespace BoostTestAdapter
 
             IBoostTestRunner runner = _factory.GetRunner(source, options);
 
-            // Convention over configuration. Assume test runners utilising such an extension
-            return (runner != null) && (runner.Source.EndsWith(ForceListContentExtension, StringComparison.OrdinalIgnoreCase) || runner.ListContentSupported);
+            // Convention over configuration. Assume test runners utilising such an extension pattern
+            return (runner != null) && (_forceListContentExtensionPattern.IsMatch(source) || runner.ListContentSupported);
         }
-
     }
 }
