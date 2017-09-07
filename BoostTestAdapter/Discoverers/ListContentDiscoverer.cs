@@ -137,12 +137,13 @@ namespace BoostTestAdapter.Discoverers
                             Logger.Error("--list_content=DOT for {0} failed with exit code {1}. Skipping.", source, resultCode);
                             continue;
                         }
-                        
+
                         // Parse --list_content=DOT output
-                        using (FileStream stream = File.OpenRead(args.StandardErrorFile))
+                        using (var stream = File.OpenRead(args.StandardErrorFile))
+                        using (var reader = new StreamReader(stream, System.Text.Encoding.Default))
                         {
                             TestFrameworkDOTDeserialiser deserialiser = new TestFrameworkDOTDeserialiser(source);
-                            TestFramework framework = deserialiser.Deserialise(stream);
+                            TestFramework framework = deserialiser.Deserialise(reader);
                             if ((framework != null) && (framework.MasterTestSuite != null))
                             {
                                 framework.MasterTestSuite.Apply(new VSDiscoveryVisitor(source, GetVersion(runner), discoverySink));
@@ -196,7 +197,7 @@ namespace BoostTestAdapter.Discoverers
                     return string.Empty;
                 }
 
-                var info = File.ReadAllText(args.StandardErrorFile, System.Text.Encoding.ASCII);
+                var info = File.ReadAllText(args.StandardErrorFile, System.Text.Encoding.Default);
 
                 var match = _versionPattern.Match(info);
                 return (match.Success) ? match.Groups[1].Value : string.Empty;

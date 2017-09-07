@@ -47,7 +47,18 @@ namespace BoostTestAdapter.Boost.Test
             BoostTestFrameworkVisitor dotVisitor = new BoostTestFrameworkVisitor(this);
             return DOT.Parse(stream, dotVisitor);
         }
-        
+
+        /// <summary>
+        /// Parses the stream containing a Boost Test DOT representation of a Test Framework
+        /// </summary>
+        /// <param name="stream">The text reader consisting of a DOT representation</param>
+        /// <returns>The deserialised Test Framework</returns>
+        public TestFramework Deserialise(TextReader stream)
+        {
+            BoostTestFrameworkVisitor dotVisitor = new BoostTestFrameworkVisitor(this);
+            return DOT.Parse(stream, dotVisitor);
+        }
+
         /// <summary>
         /// Implementation of DOTBaseVisitor which creates/populates a
         /// TestFramework instance from a DOT abstract syntax tree.
