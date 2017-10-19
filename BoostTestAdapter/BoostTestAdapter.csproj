@@ -142,10 +142,10 @@
     <Compile Include="TestBatch\SourceTestBatchStrategy.cs" />
     <Compile Include="TestBatch\TestBatchStrategy.cs" />
     <Compile Include="TestBatch\TestSuiteTestBatchStrategy.cs" />
+    <Compile Include="Utility\ByteArrayUtils.cs" />
     <Compile Include="Utility\Code.cs" />
     <Compile Include="Utility\CommandEvaluator.cs" />
     <Compile Include="Utility\CommandLine.cs" />
-    <Compile Include="Utility\DebugHelperNative.cs" />
     <Compile Include="Utility\ExecutionContext\DebugFrameworkExecutionContext.cs" />
     <Compile Include="Utility\ExecutionContext\DefaultProcessExecutionContext.cs" />
     <Compile Include="Utility\ExecutionContext\IProcessExecutionContext.cs" />
