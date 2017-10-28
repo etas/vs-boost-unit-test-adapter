@@ -45,8 +45,19 @@ namespace BoostTestAdapterNunit.Fakes
         {
             IBoostTestRunner runner = A.Fake<IBoostTestRunner>();
 
+            var capabilties = new BoostTestRunnerCapabilities
+            {
+                ListContent = ListContentSupport.Contains(identifier)
+            };
+
+            if (options.ForcedBoostTestVersion != null)
+            {
+                capabilties.ListContent = (options.ForcedBoostTestVersion >= DefaultBoostTestRunnerFactory.Boost159);
+                capabilties.Version = (options.ForcedBoostTestVersion >= DefaultBoostTestRunnerFactory.Boost163);
+            }
+            
             A.CallTo(() => runner.Source).Returns(identifier);
-            A.CallTo(() => runner.ListContentSupported).Returns(ListContentSupport.Contains(identifier));
+            A.CallTo(() => runner.Capabilities).Returns(capabilties);
 
             return runner;
         }

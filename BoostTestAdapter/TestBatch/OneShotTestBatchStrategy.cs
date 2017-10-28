@@ -20,7 +20,7 @@ namespace BoostTestAdapter.TestBatch
     {
         #region Constants
 
-        private static readonly Version _minimumVersion = new Version(1, 63, 0);
+        private static readonly Version _minimumVersion = DefaultBoostTestRunnerFactory.Boost163;
         private static readonly Version _zero = new Version(0, 0, 0);
 
         #endregion

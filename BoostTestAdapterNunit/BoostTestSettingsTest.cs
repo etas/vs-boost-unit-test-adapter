@@ -62,7 +62,7 @@ namespace BoostTestAdapterNunit
             Assert.That(settings.DetectFloatingPointExceptions, Is.False);
             Assert.That(settings.CatchSystemErrors, Is.Null);
             Assert.That(settings.TestBatchStrategy, Is.EqualTo(Strategy.TestCase));
-            Assert.That(settings.ForceListContent, Is.False);
+            Assert.That(settings.ForceBoostVersion, Is.Empty);
             Assert.That(settings.WorkingDirectory, Is.Null);
             Assert.That(settings.EnableStdOutRedirection, Is.True);
             Assert.That(settings.EnableStdErrRedirection, Is.True);
@@ -229,6 +229,19 @@ namespace BoostTestAdapterNunit
         {
             BoostTestAdapterSettings settings = ParseXml(settingsXml);
             return settings.TestBatchStrategy;
+        }
+
+        /// <summary>
+        /// Assert that: The 'ForceBoostVersion' option can be properly parsed
+        /// </summary>
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><ForceBoostVersion>1.59</ForceBoostVersion></BoostTest></RunSettings>", Result = "1.59")]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><ForceBoostVersion>1.62</ForceBoostVersion></BoostTest></RunSettings>", Result = "1.62")]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><ForceBoostVersion>1.63</ForceBoostVersion></BoostTest></RunSettings>", Result = "1.63")]
+        [TestCase("<?xml version=\"1.0\" encoding=\"utf-8\"?><RunSettings><BoostTest><ForceBoostVersion /></BoostTest></RunSettings>", Result = "")]
+        public string ParseForceBoostVersion(string settingsXml)
+        {
+            BoostTestAdapterSettings settings = ParseXml(settingsXml);
+            return settings.ForceBoostVersion;
         }
 
         #endregion Tests

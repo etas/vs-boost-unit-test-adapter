@@ -39,11 +39,9 @@ namespace BoostTestAdapter.Boost.Runner
 
         #region IBoostTestRunner
 
-        public bool ListContentSupported => this.Runner.ListContentSupported;
-
-        public bool VersionSupported => this.Runner.VersionSupported;
-
         public string Source => this.Runner.Source;
+
+        public IBoostTestRunnerCapabilities Capabilities => this.Runner.Capabilities;
 
         public int Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext executionContext)
         {

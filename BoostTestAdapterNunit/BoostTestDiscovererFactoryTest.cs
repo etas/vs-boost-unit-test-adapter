@@ -13,6 +13,7 @@ using BoostTestAdapter.Settings;
 using BoostTestAdapter.Boost.Runner;
 
 using BoostTestAdapterNunit.Fakes;
+using BoostTestAdapterNunit.Utility;
 
 using NUnit.Framework;
 using FakeItEasy;
@@ -28,7 +29,7 @@ namespace BoostTestAdapterNunit
         public void SetUp()
         {
             this.RunnerFactory = new StubBoostTestRunnerFactory(new[] { ("ListContentSupport" + BoostTestDiscoverer.ExeExtension) });
-            this.DiscovererFactory = new BoostTestDiscovererFactory(this.RunnerFactory);
+            this.DiscovererFactory = new BoostTestDiscovererFactory(this.RunnerFactory, DummyVSProvider.Default);
         }
 
         #endregion Test Setup/Teardown
@@ -115,8 +116,7 @@ namespace BoostTestAdapterNunit
             Assert.That(exd.Sources, Is.EqualTo(new[] { "DllProject1" + BoostTestDiscoverer.DllExtension,
                 "DllProject2" + BoostTestDiscoverer.DllExtension }));
         }
-
-
+        
         /// <summary>
         /// The aim of this test is to check that if the Discoverer is given multiple projects,
         /// the factory dispatches the discoverers accordingly to the type of source.
@@ -179,10 +179,8 @@ namespace BoostTestAdapterNunit
             discoverer = this.DiscovererFactory.GetDiscoverer(source, settings);
 
             Assert.That(discoverer, Is.Null);
-
         }
-
-
+        
         /// <summary>
         /// The aim of this test is to check that if the Discoverer is given a single project,
         /// the factory returns the discoverer accordingly to the type of source.

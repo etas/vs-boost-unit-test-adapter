@@ -63,8 +63,8 @@ namespace BoostTestAdapter
         public BoostTestExecutor()
         {
             _testRunnerFactory = new DefaultBoostTestRunnerFactory();
-            _boostTestDiscovererFactory = new BoostTestDiscovererFactory(_testRunnerFactory);
             _vsProvider = new DefaultVisualStudioInstanceProvider();
+            _boostTestDiscovererFactory = new BoostTestDiscovererFactory(_testRunnerFactory, _vsProvider);
 
             _cancelled = false;
         }
@@ -264,7 +264,7 @@ namespace BoostTestAdapter
             //      multiple test name specification for tests which reside in the same test suite
             //
             // NOTE For code-coverage speed is given preference over adapter responsiveness.
-            TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.TestSuite : settings.TestBatchStrategy);
+            TestBatch.Strategy strategy = ((runContext.IsDataCollectionEnabled) ? TestBatch.Strategy.One : settings.TestBatchStrategy);
             // Source strategy is invalid in such context since explicit tests are chosen. TestSuite is used instead.
             if (strategy == Strategy.Source)
             {

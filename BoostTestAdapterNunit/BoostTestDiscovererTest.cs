@@ -16,6 +16,7 @@ using NUnit.Framework;
 using BoostTestAdapter.Boost.Runner;
 using FakeItEasy;
 using BoostTestAdapter.Utility.ExecutionContext;
+using System;
 
 namespace BoostTestAdapterNunit
 {
@@ -116,10 +117,8 @@ namespace BoostTestAdapterNunit
             this.Source = source;
         }
 
-        public bool ListContentSupported { get; } = true;
-
-        public bool VersionSupported { get; } = false;
-
+        public IBoostTestRunnerCapabilities Capabilities { get; } = new BoostTestRunnerCapabilities { ListContent = true, Version = false };
+        
         public string Source { get; private set; }
 
         public int Execute(BoostTestRunnerCommandLineArgs args, BoostTestRunnerSettings settings, IProcessExecutionContext context)

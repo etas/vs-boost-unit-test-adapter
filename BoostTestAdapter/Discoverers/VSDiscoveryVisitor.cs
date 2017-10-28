@@ -83,7 +83,7 @@ namespace BoostTestAdapter.Discoverers
                 {
                     // NOTE Since we have asserted that the suite is a BOOST_DATA_TEST_CASE,
                     //      all child instances are to be of type TestCase
-                    
+
                     var displayName = testSuite.Name + '/' + child.Name;
                     Visit((TestCase)child, displayName);
                 }
@@ -120,6 +120,7 @@ namespace BoostTestAdapter.Discoverers
 
             // Send to discovery sink
             Logger.Info("Found test: {0}", test.FullyQualifiedName);
+
             this.DiscoverySink.SendTestCase(test);
         }
 

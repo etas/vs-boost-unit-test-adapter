@@ -28,13 +28,8 @@ namespace BoostTestAdapter.Boost.Runner
         string Source { get; }
 
         /// <summary>
-        /// Determines if the test runner provides --list_content capabilities.
+        /// Determines the test runner's capability set
         /// </summary>
-        bool ListContentSupported { get; }
-
-        /// <summary>
-        /// Determines if the test runner provides --version capabilities.
-        /// </summary>
-        bool VersionSupported { get; }
+        IBoostTestRunnerCapabilities Capabilities { get; }
     }
 }

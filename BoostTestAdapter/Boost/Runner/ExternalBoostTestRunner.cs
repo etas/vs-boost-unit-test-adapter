@@ -56,16 +56,18 @@ namespace BoostTestAdapter.Boost.Runner
             }
         }
 
-        public override bool ListContentSupported
+        public override IBoostTestRunnerCapabilities Capabilities
         {
             get
             {
-                return (Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryListContent);
+                return new BoostTestRunnerCapabilities
+                {
+                    ListContent = (Settings.DiscoveryMethodType == DiscoveryMethodType.DiscoveryListContent),
+                    Version = false
+                };
             }
         }
-
-        public override bool VersionSupported { get; } = false;
-
+        
         #endregion IBoostTestRunner
 
         #region BoostTestRunnerBase

@@ -78,6 +78,10 @@
   <ItemGroup>
     <Compile Include="BoostTestDiscoverer.cs" />
     <Compile Include="Boost\Runner\BoostTest162Runner.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerCapabilities.cs" />
+    <Compile Include="Boost\Runner\BoostTestRunnerCapabilityOverride.cs" />
+    <Compile Include="Boost\Runner\CachingBoostTestRunnerFactory.cs" />
+    <Compile Include="Boost\Runner\IBoostTestRunnerCapabilities.cs" />
     <Compile Include="Discoverers\BoostTestDiscovererUtility.cs" />
     <Compile Include="Discoverers\BoostTestDiscovererFactory.cs" />
     <Compile Include="BoostTestExecutor.cs" />
@@ -138,10 +142,10 @@
     <Compile Include="TestBatch\SourceTestBatchStrategy.cs" />
     <Compile Include="TestBatch\TestBatchStrategy.cs" />
     <Compile Include="TestBatch\TestSuiteTestBatchStrategy.cs" />
+    <Compile Include="Utility\ByteArrayUtils.cs" />
     <Compile Include="Utility\Code.cs" />
     <Compile Include="Utility\CommandEvaluator.cs" />
     <Compile Include="Utility\CommandLine.cs" />
-    <Compile Include="Utility\DebugHelperNative.cs" />
     <Compile Include="Utility\ExecutionContext\DebugFrameworkExecutionContext.cs" />
     <Compile Include="Utility\ExecutionContext\DefaultProcessExecutionContext.cs" />
     <Compile Include="Utility\ExecutionContext\IProcessExecutionContext.cs" />
@@ -154,6 +158,7 @@
     <Compile Include="Utility\TemporaryFile.cs" />
     <Compile Include="Utility\TestPathGenerator.cs" />
     <Compile Include="Utility\TestRun.cs" />
+    <Compile Include="Utility\TimedScope.cs" />
     <Compile Include="Utility\VisualStudio\DefaultTestCaseDiscoverySink.cs" />
     <Compile Include="Utility\VisualStudio\DefaultVisualStudioInstanceProvider.cs" />
     <Compile Include="Utility\VisualStudio\IVisualStudioInstanceProvider.cs" />
@@ -201,7 +206,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>REM required for the BoostTestPlugin so that the log4net config file is inlcuded as part of the vsix installation
+    <PostBuildEvent>REM required for the BoostTestPlugin so that the log4net config file is included as part of the vsix installation
 xcopy /c /i /y $(TargetFileName).config ..\..\..\BoostTestPlugin
 REM required by some unit tests in LoggerTest.cs so as to have a certain degree of confidence that log4net is actually logging to file
 xcopy /c /i /y $(TargetFileName).config ..\..\..\BoostTestAdapterNunit
