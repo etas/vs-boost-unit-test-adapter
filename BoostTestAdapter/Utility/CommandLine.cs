@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace BoostTestAdapter.Utility
@@ -44,11 +45,23 @@ namespace BoostTestAdapter.Utility
         /// <returns>'input' with the beginning and end 'quote' removed</returns>
         public static string TrimMatchingQuotes(this string input, char quote)
         {
-            if ((input.Length >= 2) &&
-                (input[0] == quote) && (input[input.Length - 1] == quote))
+            if (IsQuoted(input, quote))
+            {
                 return input.Substring(1, input.Length - 2);
+            }
 
             return input;
+        }
+
+        /// <summary>
+        /// States if the provided string is quoted using the provided quotation marks
+        /// </summary>
+        /// <param name="input">The input string to test</param>
+        /// <param name="mark">The quotation mark to test for</param>
+        /// <returns>true if the input string is within quotation marks; false otherwise</returns>
+        internal static bool IsQuoted(string input, char mark = '"')
+        {
+            return (input.Length >= 2) && (input[0] == mark) && (input[input.Length - 1] == mark);
         }
 
         /// <summary>
@@ -64,14 +77,20 @@ namespace BoostTestAdapter.Utility
 
             return commandLine.Split(c =>
             {
-                if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
+                if ((c == '\\') && (!isEscaping))
+                {
+                    isEscaping = true;
+                    return false;
+                }
 
-                if (c == '\"' && !isEscaping)
+                if ((c == '\"') && (!isEscaping))
+                {
                     inQuotes = !inQuotes;
+                }
 
                 isEscaping = false;
 
-                return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
+                return !inQuotes && char.IsWhiteSpace(c);
             })
                 .Select(arg => arg.Trim().TrimMatchingQuotes('\"').Replace("\\\"", "\""))
                 .Where(arg => !string.IsNullOrEmpty(arg));
@@ -108,18 +127,9 @@ namespace BoostTestAdapter.Utility
         /// <param name="fileName">The file component of the command line</param>
         /// <param name="arguments">The arguments of the command line</param>
         /// <remarks>Handles quoting in case of spaces</remarks>
-        public CommandLine(string fileName, IEnumerable<string> arguments)
+        public CommandLine(string fileName, IEnumerable<string> arguments) :
+            this(fileName, JoinArguments(arguments))
         {
-            FileName = fileName;
-            Arguments = "";
-            
-            if (arguments == null)
-                return;
-
-            foreach(string arg in arguments)
-            {
-                Arguments += (arg.Contains(' ') ? "\"" + arg + "\"" : arg) + " ";
-            }
         }
 
         public string FileName { get; set; }
@@ -127,7 +137,7 @@ namespace BoostTestAdapter.Utility
 
         public override string ToString()
         {
-            return FileName + ' ' + Arguments;
+            return NormalizePath(FileName) + ' ' + Arguments;
         }
 
         /// <summary>
@@ -137,13 +147,55 @@ namespace BoostTestAdapter.Utility
         /// <returns>The command line instance parsed from cmdLine</returns>
         public static CommandLine FromString(string cmdLine)
         {
-            cmdLine = (cmdLine == null) ? string.Empty : cmdLine;
+            cmdLine = cmdLine ?? string.Empty;
 
             var splitCommandLine = CommandLineArgExtensions.SplitCommandLine(cmdLine);
             return new CommandLine(
                 splitCommandLine.FirstOrDefault(),
                 splitCommandLine.Skip(1)
             );
+        }
+
+        /// <summary>
+        /// Concatenates a collection of strings as a valid command-line argument set
+        /// </summary>
+        /// <param name="arguments">The arguments to serialize</param>
+        /// <returns>string representing the concatenation set of all arguments</returns>
+        private static string JoinArguments(IEnumerable<string> arguments)
+        {
+            if (arguments == null)
+            {
+                return string.Empty;
+            }
+
+            var quotedArgs = arguments.Select(arg => arg.Contains(' ') ? string.Format(CultureInfo.InvariantCulture, "\"{0}\"", arg) : arg);
+            return string.Join(" ", quotedArgs);
+        }
+
+        /// <summary>
+        /// Normalizes the file path and adds quotes should the path not be quoted already
+        /// </summary>
+        /// <param name="filePath">The path to notmalized</param>
+        /// <returns>A normalized file path</returns>
+        private static string NormalizePath(string filePath)
+        {
+            var path = filePath?.Trim();
+
+            // Invalid input, return immediately
+            if (string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
+            const char mark = '"';
+
+            // If the path is already quoted, leave as is
+            if (CommandLineArgExtensions.IsQuoted(path, mark))
+            {
+                return path;
+            }
+
+            return path.Contains(' ') ? (mark + path + mark) : path;
         }
     }
 }
