@@ -106,7 +106,7 @@ namespace BoostTestAdapterNunit
 
             Assert.That(settings.ExternalTestRunner, Is.Not.Null);
             Assert.That(settings.ExternalTestRunner.ExtensionType.ToString(), Is.EqualTo(".dll"));
-            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source} "));
+            Assert.That(settings.ExternalTestRunner.ExecutionCommandLine.ToString(), Is.EqualTo("C:\\ExternalTestRunner.exe --test {source}"));
         }
 
         /// <summary>

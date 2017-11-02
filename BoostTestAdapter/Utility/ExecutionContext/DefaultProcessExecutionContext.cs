@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 using JobManagement;
 
@@ -12,7 +13,7 @@ namespace BoostTestAdapter.Utility.ExecutionContext
 {
     /// <summary>
     /// An IProcessExecutionContext which produces regular sub-processes.
-    /// Guarantees that sub-processes are destoryed when this processes is killed.
+    /// Guarantees that sub-processes are destroyed when this processes is killed.
     /// </summary>
     public class DefaultProcessExecutionContext : IProcessExecutionContext
     {
@@ -101,10 +102,10 @@ namespace BoostTestAdapter.Utility.ExecutionContext
                 WindowStyle = ProcessWindowStyle.Hidden,
 
                 WorkingDirectory = args.WorkingDirectory,
-                
+
                 // Start the process through cmd.exe to allow redirection operators to work as expected
                 FileName = "cmd.exe",
-                Arguments = "/S /C \"\"" + args.FilePath + "\" " + args.Arguments + '"',
+                Arguments = string.Format(CultureInfo.InvariantCulture, "/S /C \"{0}\"", new CommandLine(args.FilePath, args.Arguments).ToString()),
 
                 // Redirection should be specified as part of 'args.Arguments' and sent to a file
                 RedirectStandardError = false,
