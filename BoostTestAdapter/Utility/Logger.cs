@@ -161,6 +161,8 @@ namespace BoostTestAdapter.Utility
             Code.Require(ex, "ex");
 
             Error(format, args);
+
+            Debug("Exception Type: {0}", ex.GetType());
             Debug(ex.StackTrace);
         }
 

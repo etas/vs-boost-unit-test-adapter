@@ -116,11 +116,24 @@ namespace BoostTestAdapter.Boost.Runner
                 throw new TimeoutException(timeout);
             }
 
-            return process.ExitCode;
+            try
+            {
+                return process.ExitCode;
+            }
+            catch (InvalidOperationException)
+            {
+                // This is a common scenario when attempting to request the exit code
+                // of a process which is executed through the debugger. In such cases
+                // assume a successful exit scenario. Should this not be the case, the
+                // adapter will 'naturally' fail in other instances e.g. when attempting
+                // to read test reports.
+
+                return 0;
+            }
         }
 
         /// <summary>
-        ///     Kills a process identified by its pid and all its children processes
+        /// Kills a process identified by its pid and all its children processes
         /// </summary>
         /// <param name="process">process object</param>
         /// <returns></returns>
