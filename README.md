@@ -1,6 +1,17 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/28lw0jb0k19ekmtq/branch/master?svg=true)](https://ci.appveyor.com/project/guwirth/vs-boost-unit-test-adapter/branch/master)
 
-# Boost Unit Test Adapter for Microsoft Visual Studio
+# Development of this adapter has been moved to Microsoft fork
+
+Visual Studio now ships with Boost.Test support. As of Visual Studio 2017 15.5 Preview 3, you can write, discover, and run all of your Boost.Test unit tests using Visual Studio’s testing tools right out of the box.
+
+The Microsoft adapter is a fork of this adapter. Microsoft aims to be transparent with their work on this test adapter and maintain the spirit of the original project by keeping it open source. In addition, this gives you the chance to contribute changes and help improve this adapter going forward, or even get inspired to write your own adapters for other test frameworks. Check out the Microsoft fork on GitHub via the link below:
+* [Test Adapter for Boost.Test GitHub](https://github.com/microsoft/vs-boost-unit-test-adapter)
+
+**I like to thank all developer and contributors for there great work during the last years and would like to ask you to continue your work on the Micosoft fork.**
+
+
+
+# Deprecated: Boost Unit Test Adapter for Microsoft Visual Studio 2015
 
 ## Introduction
 The Boost Unit Test Adapter is available as a free extension for Microsoft Visual Studio. It makes use of the Unit Test Explorer (UTE) provided by Microsoft in the Visual Studio IDE to visualize and run unit test cases that are written using the open source Boost Unit Test Framework libraries. Boost provides free, peer-reviewed, portable C++ source libraries. Boost libraries are intended to be widely useful and usable across a broad spectrum of applications. Boost works on almost any modern operating system, including UNIX and Windows variants.
