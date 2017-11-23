@@ -7,7 +7,7 @@ Visual Studio now ships with Boost.Test support. As of Visual Studio 2017 15.5 P
 The Microsoft adapter is a fork of this adapter. Microsoft aims to be transparent with their work on this test adapter and maintain the spirit of the original project by keeping it open source. In addition, this gives you the chance to contribute changes and help improve this adapter going forward, or even get inspired to write your own adapters for other test frameworks. Check out the Microsoft fork on GitHub via the link below:
 * [Test Adapter for Boost.Test GitHub](https://github.com/microsoft/vs-boost-unit-test-adapter)
 
-**I like to thank all developer and contributors for there great work during the last years and would like to ask you to continue your work on the Micosoft fork.**
+**I like to thank all developer and contributors for their great work during the last years and would like to ask you to continue your work on the Microsoft fork.**
 
 
 
